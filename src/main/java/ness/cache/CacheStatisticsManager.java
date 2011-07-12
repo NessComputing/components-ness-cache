@@ -19,14 +19,16 @@ import com.google.inject.Singleton;
 @ThreadSafe
 class CacheStatisticsManager {
     private final Lifecycle lifecycle;
+    private final MBeanExporter exporter;
+    private final boolean jmxEnabled;
     @GuardedBy("this")
     private final Map<String, CacheStatistics> statistics = Maps.newHashMap();
-    private final MBeanExporter exporter;
     
     @Inject
-    CacheStatisticsManager(Lifecycle lifecycle, MBeanExporter exporter) {
+    CacheStatisticsManager(Lifecycle lifecycle, MBeanExporter exporter, CacheConfiguration config) {
         this.lifecycle = lifecycle;
         this.exporter = exporter;
+        this.jmxEnabled = config.isJmxEnabled();
     }
     
     public synchronized Map<String, CacheStatistics> getCacheStatistics() {
@@ -37,14 +39,18 @@ class CacheStatisticsManager {
         CacheStatistics result = statistics.get(namespace);
         if (result == null) {
             result = new CacheStatistics(namespace);
-            final String objectName = "ness.cache:namespace=" + namespace;
-            exporter.export(objectName, result);
-            lifecycle.addListener(LifecycleStage.STOP_STAGE, new LifecycleListener() {
-                @Override
-                public void onStage(LifecycleStage lifecycleStage) {
-                    exporter.unexport(objectName);
-                }
-            });
+            
+            if (jmxEnabled) {
+                final String objectName = "ness.cache:namespace=" + namespace;
+                exporter.export(objectName, result);
+                lifecycle.addListener(LifecycleStage.STOP_STAGE, new LifecycleListener() {
+                    @Override
+                    public void onStage(LifecycleStage lifecycleStage) {
+                        exporter.unexport(objectName);
+                    }
+                });
+            }
+            
             statistics.put(namespace, result);
         }
         return result;

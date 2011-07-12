@@ -38,6 +38,10 @@ public class NullCacheTest {
                     public CacheType getCacheType() {
                         return CacheType.NONE;
                     }
+                    @Override
+                    public boolean isJmxEnabled() {
+                        return false;
+                    }
                 }));
                 
                 install (new LifecycleModule());

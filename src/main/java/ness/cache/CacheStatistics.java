@@ -10,12 +10,19 @@ import org.weakref.jmx.Managed;
 public class CacheStatistics {
 
     private final AtomicLong stores, fetches, hits, clears;
+    private final String namespace;
 
     public CacheStatistics(String namespace) {
+        this.namespace = namespace;
         stores = new AtomicLong();
         fetches = new AtomicLong();
         hits = new AtomicLong();
         clears = new AtomicLong();
+    }
+    
+    @Managed
+    public String getNamespace() {
+        return namespace;
     }
     
     @Managed

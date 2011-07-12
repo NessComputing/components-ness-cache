@@ -23,6 +23,10 @@ public class JvmCacheTest extends BaseCachingTests {
                     public CacheType getCacheType() {
                         return CacheType.JVM;
                     }
+                    @Override
+                    public boolean isJmxEnabled() {
+                        return false;
+                    }
                 }));
                 
                 bind (Lifecycle.class).toInstance(EasyMock.createMock(Lifecycle.class));

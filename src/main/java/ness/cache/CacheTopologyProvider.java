@@ -7,6 +7,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
+import ness.discovery.client.ReadOnlyDiscoveryClient;
+
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -14,11 +16,12 @@ import com.google.inject.Singleton;
 @Singleton
 class CacheTopologyProvider {
     private static final Log LOG = Log.findLog();
-    
     private final List<InetSocketAddress> addrs;
+    private final ReadOnlyDiscoveryClient discoveryClient;
     
     @Inject
-    CacheTopologyProvider(CacheConfiguration config) {
+    CacheTopologyProvider(CacheConfiguration config, ReadOnlyDiscoveryClient discoveryClient) {
+        this.discoveryClient = discoveryClient;
         List<URI> uris = config.getCacheUri();
         if (uris != null) {
             ImmutableList.Builder<InetSocketAddress> addrBuilder = ImmutableList.builder();
@@ -40,6 +43,7 @@ class CacheTopologyProvider {
             return addrs;
         }
         // TODO
+        discoveryClient.findAllServiceInformation("memcached");
         return Collections.singletonList(new InetSocketAddress("localhost", 11211));
     }
 }

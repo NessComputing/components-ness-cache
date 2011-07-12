@@ -8,6 +8,9 @@ import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.LifecycleModule;
 
+import ness.discovery.client.ReadOnlyDiscoveryClient;
+
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import com.google.inject.AbstractModule;
@@ -31,6 +34,10 @@ public class CacheIntegrationTest extends BaseCacheIntegrationSetup {
         public List<URI> getCacheUri() {
             return Collections.singletonList(URI.create("memcache://localhost:11212"));
         }
+        @Override
+        public boolean isJmxEnabled() {
+            return false;
+        }
     };
     
     @Before
@@ -43,6 +50,8 @@ public class CacheIntegrationTest extends BaseCacheIntegrationSetup {
                 install (new CacheModule(configuration));
                 
                 install (new LifecycleModule());
+                
+                bind (ReadOnlyDiscoveryClient.class).toInstance(EasyMock.createNiceMock(ReadOnlyDiscoveryClient.class));
             }
         });
         lifecycle.executeTo(LifecycleStage.START_STAGE);

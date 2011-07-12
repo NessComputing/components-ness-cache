@@ -45,4 +45,13 @@ public abstract class CacheConfiguration {
     public List<URI> getCacheUri() {
         return null;
     }
+    
+    /**
+     * @return whether cache JMX exporting is enabled
+     */
+    @Config("ness.cache.jmx")
+    @Default("true")
+    public boolean isJmxEnabled() {
+        return true;
+    }
 }
