@@ -28,6 +28,8 @@ public class CacheModule extends PrivateModule {
             expose (Cache.class);
         }
         
+        bind (CacheStatisticsManager.class);
+        
         bind (CacheConfiguration.class).toInstance(config);
         
         // Internal bindings are not exposed, so do not need to be annotated.

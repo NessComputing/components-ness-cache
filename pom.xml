@@ -84,12 +84,6 @@
   <dependencies>
     <dependency>
       <groupId>io.trumpet.components</groupId>
-      <artifactId>tc-config</artifactId>
-      <version>5.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>io.trumpet.components</groupId>
       <artifactId>tc-log</artifactId>
       <version>5.0</version>
       <exclusions>
@@ -113,15 +107,21 @@
     </dependency>
 
     <dependency>
-      <groupId>io.trumpet.components</groupId>
-      <artifactId>tc-service-locator</artifactId>
-      <version>0.2</version>
+      <groupId>ness.discovery</groupId>
+      <artifactId>discovery-client</artifactId>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
     
     <dependency>
       <groupId>spymemcached</groupId>
       <artifactId>memcached</artifactId>
       <version>2.7</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>net.sf.ehcache</groupId>
+      <artifactId>ehcache-core</artifactId>
+      <version>2.4.3</version>
     </dependency>
 
     <!-- Guice and Guava -->
@@ -189,14 +189,6 @@
       		<groupId>org.slf4j</groupId>
       	</exclusion>
       </exclusions>
-    </dependency>
-    
-    <!-- jmemcached-core requires slf4j-api 1.6 but declares a dep on 1.5.8... o_O -->
-    <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>1.6.1</version>
-        <scope>test</scope>
     </dependency>
     
     <dependency>
