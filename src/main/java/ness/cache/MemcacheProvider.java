@@ -20,6 +20,9 @@ import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Provide a cache based upon a memached server
+ */
 @Singleton
 final class MemcacheProvider implements InternalCacheProvider {
     private static final Log LOG = Log.findLog();
@@ -31,17 +34,19 @@ final class MemcacheProvider implements InternalCacheProvider {
         this.config = config;
         this.clientFactory = clientFactory;
     }
-    
+
     @Override
     public void set(String namespace, Map<String, CacheStore> stores) {
         MemcachedClient client = clientFactory.get();
+
         for (final Entry<String, CacheStore> action : stores.entrySet()) {
+
             CacheStore cacheStore = action.getValue();
             Future<Boolean> future = client.set(
                 makeKey(namespace, action.getKey()),
-                computeMemcacheExpiry(cacheStore.getExpiry()), 
+                computeMemcacheExpiry(cacheStore.getExpiry()),
                 cacheStore.getBytes());
-            
+
             if (config.isCacheSynchronous()) {
                 try {
                     future.get();
@@ -58,23 +63,23 @@ final class MemcacheProvider implements InternalCacheProvider {
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
         MemcachedClient client = clientFactory.get();
-        
+
         assert MemcacheByteArrayTranscoder.class.isAssignableFrom(client.getTranscoder().getClass());
 
         // The assertion above protects this somewhat dodgy-looking cast.  Since the transcoder always
         // returns byte[], it is safe to cast the value Object to byte[].
         Map<String, byte[]> result = (Map<String, byte[]>) (Map<String, ?>) client.getBulk(makeKeys(namespace, keys));
-        
+
         ImmutableMap.Builder<String, byte[]> transformedResults = ImmutableMap.builder();
-        
+
         for (Entry<String, byte[]> e : result.entrySet()) {
             if (e.getValue() == null) {
                 continue;
             }
-            
+
             transformedResults.put(StringUtils.removeStart(e.getKey(), makeKey(namespace, "")), e.getValue());
         }
-        
+
         return transformedResults.build();
     }
 
@@ -83,7 +88,7 @@ final class MemcacheProvider implements InternalCacheProvider {
         MemcachedClient client = clientFactory.get();
         for (String key : keys) {
             Future<Boolean> future = client.delete(makeKey(namespace, key));
-            
+
             if (config.isCacheSynchronous()) {
                 try {
                     future.get();
@@ -95,11 +100,12 @@ final class MemcacheProvider implements InternalCacheProvider {
             }
         }
     }
-    
+
+    /** Memcache expects expiration dates in seconds since the epoch */
     protected int computeMemcacheExpiry(DateTime when) {
         return Ints.saturatedCast(when.getMillis() / 1000);
     }
-    
+
     private Collection<String> makeKeys(final String namespace, Collection<String> keys) {
         return Collections2.transform(keys, new Function<String, String>() {
             @Override
@@ -108,6 +114,7 @@ final class MemcacheProvider implements InternalCacheProvider {
             }
         });
     }
+
     private String makeKey(String namespace, String key) {
         return namespace + "\u0001" + key;
     }

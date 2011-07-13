@@ -11,6 +11,8 @@ final class MemcacheByteArrayTranscoder implements Transcoder<byte[]> {
 
     @Override
     public CachedData encode(byte[] data) {
+        // Apparently Memcache does not differentiate between a byte[0] and null,
+        // so use the flag field to mark nonnull values
         return new CachedData(data == null ? 0 : 1, data, getMaxSize());
     }
 

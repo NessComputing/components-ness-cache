@@ -13,15 +13,19 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Use service discovery or configuration to assemble a set of Memcache servers dynamically.
+ */
 @Singleton
 class CacheTopologyProvider {
     private static final Log LOG = Log.findLog();
     private final List<InetSocketAddress> addrs;
     private final ReadOnlyDiscoveryClient discoveryClient;
-    
+
     @Inject
     CacheTopologyProvider(CacheConfiguration config, ReadOnlyDiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
+
         List<URI> uris = config.getCacheUri();
         if (uris != null) {
             ImmutableList.Builder<InetSocketAddress> addrBuilder = ImmutableList.builder();
@@ -37,11 +41,12 @@ class CacheTopologyProvider {
             addrs = null;
         }
     }
-    
+
     public List<InetSocketAddress> get() {
         if (addrs != null) {
             return addrs;
         }
+
         // TODO
         discoveryClient.findAllServiceInformation("memcached");
         return Collections.singletonList(new InetSocketAddress("localhost", 11211));

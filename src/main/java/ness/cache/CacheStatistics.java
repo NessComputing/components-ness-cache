@@ -6,6 +6,9 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import org.weakref.jmx.Managed;
 
+/**
+ * Bean to hold cache statistics on a per-namespace basis
+ */
 @ThreadSafe
 public class CacheStatistics {
 
@@ -19,12 +22,12 @@ public class CacheStatistics {
         hits = new AtomicLong();
         clears = new AtomicLong();
     }
-    
+
     @Managed
     public String getNamespace() {
         return namespace;
     }
-    
+
     @Managed
     public long getStores() {
         return stores.get();
@@ -64,15 +67,15 @@ public class CacheStatistics {
     public void incrementStores(int stores) {
         this.stores.addAndGet(stores);
     }
-    
+
     public void incrementFetches(int fetches) {
         this.fetches.addAndGet(fetches);
     }
-    
+
     public void incrementHits(int hits) {
         this.hits.addAndGet(hits);
     }
-    
+
     public void incrementClears(int clears) {
         this.clears.addAndGet(clears);
     }
@@ -81,7 +84,7 @@ public class CacheStatistics {
     public double getHitPercentage() {
         return 100.0 * getHits() / getFetches();
     }
-    
+
     @Managed
     public void clear() {
         stores.set(0);

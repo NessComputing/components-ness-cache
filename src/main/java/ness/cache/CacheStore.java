@@ -9,6 +9,9 @@ import org.joda.time.DateTime;
 
 import com.google.common.base.Preconditions;
 
+/**
+ * Encapsulates a single store of arbitrary data, which expires at a given time.
+ */
 @NotThreadSafe
 public class CacheStore {
     private final byte[] data;
@@ -27,7 +30,7 @@ public class CacheStore {
         this.data = data;
         this.expiry = expiry;
     }
-    
+
     /**
      * Create a new cache entry ready for storing
      * @param data the data to store; this data is shared (not copied) for efficiency and should never be modified after being handed off.
@@ -36,7 +39,7 @@ public class CacheStore {
     public static CacheStore fromSharedBytes(byte[] data, DateTime expiry) {
         return new CacheStore(data, expiry);
     }
-    
+
     /**
      * Create a new cache entry ready for storing
      * @param data the data to store; this data is copied and may be modified after the invocation completes

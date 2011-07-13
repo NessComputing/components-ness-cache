@@ -4,6 +4,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+/**
+ * Basic null cache.  All stores are ignored, all fetches return no entries.
+ */
 public class NullProvider implements InternalCacheProvider {
     @Override
     public void set(String namepsace, Map<String, CacheStore> stores) { }

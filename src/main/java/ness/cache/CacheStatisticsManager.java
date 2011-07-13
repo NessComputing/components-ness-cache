@@ -10,11 +10,16 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.weakref.jmx.MBeanExporter;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Manage various {@link CacheStatistics} beans exported via JMX.  Exports them on first access,
+ * and unexports them on lifecycle shutdown.
+ */
 @Singleton
 @ThreadSafe
 class CacheStatisticsManager {
@@ -23,23 +28,23 @@ class CacheStatisticsManager {
     private final boolean jmxEnabled;
     @GuardedBy("this")
     private final Map<String, CacheStatistics> statistics = Maps.newHashMap();
-    
+
     @Inject
     CacheStatisticsManager(Lifecycle lifecycle, MBeanExporter exporter, CacheConfiguration config) {
         this.lifecycle = lifecycle;
         this.exporter = exporter;
         this.jmxEnabled = config.isJmxEnabled();
     }
-    
+
     public synchronized Map<String, CacheStatistics> getCacheStatistics() {
         return ImmutableMap.copyOf(statistics);
     }
-    
+
     public synchronized CacheStatistics getCacheStatistics(String namespace) {
         CacheStatistics result = statistics.get(namespace);
         if (result == null) {
             result = new CacheStatistics(namespace);
-            
+
             if (jmxEnabled) {
                 final String objectName = "ness.cache:namespace=" + namespace;
                 exporter.export(objectName, result);
@@ -50,7 +55,7 @@ class CacheStatisticsManager {
                     }
                 });
             }
-            
+
             statistics.put(namespace, result);
         }
         return result;

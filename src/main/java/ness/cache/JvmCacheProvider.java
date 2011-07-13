@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -19,21 +20,24 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * An in-JVM cache, currently backed by EHCache
+ */
 @Singleton
 public class JvmCacheProvider implements InternalCacheProvider {
-    
+
     private final Cache ehCache;
-    
+
     @Inject
     JvmCacheProvider(Lifecycle lifecycle) {
         ehCache = new Cache(new CacheConfiguration("ness.cache." + hashCode(), 100000)
                 .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
                 .overflowToDisk(false)
                 .diskPersistent(false));
-        
+
         final CacheManager cacheManager = CacheManager.create();
         cacheManager.addCache(ehCache);
-        
+
         lifecycle.addListener(LifecycleStage.STOP_STAGE, new LifecycleListener() {
             @Override
             public void onStage(LifecycleStage lifecycleStage) {
@@ -41,11 +45,13 @@ public class JvmCacheProvider implements InternalCacheProvider {
             }
         });
     }
-    
+
     @Override
     public void set(String namespace, Map<String, CacheStore> stores) {
         for (Entry<String, CacheStore> e : stores.entrySet()) {
-            ehCache.put(new Element(makeKey(namespace, e.getKey()), e.getValue()));
+            ehCache.put(new Element(
+                    makeKey(namespace, e.getKey()),
+                    e.getValue()));
         }
     }
 
