@@ -1,8 +1,11 @@
 package ness.cache;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 import org.joda.time.DateTime;
 
@@ -35,6 +38,15 @@ public class NamespacedCache {
     @CheckForNull
     public byte[] get(String key) {
         return cache.get(namespace, Collections.singleton(key)).get(key);
+    }
+
+    /**
+     * Simple bulk fetch.
+     * @see Cache#get(String, Collection)
+     */
+    @Nonnull
+    public Map<String, byte[]> get(Collection<String> keys) {
+        return cache.get(namespace, keys);
     }
 
     /**
