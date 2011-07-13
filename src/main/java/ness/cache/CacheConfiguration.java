@@ -18,6 +18,8 @@ public abstract class CacheConfiguration {
         MEMCACHE
     }
 
+    public static final CacheConfiguration NONE = new CacheConfiguration() { };
+
     /**
      * @return the requested type of caching
      */
