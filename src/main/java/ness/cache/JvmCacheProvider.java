@@ -60,6 +60,7 @@ public class JvmCacheProvider implements InternalCacheProvider {
         ImmutableMap.Builder<String, byte[]> builder = ImmutableMap.builder();
         for (String key : keys) {
             Element value = ehCache.get(makeKey(namespace, key));
+            
             if (value != null && value.getObjectValue() != null) {
                 CacheStore storedEntry = (CacheStore) value.getObjectValue();
                 if (storedEntry.getExpiry().isAfterNow()) {
@@ -68,6 +69,7 @@ public class JvmCacheProvider implements InternalCacheProvider {
                     clear(namespace, Collections.singleton(key));
                 }
             }
+            
         }
         return builder.build();
     }
