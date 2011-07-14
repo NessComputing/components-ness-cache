@@ -36,14 +36,17 @@ public class CacheModule extends PrivateModule {
         
         switch (config.getCacheType()) {
         case NONE:
+        case none:
             bind (InternalCacheProvider.class).to(NullProvider.class);
             break;
             
         case JVM:
+        case jvm:
             bind (InternalCacheProvider.class).to(JvmCacheProvider.class);
             break;
             
         case MEMCACHE:
+        case memcache:
             bind (InternalCacheProvider.class).to(MemcacheProvider.class);
             bind (MemcachedClientFactory.class);
             bind (CacheTopologyProvider.class);

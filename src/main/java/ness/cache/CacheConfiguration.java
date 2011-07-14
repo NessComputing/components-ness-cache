@@ -11,11 +11,11 @@ public abstract class CacheConfiguration {
 
     public enum CacheType {
         /** No caching is done; all reads return no results */
-        NONE,
+        NONE, none,
         /** In-JVM caching only */
-        JVM,
+        JVM, jvm,
         /** External Memcache server */
-        MEMCACHE
+        MEMCACHE, memcache
     }
 
     /**
