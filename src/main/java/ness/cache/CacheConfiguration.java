@@ -18,8 +18,6 @@ public abstract class CacheConfiguration {
         MEMCACHE
     }
 
-    public static final CacheConfiguration NONE = new CacheConfiguration() { };
-
     /**
      * @return the requested type of caching
      */
@@ -64,4 +62,18 @@ public abstract class CacheConfiguration {
     public boolean isJmxEnabled() {
         return true;
     }
+    
+
+    public static final CacheConfiguration NONE = new CacheConfiguration() { 
+        @Override
+        public CacheType getCacheType() {
+            return CacheType.NONE;
+        }
+    };
+    public static final CacheConfiguration IN_JVM = new CacheConfiguration() { 
+        @Override
+        public CacheType getCacheType() {
+            return CacheType.JVM;
+        }
+    };
 }
