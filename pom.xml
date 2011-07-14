@@ -87,6 +87,12 @@
       <artifactId>tc-log</artifactId>
       <version>5.0</version>
     </dependency>
+
+    <dependency>
+      <groupId>io.trumpet.components</groupId>
+      <artifactId>tc-config</artifactId>
+      <version>5.2</version>
+    </dependency>
     
     <dependency>
       <groupId>io.trumpet.components</groupId>
