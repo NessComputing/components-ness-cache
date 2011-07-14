@@ -3,6 +3,7 @@ package ness.cache;
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleListener;
 import io.trumpet.lifecycle.LifecycleStage;
+import io.trumpet.log.Log;
 
 import java.util.Map;
 
@@ -23,6 +24,7 @@ import com.google.inject.Singleton;
 @Singleton
 @ThreadSafe
 class CacheStatisticsManager {
+    private static final Log LOG = Log.findLog();
     private final Lifecycle lifecycle;
     private final MBeanExporter exporter;
     private final boolean jmxEnabled;
@@ -44,6 +46,8 @@ class CacheStatisticsManager {
         CacheStatistics result = statistics.get(namespace);
         if (result == null) {
             result = new CacheStatistics(namespace);
+
+            LOG.debug("Initializing statistics for new cache namespace %s", namespace);
 
             if (jmxEnabled) {
                 final String objectName = "ness.cache:namespace=" + namespace;

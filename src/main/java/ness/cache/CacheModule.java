@@ -1,12 +1,14 @@
 package ness.cache;
 
 import io.trumpet.config.Config;
+import io.trumpet.log.Log;
 
 import java.lang.annotation.Annotation;
 
 import com.google.inject.PrivateModule;
 
 public class CacheModule extends PrivateModule {
+    private static final Log LOG = Log.findLog();
 
     private final Annotation bindingAnnotation;
     private final CacheConfiguration config;
@@ -26,6 +28,8 @@ public class CacheModule extends PrivateModule {
 
     @Override
     protected void configure() {
+        LOG.info("Caching initialize... binding=%s, type=%s", bindingAnnotation, config.getCacheType());
+
         if (bindingAnnotation != null) {
             bind (Cache.class).annotatedWith(bindingAnnotation);
             expose (Cache.class).annotatedWith(bindingAnnotation);

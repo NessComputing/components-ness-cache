@@ -1,5 +1,7 @@
 package ness.cache;
 
+import io.trumpet.log.Log;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -13,6 +15,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class Cache implements InternalCacheProvider {
+    private static final Log LOG = Log.findLog();
     private final InternalCacheProvider provider;
     private final CacheStatisticsManager cacheStatistics;
 
@@ -21,7 +24,7 @@ public class Cache implements InternalCacheProvider {
         this.provider = provider;
         this.cacheStatistics = cacheStatistics;
     }
-    
+
     /**
      * Provide a view of this cache which automatically has the given namespace filled in.  Intended to be used
      * in constructors, e.g.
@@ -39,12 +42,14 @@ public class Cache implements InternalCacheProvider {
 
     @Override
     public void set(String namespace, Map<String, CacheStore> stores) {
+        LOG.trace("set(%s, %s)", namespace, stores);
         cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
         provider.set(namespace, stores);
     }
 
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
+        LOG.trace("get(%s, %s)", namespace, keys);
         cacheStatistics.getCacheStatistics(namespace).incrementFetches(keys.size());
         Map<String, byte[]> result = provider.get(namespace, keys);
         cacheStatistics.getCacheStatistics(namespace).incrementHits(result.size());
@@ -53,6 +58,7 @@ public class Cache implements InternalCacheProvider {
 
     @Override
     public void clear(String namespace, Collection<String> keys) {
+        LOG.trace("clear(%s, %s)", namespace, keys);
         cacheStatistics.getCacheStatistics(namespace).incrementClears(keys.size());
         provider.clear(namespace,keys);
     }
