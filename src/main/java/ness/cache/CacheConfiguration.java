@@ -2,10 +2,12 @@ package ness.cache;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.skife.config.Config;
 import org.skife.config.Default;
 import org.skife.config.DefaultNull;
+import org.skife.config.TimeSpan;
 
 public abstract class CacheConfiguration {
 
@@ -31,9 +33,9 @@ public abstract class CacheConfiguration {
      * @return the period between updating the cache server topology information from service discovery, in milliseconds
      */
     @Config("ness.cache.rediscover-interval")
-    @Default("1000")
-    public long getCacheServerRediscoveryInterval() {
-        return 1000;
+    @Default("1000ms")
+    public TimeSpan getCacheServerRediscoveryInterval() {
+        return new TimeSpan(1000, TimeUnit.MILLISECONDS);
     }
 
     /**

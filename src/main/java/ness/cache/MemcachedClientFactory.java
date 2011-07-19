@@ -56,8 +56,8 @@ class MemcachedClientFactory {
 
                 clientReconfigurationService.scheduleAtFixedRate(
                         updater,
-                        configuration.getCacheServerRediscoveryInterval(),
-                        configuration.getCacheServerRediscoveryInterval(), TimeUnit.MILLISECONDS);
+                        configuration.getCacheServerRediscoveryInterval().getMillis(),
+                        configuration.getCacheServerRediscoveryInterval().getMillis(), TimeUnit.MILLISECONDS);
             }
         });
 
