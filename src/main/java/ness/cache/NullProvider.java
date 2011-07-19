@@ -12,7 +12,7 @@ public class NullProvider implements InternalCacheProvider {
     public void set(String namepsace, Map<String, CacheStore> stores) { }
 
     @Override
-    public Map<String, byte[]> get(String namepsace, Collection<String> keys) {
+    public Map<String, byte[]> get(String namespace, Collection<String> keys) {
         return Collections.emptyMap();
     }
 
