@@ -54,6 +54,14 @@ public class NamespacedCache {
      * @see Cache#clear(String, java.util.Collection)
      */
     public void clear(String key) {
-        cache.clear(namespace, Collections.singleton(key));
+        clear(Collections.singleton(key));
+    }
+    
+    /**
+     * Bulk clear
+     * @see Cache#clear(String, Collection)
+     */
+    public void clear(Collection<String> keys) {
+        cache.clear(namespace, keys);
     }
 }
