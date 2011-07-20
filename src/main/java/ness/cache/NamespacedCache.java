@@ -3,11 +3,14 @@ package ness.cache;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.joda.time.DateTime;
+
+import com.google.common.collect.Maps;
 
 /**
  * A facade over a {@link Cache} which has the namespace field
@@ -29,6 +32,21 @@ public class NamespacedCache {
      */
     public void set(String key, byte[] value, DateTime expiry) {
         cache.set(namespace, Collections.singletonMap(key, CacheStore.fromSharedBytes(value, expiry)));
+    }
+    
+    /**
+     * Set many cache entries with given values and expiration date.  Note that the value byte array
+     * is shared, and the cache infrastructure assumes that it owns the passed in byte array.
+     * @see Cache#set(String, java.util.Map)
+     */
+    public void set(Map<String, byte[]> entries, DateTime expiry) {
+        Map<String, CacheStore> stores = Maps.newHashMap();
+        
+        for (Entry<String, byte[]> e : entries.entrySet()) {
+            stores.put(e.getKey(), CacheStore.fromSharedBytes(e.getValue(), expiry));
+        }
+        
+        cache.set(namespace, stores);
     }
 
     /**
