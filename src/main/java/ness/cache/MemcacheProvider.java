@@ -3,6 +3,7 @@ package ness.cache;
 import io.trumpet.log.Log;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -38,14 +39,24 @@ final class MemcacheProvider implements InternalCacheProvider {
     @Override
     public void set(String namespace, Map<String, CacheStore> stores) {
         MemcachedClient client = clientFactory.get();
+        if (client == null) {
+            return;
+        }
 
         for (final Entry<String, CacheStore> action : stores.entrySet()) {
 
             CacheStore cacheStore = action.getValue();
-            Future<Boolean> future = client.set(
-                makeKey(namespace, action.getKey()),
-                computeMemcacheExpiry(cacheStore.getExpiry()),
-                cacheStore.getBytes());
+            String preparedKey = makeKey(namespace, action.getKey());
+            int expiry = computeMemcacheExpiry(cacheStore.getExpiry());
+            byte[] bytes = cacheStore.getBytes();
+            
+            Future<Boolean> future;
+            try {
+                future = client.set(preparedKey, expiry, bytes);
+            } catch (Exception e) {
+                LOG.error(e, "Spymemcached tossed an exception while storing %s", preparedKey);
+                continue;
+            }
 
             if (config.isCacheSynchronous()) {
                 try {
@@ -63,12 +74,24 @@ final class MemcacheProvider implements InternalCacheProvider {
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
         MemcachedClient client = clientFactory.get();
+        if (client == null) {
+            return Collections.emptyMap();
+        }
 
         assert MemcacheByteArrayTranscoder.class.isAssignableFrom(client.getTranscoder().getClass());
 
-        // The assertion above protects this somewhat dodgy-looking cast.  Since the transcoder always
-        // returns byte[], it is safe to cast the value Object to byte[].
-        Map<String, byte[]> result = (Map<String, byte[]>) (Map<String, ?>) client.getBulk(makeKeys(namespace, keys));
+        Collection<String> preparedKeys = makeKeys(namespace, keys);
+        final Map<String, byte[]> result;
+        final Map<String, Object> internalResult;
+        try {
+            // The assertion above protects this somewhat dodgy-looking cast.  Since the transcoder always
+            // returns byte[], it is safe to cast the value Object to byte[].
+            internalResult = client.getBulk(preparedKeys);
+        } catch (Exception e) {
+            LOG.error(e, "Spymemcached tossed an exception");
+            return Collections.emptyMap();
+        }
+        result = (Map<String, byte[]>) (Map<String, ?>) internalResult;
 
         ImmutableMap.Builder<String, byte[]> transformedResults = ImmutableMap.builder();
 
@@ -86,8 +109,19 @@ final class MemcacheProvider implements InternalCacheProvider {
     @Override
     public void clear(String namespace, Collection<String> keys) {
         MemcachedClient client = clientFactory.get();
+        if (client == null) {
+            return;
+        }
+        
         for (String key : keys) {
-            Future<Boolean> future = client.delete(makeKey(namespace, key));
+            String preparedKey = makeKey(namespace, key);
+            Future<Boolean> future;
+            try {
+                future = client.delete(preparedKey);
+            } catch (Exception e) {
+                LOG.error(e, "Spymemcached tossed an exception while clearing %s", key);
+                continue;
+            }
 
             if (config.isCacheSynchronous()) {
                 try {

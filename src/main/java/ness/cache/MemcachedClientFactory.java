@@ -8,16 +8,15 @@ import io.trumpet.log.Log;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import net.spy.memcached.BinaryConnectionFactory;
 import net.spy.memcached.MemcachedClient;
-import net.spy.memcached.transcoders.Transcoder;
-
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
@@ -36,6 +35,8 @@ class MemcachedClientFactory {
     private volatile List<InetSocketAddress> memcachedCluster = ImmutableList.of();
     private final ScheduledExecutorService clientReconfigurationService;
     private final CacheTopologyProvider cacheTopology;
+    
+    private volatile CountDownLatch awaitLatch = new CountDownLatch(1);
 
     @Inject
     MemcachedClientFactory(final CacheConfiguration configuration, Lifecycle lifecycle, CacheTopologyProvider cacheTopology) {
@@ -82,23 +83,34 @@ class MemcachedClientFactory {
             LOG.trace("Cache prior to discovery = %s", client);
 
             // Discover potentially new cluster topology
-            List<InetSocketAddress> addrs = cacheTopology.get();
+            List<InetSocketAddress> addrs = ImmutableList.copyOf(cacheTopology.get());
 
             if (!memcachedCluster.equals(addrs)) {
                 memcachedCluster = addrs;
 
                 try {
+                    final MemcachedClient newClient;
+                    if (memcachedCluster.isEmpty()) {
+                        newClient = null;
+                    } else {
+                        newClient = new MemcachedClient(new NessMemcachedConnectionFactory(), addrs);
+                    }
 
-                    MemcachedClient newClient = new MemcachedClient(new BinaryConnectionFactory() {
-                        @SuppressWarnings(value = {"unchecked", "rawtypes"} )
-                        @Override
-                        public Transcoder<Object> getDefaultTranscoder() {
-                            return (Transcoder) new MemcacheByteArrayTranscoder();
-                        }
-                    }, addrs);
-
+                    MemcachedClient oldClient = client;
                     client = newClient;
-                    LOG.debug("Discovery complete, new client talks to %s -> %s", addrs, newClient);
+                    
+                    LOG.info("Discovery complete, new client talks to %s -> %s", addrs, newClient);
+                    if (oldClient != null) {
+                        LOG.debug("Shutting down old client");
+                        oldClient.shutdown(100, TimeUnit.MILLISECONDS);
+                        LOG.trace("Old client shutdown");
+                    }
+                    
+                    awaitLatch.countDown();
+                    
+                    if (client == null) {
+                        LOG.warn("WARNING: all memcached servers disappeared!");
+                    }
                 } catch (IOException e) {
                     LOG.error(e, "Could not connect to memcached cluster");
                 }
@@ -106,5 +118,20 @@ class MemcachedClientFactory {
                 LOG.trace("No cache update due to identical cluster configuration %s", memcachedCluster);
             }
         }
+    }
+
+    void readyAwaitTopologyChange() {
+        awaitLatch = new CountDownLatch(1);
+    }
+    
+    /**
+     * Wait for the cache topology to change.  ONLY SUITABLE FOR USE IN UNIT TESTS.
+     * USING THIS METHOD FROM ANY THREAD OTHER THAN THE MAIN JUNIT THREAD WILL INVOKE
+     * UNDEFINED BEHAVIOR.
+     */
+    void awaitTopologyChange() throws InterruptedException {
+        LOG.info("Begin awaiting topology change");
+        Preconditions.checkState(awaitLatch.await(5, TimeUnit.SECONDS), "state did not change");
+        LOG.info("Finished awaiting topology change");
     }
 }

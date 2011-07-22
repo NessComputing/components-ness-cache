@@ -12,6 +12,8 @@ public class CacheModule extends PrivateModule {
 
     private final Annotation bindingAnnotation;
     private final CacheConfiguration config;
+    /** Expose additional bindings for integration testing */
+    private final boolean exposeInternalClasses;
 
     public CacheModule(Config config) {
         this (config.getBean(CacheConfiguration.class));
@@ -22,10 +24,15 @@ public class CacheModule extends PrivateModule {
     }
 
     public CacheModule(CacheConfiguration config, Annotation bindingAnnotation) {
+        this(config, bindingAnnotation, false);
+    }
+    
+    CacheModule(CacheConfiguration config, Annotation bindingAnnotation, boolean exposeInternalClasses) {
         this.config = config;
         this.bindingAnnotation = bindingAnnotation;
+        this.exposeInternalClasses = exposeInternalClasses;
     }
-
+    
     @Override
     protected void configure() {
         LOG.info("Caching initialize... binding=%s, type=%s", bindingAnnotation, config.getCacheType());
@@ -66,5 +73,9 @@ public class CacheModule extends PrivateModule {
             throw new IllegalStateException("Unrecognized cache type " + config.getCacheType());
         }
 
+        if (exposeInternalClasses) {
+            expose (MemcachedClientFactory.class);
+            expose (CacheTopologyProvider.class);
+        }
     }
 }

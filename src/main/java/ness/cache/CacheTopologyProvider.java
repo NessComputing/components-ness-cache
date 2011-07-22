@@ -4,12 +4,15 @@ import io.trumpet.log.Log;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import ness.discovery.client.ReadOnlyDiscoveryClient;
+import ness.discovery.client.ServiceInformation;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -19,7 +22,7 @@ import com.google.inject.Singleton;
 @Singleton
 class CacheTopologyProvider {
     private static final Log LOG = Log.findLog();
-    private final List<InetSocketAddress> addrs;
+    private final Set<InetSocketAddress> addrs;
     private final ReadOnlyDiscoveryClient discoveryClient;
 
     @Inject
@@ -28,7 +31,7 @@ class CacheTopologyProvider {
 
         List<URI> uris = config.getCacheUri();
         if (uris != null) {
-            ImmutableList.Builder<InetSocketAddress> addrBuilder = ImmutableList.builder();
+            ImmutableSet.Builder<InetSocketAddress> addrBuilder = ImmutableSet.builder();
             for (URI uri : uris) {
                 if ("memcache".equals(uri.getScheme())) {
                     addrBuilder.add(new InetSocketAddress(uri.getHost(), uri.getPort()));
@@ -42,13 +45,17 @@ class CacheTopologyProvider {
         }
     }
 
-    public List<InetSocketAddress> get() {
+    public Set<InetSocketAddress> get() {
         if (addrs != null) {
             return addrs;
         }
 
-        // TODO
-        discoveryClient.findAllServiceInformation("memcached");
-        return Collections.singletonList(new InetSocketAddress("localhost", 11211));
+        return ImmutableSet.copyOf(Collections2.transform(discoveryClient.findAllServiceInformation("memcached"), new Function<ServiceInformation, InetSocketAddress>() {
+            @Override
+            public InetSocketAddress apply(ServiceInformation input) {
+                return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS), 
+                        Integer.valueOf(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));
+            }
+        }));
     }
 }
