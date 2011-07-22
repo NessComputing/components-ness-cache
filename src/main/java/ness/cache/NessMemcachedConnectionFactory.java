@@ -3,7 +3,6 @@ package ness.cache;
 import java.net.SocketAddress;
 import java.nio.channels.SocketChannel;
 
-import net.spy.memcached.FailureMode;
 import net.spy.memcached.KetamaConnectionFactory;
 import net.spy.memcached.MemcachedNode;
 import net.spy.memcached.OperationFactory;
@@ -42,10 +41,5 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
     @Override
     public OperationFactory getOperationFactory() {
         return new BinaryOperationFactory();
-    }
-    
-    @Override
-    public FailureMode getFailureMode() {
-        return FailureMode.Retry;
     }
 }
