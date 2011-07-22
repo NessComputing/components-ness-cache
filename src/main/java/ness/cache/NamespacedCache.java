@@ -25,6 +25,11 @@ public class NamespacedCache {
         this.namespace = namespace;
     }
 
+    public String getNamespace()
+    {
+        return namespace;
+    }
+
     /**
      * Set a cache entry with a given value and expiration date.  Note that the value byte array
      * is shared, and the cache infrastructure assumes that it owns the passed in byte array.
@@ -33,7 +38,7 @@ public class NamespacedCache {
     public void set(String key, byte[] value, DateTime expiry) {
         cache.set(namespace, Collections.singletonMap(key, CacheStore.fromSharedBytes(value, expiry)));
     }
-    
+
     /**
      * Set many cache entries with given values and expiration date.  Note that the value byte array
      * is shared, and the cache infrastructure assumes that it owns the passed in byte array.
@@ -41,11 +46,11 @@ public class NamespacedCache {
      */
     public void set(Map<String, byte[]> entries, DateTime expiry) {
         Map<String, CacheStore> stores = Maps.newHashMap();
-        
+
         for (Entry<String, byte[]> e : entries.entrySet()) {
             stores.put(e.getKey(), CacheStore.fromSharedBytes(e.getValue(), expiry));
         }
-        
+
         cache.set(namespace, stores);
     }
 
@@ -74,7 +79,7 @@ public class NamespacedCache {
     public void clear(String key) {
         clear(Collections.singleton(key));
     }
-    
+
     /**
      * Bulk clear
      * @see Cache#clear(String, Collection)
