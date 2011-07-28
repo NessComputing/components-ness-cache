@@ -45,7 +45,11 @@ public class CacheModule extends PrivateModule {
             expose (Cache.class);
         }
 
-        bind (CacheStatisticsManager.class);
+        if (config.isJmxEnabled()) {
+            bind (CacheStatisticsManager.class).to(JmxCacheStatisticsManager.class);
+        } else {
+            bind (CacheStatisticsManager.class).to(NullCacheStatisticsManager.class);
+        }
 
         bind (CacheConfiguration.class).toInstance(config);
 
