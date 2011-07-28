@@ -24,7 +24,7 @@ public abstract class CacheConfiguration {
      * @return the requested type of caching
      */
     @Config("ness.cache")
-    @Default("none")
+    @Default("NONE")
     public CacheType getCacheType() {
         return CacheType.NONE;
     }
