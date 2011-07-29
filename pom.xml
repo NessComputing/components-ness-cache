@@ -4,9 +4,9 @@
 
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.trumpet.maven</groupId>
+    <groupId>ness.maven</groupId>
     <artifactId>base</artifactId>
-    <version>10.1</version>
+    <version>1.0-SNAPSHOT</version>
   </parent>
 
   <scm>
@@ -19,67 +19,6 @@
   <version>5.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Ness Caching Component</description>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
-        <version>2.3.2</version>
-        <executions>
-          <execution>
-            <id>default-verify</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
-            <scope>compile</scope>
-          </dependency>
-        </dependencies>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-pmd-plugin</artifactId>
-        <version>2.5</version>
-        <configuration>
-          <targetJdk>1.6</targetJdk>
-        </configuration>
-        <executions>
-          <execution>
-            <id>default-verify</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.2</version>
-        <configuration>
-          <failOnWarning>true</failOnWarning>
-        </configuration>
-        <executions>
-          <execution>
-            <id>default-analyze</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>analyze-only</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
   
   <dependencies>
     <dependency>
@@ -103,7 +42,7 @@
     <dependency>
       <groupId>ness.discovery</groupId>
       <artifactId>discovery-client</artifactId>
-      <version>1.3</version>
+      <version>1.4-SNAPSHOT</version>
     </dependency>
     
     <dependency>
@@ -182,7 +121,7 @@
     
     <dependency>
       <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <artifactId>junit-dep</artifactId>
       <version>4.8.2</version>
       <scope>test</scope>
     </dependency>
