@@ -72,6 +72,18 @@ public abstract class CacheConfiguration {
             return CacheType.NONE;
         }
     };
+    
+    public static final CacheConfiguration NONE_NO_JMX = new CacheConfiguration() { 
+        @Override
+        public CacheType getCacheType() {
+            return CacheType.NONE;
+        }
+        @Override
+        public boolean isJmxEnabled() {
+            return false;
+        }
+    };
+    
     public static final CacheConfiguration IN_JVM = new CacheConfiguration() { 
         @Override
         public CacheType getCacheType() {
