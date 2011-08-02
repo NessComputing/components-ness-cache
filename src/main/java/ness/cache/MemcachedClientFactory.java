@@ -66,6 +66,13 @@ class MemcachedClientFactory {
             @Override
             public void onStage(LifecycleStage lifecycleStage) {
                 clientReconfigurationService.shutdown();
+                // Since the executor service is shutdown, no more updates may happen.  So this client
+                // is the final one that will be created, and client will not be concurrently modified
+                MemcachedClient clientToShutdown;
+                if ((clientToShutdown = client) != null) {
+                    client = null; // Prevent further operations
+                    clientToShutdown.shutdown(30, TimeUnit.SECONDS); // Shut down gracefully
+                }
                 LOG.info("Caching system stopped");
             }
         });
