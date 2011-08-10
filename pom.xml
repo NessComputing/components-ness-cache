@@ -16,7 +16,7 @@
   <groupId>ness.components</groupId>
   <artifactId>ness-cache</artifactId>
   <name>ness-cache</name>
-  <version>5.0-SNAPSHOT</version>
+  <version>5.0</version>
   <packaging>jar</packaging>
   <description>Ness Caching Component</description>
   
@@ -42,7 +42,7 @@
     <dependency>
       <groupId>ness.discovery</groupId>
       <artifactId>discovery-client</artifactId>
-      <version>1.4-SNAPSHOT</version>
+      <version>1.4</version>
     </dependency>
     
     <dependency>
