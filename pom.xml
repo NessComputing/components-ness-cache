@@ -6,7 +6,7 @@
   <parent>
     <groupId>ness.maven</groupId>
     <artifactId>base</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
   </parent>
 
   <scm>
@@ -48,7 +48,7 @@
     <dependency>
       <groupId>spymemcached</groupId>
       <artifactId>memcached</artifactId>
-      <version>2.7</version>
+      <version>2.7.1</version>
     </dependency>
     
     <dependency>
