@@ -64,16 +64,16 @@ public abstract class CacheConfiguration {
     public boolean isJmxEnabled() {
         return true;
     }
-    
 
-    public static final CacheConfiguration NONE = new CacheConfiguration() { 
+
+    public static final CacheConfiguration NONE = new CacheConfiguration() {
         @Override
         public CacheType getCacheType() {
             return CacheType.NONE;
         }
     };
-    
-    public static final CacheConfiguration NONE_NO_JMX = new CacheConfiguration() { 
+
+    public static final CacheConfiguration NONE_NO_JMX = new CacheConfiguration() {
         @Override
         public CacheType getCacheType() {
             return CacheType.NONE;
@@ -83,11 +83,35 @@ public abstract class CacheConfiguration {
             return false;
         }
     };
-    
-    public static final CacheConfiguration IN_JVM = new CacheConfiguration() { 
+
+    public static final CacheConfiguration IN_JVM = new CacheConfiguration() {
         @Override
         public CacheType getCacheType() {
             return CacheType.JVM;
         }
     };
+
+    @Config("ness.cache.read-queue")
+    @Default("1000")
+    public int getReadQueueSize() {
+        return 1000;
+    }
+
+    @Config("ness.cache.write-queue")
+    @Default("10000")
+    public int getWriteQueueSize() {
+        return 10000;
+    }
+
+    @Config("ness.cache.incoming-queue")
+    @Default("1000")
+    public int getIncomingQueueSize() {
+        return 1000;
+    }
+
+    @Config("ness.cache.op-max-block-time")
+    @Default("100ms")
+    public TimeSpan getOperationQueueBlockTime() {
+        return new TimeSpan(100, TimeUnit.MILLISECONDS);
+    }
 }

@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -35,13 +36,19 @@ class MemcachedClientFactory {
     private volatile List<InetSocketAddress> memcachedCluster = ImmutableList.of();
     private final ScheduledExecutorService clientReconfigurationService;
     private final CacheTopologyProvider cacheTopology;
-    
+
     private volatile CountDownLatch awaitLatch = new CountDownLatch(1);
+    private final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider;
 
     @Inject
-    MemcachedClientFactory(final CacheConfiguration configuration, Lifecycle lifecycle, CacheTopologyProvider cacheTopology) {
+    MemcachedClientFactory(
+            final CacheConfiguration configuration,
+            Lifecycle lifecycle,
+            CacheTopologyProvider cacheTopology,
+            Provider<NessMemcachedConnectionFactory> connectionFactoryProvider) {
 
         this.cacheTopology = cacheTopology;
+        this.connectionFactoryProvider = connectionFactoryProvider;
         clientReconfigurationService = new ScheduledThreadPoolExecutor(1,
                 new ThreadFactoryBuilder().setNameFormat("memcached-discovery-%d").build());
 
@@ -100,21 +107,21 @@ class MemcachedClientFactory {
                     if (memcachedCluster.isEmpty()) {
                         newClient = null;
                     } else {
-                        newClient = new MemcachedClient(new NessMemcachedConnectionFactory(), addrs);
+                        newClient = new MemcachedClient(connectionFactoryProvider.get(), addrs);
                     }
 
                     MemcachedClient oldClient = client;
                     client = newClient;
-                    
+
                     LOG.info("Discovery complete, new client talks to %s -> %s", addrs, newClient);
                     if (oldClient != null) {
                         LOG.debug("Shutting down old client");
                         oldClient.shutdown(100, TimeUnit.MILLISECONDS);
                         LOG.trace("Old client shutdown");
                     }
-                    
+
                     awaitLatch.countDown();
-                    
+
                     if (client == null) {
                         LOG.warn("WARNING: all memcached servers disappeared!");
                     }
@@ -130,7 +137,7 @@ class MemcachedClientFactory {
     void readyAwaitTopologyChange() {
         awaitLatch = new CountDownLatch(1);
     }
-    
+
     /**
      * Wait for the cache topology to change.  ONLY SUITABLE FOR USE IN UNIT TESTS.
      * USING THIS METHOD FROM ANY THREAD OTHER THAN THE MAIN JUNIT THREAD WILL INVOKE
