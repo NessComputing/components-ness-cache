@@ -28,6 +28,10 @@ public class JvmCacheProvider implements InternalCacheProvider {
 
     private final Cache ehCache;
 
+    static {
+        System.setProperty("net.sf.ehcache.skipUpdateCheck", "true");
+    }
+
     @Inject
     JvmCacheProvider(Lifecycle lifecycle) {
         ehCache = new Cache(new CacheConfiguration("ness.cache." + hashCode(), 100000)
@@ -60,7 +64,7 @@ public class JvmCacheProvider implements InternalCacheProvider {
         ImmutableMap.Builder<String, byte[]> builder = ImmutableMap.builder();
         for (String key : keys) {
             Element value = ehCache.get(makeKey(namespace, key));
-            
+
             if (value != null && value.getObjectValue() != null) {
                 CacheStore storedEntry = (CacheStore) value.getObjectValue();
                 if (storedEntry.getExpiry().isAfterNow()) {
@@ -69,7 +73,7 @@ public class JvmCacheProvider implements InternalCacheProvider {
                     clear(namespace, Collections.singleton(key));
                 }
             }
-            
+
         }
         return builder.build();
     }
