@@ -26,16 +26,18 @@ public class CacheModule extends PrivateModule {
     public CacheModule(CacheConfiguration config, Annotation bindingAnnotation) {
         this(config, bindingAnnotation, false);
     }
-    
+
     CacheModule(CacheConfiguration config, Annotation bindingAnnotation, boolean exposeInternalClasses) {
         this.config = config;
         this.bindingAnnotation = bindingAnnotation;
         this.exposeInternalClasses = exposeInternalClasses;
     }
-    
+
     @Override
     protected void configure() {
         LOG.info("Caching initialize... binding=%s, type=%s", bindingAnnotation, config.getCacheType());
+
+        bind (NessMemcachedConnectionFactory.class);
 
         if (bindingAnnotation != null) {
             bind (Cache.class).annotatedWith(bindingAnnotation);
