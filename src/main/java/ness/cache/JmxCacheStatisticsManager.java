@@ -25,17 +25,22 @@ import com.google.inject.Singleton;
 @ThreadSafe
 class JmxCacheStatisticsManager implements CacheStatisticsManager {
     private static final Log LOG = Log.findLog();
-    private final Lifecycle lifecycle;
-    private final MBeanExporter exporter;
+    private Lifecycle lifecycle = null;
+    private MBeanExporter exporter = null;
     private final boolean jmxEnabled;
     @GuardedBy("this")
     private final Map<String, CacheStatistics> statistics = Maps.newHashMap();
 
     @Inject
-    JmxCacheStatisticsManager(Lifecycle lifecycle, MBeanExporter exporter, CacheConfiguration config) {
+    JmxCacheStatisticsManager(final CacheConfiguration config) {
+        this.jmxEnabled = config.isJmxEnabled();
+    }
+
+    @Inject(optional=true)
+    synchronized void injectOptionalDependencies(final Lifecycle lifecycle, final MBeanExporter exporter)
+    {
         this.lifecycle = lifecycle;
         this.exporter = exporter;
-        this.jmxEnabled = config.isJmxEnabled();
     }
 
     @Override
@@ -51,15 +56,17 @@ class JmxCacheStatisticsManager implements CacheStatisticsManager {
 
             LOG.debug("Initializing statistics for new cache namespace %s", namespace);
 
-            if (jmxEnabled) {
+            if (jmxEnabled && exporter != null) {
                 final String objectName = "ness.cache:namespace=" + namespace;
                 exporter.export(objectName, result);
-                lifecycle.addListener(LifecycleStage.STOP_STAGE, new LifecycleListener() {
-                    @Override
-                    public void onStage(LifecycleStage lifecycleStage) {
-                        exporter.unexport(objectName);
-                    }
-                });
+                if (lifecycle != null) {
+                    lifecycle.addListener(LifecycleStage.STOP_STAGE, new LifecycleListener() {
+                        @Override
+                        public void onStage(LifecycleStage lifecycleStage) {
+                            exporter.unexport(objectName);
+                        }
+                    });
+                }
             }
 
             statistics.put(namespace, result);
