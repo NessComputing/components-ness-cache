@@ -1,0 +1,12 @@
+syntax:glob
+*~
+*.class
+target
+.classpath
+.project
+.settings
+test-output
+pom.xml.releaseBackup
+release.properties
+src/META-INF/MANIFEST.MF
+*.iml
