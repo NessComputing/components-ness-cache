@@ -33,6 +33,15 @@ public abstract class CacheConfiguration {
         return CacheType.NONE;
     }
 
+    /**
+     * Specifies which encoding/decoding scheme all memcached caching should apply to namespaces
+     * and keys before passing them to the memcached client.  The currently supported values are
+     * BASE64 and NONE, defaulting to BASE64.  Only use NONE if you -know- that none of the
+     * namespaces and keys will contain any bytes prohibited by memcached (spaces, newlines,
+     * carriage returns and nulls).
+     *
+     * @return the desired ns/key encoding within the memcached provider
+     */
     @Config("ness.cache.memcached-encoding")
     @Default("BASE64")
     public EncodingType getMemcachedEncoding() {
