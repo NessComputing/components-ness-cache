@@ -19,8 +19,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Provide a cache based upon a memached server
@@ -29,10 +27,7 @@ import java.util.regex.Pattern;
 final class MemcacheProvider implements InternalCacheProvider {
     private static final Log LOG = Log.findLog();
     private static final String SEPARATOR = "\u0001";
-    private static final Pattern SPECIFIC_KEY_PATTERN = Pattern.compile(
-        "^([^\\" + SEPARATOR + "]*)\\Q"
-            + SEPARATOR
-            + "\\E([^\\" + SEPARATOR + "]*)$");
+
     private final MemcachedClientFactory clientFactory;
     private final CacheConfiguration config;
     private final Function<String,String> encoder;
@@ -132,12 +127,15 @@ final class MemcacheProvider implements InternalCacheProvider {
 
         ImmutableMap.Builder<String, byte[]> transformedResults = ImmutableMap.builder();
 
+        String encodedNamespacePlusSeparator = encoder.apply(namespace) + SEPARATOR;
+        int prefixLength = encodedNamespacePlusSeparator.length();
+
         for (Entry<String, byte[]> e : result.entrySet()) {
             if (e.getValue() == null) {
                 continue;
             }
 
-            transformedResults.put(getSpecificKeyFromNSKey(e.getKey()), e.getValue());
+            transformedResults.put(decoder.apply(e.getKey().substring(prefixLength)), e.getValue());
         }
 
         return transformedResults.build();
@@ -198,14 +196,5 @@ final class MemcacheProvider implements InternalCacheProvider {
 
     private String makeKeyWithNamespaceAlreadyEncoded(String encodedNamespace, String key) {
         return encodedNamespace + SEPARATOR + encoder.apply(key);
-    }
-
-    private String getSpecificKeyFromNSKey(String encodedKey) {
-        Matcher m = SPECIFIC_KEY_PATTERN.matcher(encodedKey);
-        if (!m.find()) {
-            throw new IllegalStateException("makeKey changed but not SPECIFIC_KEY_PATTERN; fixme");
-        }
-
-        return decoder.apply(m.group(2));
     }
 }
