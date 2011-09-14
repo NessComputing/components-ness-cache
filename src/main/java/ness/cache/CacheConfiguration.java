@@ -1,13 +1,13 @@
 package ness.cache;
 
-import java.net.URI;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import org.skife.config.Config;
 import org.skife.config.Default;
 import org.skife.config.DefaultNull;
 import org.skife.config.TimeSpan;
+
+import java.net.URI;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public abstract class CacheConfiguration {
 
@@ -20,6 +20,10 @@ public abstract class CacheConfiguration {
         MEMCACHE
     }
 
+    public enum EncodingType {
+        NONE,
+        BASE64
+    }
     /**
      * @return the requested type of caching
      */
@@ -27,6 +31,12 @@ public abstract class CacheConfiguration {
     @Default("NONE")
     public CacheType getCacheType() {
         return CacheType.NONE;
+    }
+
+    @Config("ness.cache.memcached-encoding")
+    @Default("BASE64")
+    public EncodingType getMemcachedEncoding() {
+        return EncodingType.BASE64;
     }
 
     /**
@@ -64,13 +74,6 @@ public abstract class CacheConfiguration {
     public boolean isJmxEnabled() {
         return true;
     }
-
-    @Config("ness.cache.memcached-base64")
-    @Default("true")
-    public boolean useBase64InMemcached() {
-        return true;
-    }
-
 
     public static final CacheConfiguration NONE = new CacheConfiguration() {
         @Override

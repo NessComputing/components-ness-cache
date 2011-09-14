@@ -42,10 +42,10 @@ final class MemcacheProvider implements InternalCacheProvider {
     MemcacheProvider(CacheConfiguration config, MemcachedClientFactory clientFactory) {
         this.config = config;
         this.clientFactory = clientFactory;
-        boolean useBase64 = config.useBase64InMemcached();
+        CacheConfiguration.EncodingType encodingType = config.getMemcachedEncoding();
 
-
-        if (useBase64) {
+        switch(encodingType) {
+        case BASE64:
             final ThreadLocal<Base64> base64ThreadLocal =  new ThreadLocal<Base64>() {
                 protected Base64 initialValue() {
                     return new Base64();
@@ -63,9 +63,13 @@ final class MemcacheProvider implements InternalCacheProvider {
                     return new String(base64ThreadLocal.get().decode(input), Charsets.UTF_8);
                 }
             };
-        } else {
+            break;
+        case NONE:
             this.encoder = Functions.identity();
             this.decoder = Functions.identity();
+            break;
+        default:
+            throw new IllegalArgumentException("Unknown encoding type " + encodingType);
         }
     }
 
