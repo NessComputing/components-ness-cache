@@ -1,6 +1,16 @@
 package ness.cache;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Ints;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import io.trumpet.log.Log;
+import net.spy.memcached.MemcachedClient;
+import org.apache.commons.codec.binary.Base64;
+import org.joda.time.DateTime;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -8,18 +18,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import net.spy.memcached.MemcachedClient;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.Ints;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Provide a cache based upon a memached server
@@ -27,13 +27,20 @@ import com.google.inject.Singleton;
 @Singleton
 final class MemcacheProvider implements InternalCacheProvider {
     private static final Log LOG = Log.findLog();
+    private static final Pattern SPECIFIC_KEY_PATTERN = Pattern.compile("^([^\u0001]*)\u0001([^\u0001]*)$");
     private final MemcachedClientFactory clientFactory;
     private final CacheConfiguration config;
+    private final ThreadLocal<Base64> base64ThreadLocal;
 
     @Inject
     MemcacheProvider(CacheConfiguration config, MemcachedClientFactory clientFactory) {
         this.config = config;
         this.clientFactory = clientFactory;
+        this.base64ThreadLocal = new ThreadLocal<Base64>() {
+            protected Base64 initialValue() {
+                return new Base64();
+            }
+        };
     }
 
     @Override
@@ -100,7 +107,7 @@ final class MemcacheProvider implements InternalCacheProvider {
                 continue;
             }
 
-            transformedResults.put(StringUtils.removeStart(e.getKey(), makeKey(namespace, "")), e.getValue());
+            transformedResults.put(getSpecificKeyFromEncodedNSKey(e.getKey()), e.getValue());
         }
 
         return transformedResults.build();
@@ -141,15 +148,38 @@ final class MemcacheProvider implements InternalCacheProvider {
     }
 
     private Collection<String> makeKeys(final String namespace, Collection<String> keys) {
+        Base64 base64 = base64ThreadLocal.get();
+        final String namespaceb64 = base64.encodeAsString(namespace.getBytes(Charsets.UTF_8));
         return Collections2.transform(keys, new Function<String, String>() {
             @Override
             public String apply(String key) {
-                return makeKey(namespace, key);
+                return makeKeyBulk(namespaceb64, key);
             }
         });
     }
 
     private String makeKey(String namespace, String key) {
-        return namespace + "\u0001" + key;
+        Base64 base64 = base64ThreadLocal.get();
+        String namespaceKey = base64.encodeAsString(namespace.getBytes(Charsets.UTF_8));
+        String specificKey = base64.encodeAsString(key.getBytes(Charsets.UTF_8));
+
+        return namespaceKey + "\u0001" + specificKey;
+    }
+
+    private String makeKeyBulk(String b64namespace, String key) {
+        Base64 base64 = base64ThreadLocal.get();
+        String specificKey = base64.encodeAsString(key.getBytes(Charsets.UTF_8));
+
+        return b64namespace + "\u0001" + specificKey;
+    }
+
+    private String getSpecificKeyFromEncodedNSKey(String encodedKey) {
+        Matcher m = SPECIFIC_KEY_PATTERN.matcher(encodedKey);
+        if (!m.find()) {
+            throw new IllegalStateException("makeKey changed but not SPECIFIC_KEY_PATTERN; fixme");
+        }
+
+        Base64 base64 = base64ThreadLocal.get();
+        return new String(base64.decode(m.group(2)), Charsets.UTF_8);
     }
 }
