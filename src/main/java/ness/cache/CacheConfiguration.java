@@ -65,6 +65,12 @@ public abstract class CacheConfiguration {
         return true;
     }
 
+    @Config("ness.cache.memcached-base64")
+    @Default("true")
+    public boolean useBase64InMemcached() {
+        return true;
+    }
+
 
     public static final CacheConfiguration NONE = new CacheConfiguration() {
         @Override

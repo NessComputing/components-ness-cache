@@ -2,6 +2,7 @@ package ness.cache;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
@@ -27,20 +28,45 @@ import java.util.regex.Pattern;
 @Singleton
 final class MemcacheProvider implements InternalCacheProvider {
     private static final Log LOG = Log.findLog();
-    private static final Pattern SPECIFIC_KEY_PATTERN = Pattern.compile("^([^\u0001]*)\u0001([^\u0001]*)$");
+    private static final String SEPARATOR = "\u0001";
+    private static final Pattern SPECIFIC_KEY_PATTERN = Pattern.compile(
+        "^([^\\" + SEPARATOR + "]*)\\Q"
+            + SEPARATOR
+            + "\\E([^\\" + SEPARATOR + "]*)$");
     private final MemcachedClientFactory clientFactory;
     private final CacheConfiguration config;
-    private final ThreadLocal<Base64> base64ThreadLocal;
+    private final Function<String,String> encoder;
+    private final Function<String,String> decoder;
 
     @Inject
     MemcacheProvider(CacheConfiguration config, MemcachedClientFactory clientFactory) {
         this.config = config;
         this.clientFactory = clientFactory;
-        this.base64ThreadLocal = new ThreadLocal<Base64>() {
-            protected Base64 initialValue() {
-                return new Base64();
-            }
-        };
+        boolean useBase64 = config.useBase64InMemcached();
+
+
+        if (useBase64) {
+            final ThreadLocal<Base64> base64ThreadLocal =  new ThreadLocal<Base64>() {
+                protected Base64 initialValue() {
+                    return new Base64();
+                }
+            };
+            encoder = new Function<String, String>() {
+                @Override
+                public String apply(String input) {
+                    return base64ThreadLocal.get().encodeAsString(input.getBytes(Charsets.UTF_8));
+                }
+            };
+            decoder = new Function<String, String>() {
+                @Override
+                public String apply(String input) {
+                    return new String(base64ThreadLocal.get().decode(input), Charsets.UTF_8);
+                }
+            };
+        } else {
+            this.encoder = Functions.identity();
+            this.decoder = Functions.identity();
+        }
     }
 
     @Override
@@ -107,7 +133,7 @@ final class MemcacheProvider implements InternalCacheProvider {
                 continue;
             }
 
-            transformedResults.put(getSpecificKeyFromEncodedNSKey(e.getKey()), e.getValue());
+            transformedResults.put(getSpecificKeyFromNSKey(e.getKey()), e.getValue());
         }
 
         return transformedResults.build();
@@ -119,9 +145,11 @@ final class MemcacheProvider implements InternalCacheProvider {
         if (client == null) {
             return;
         }
-        
+
+        String nsEncoded = encoder.apply(namespace);
+
         for (String key : keys) {
-            String preparedKey = makeKey(namespace, key);
+            String preparedKey = makeKeyWithNamespaceAlreadyEncoded(nsEncoded, key);
             Future<Boolean> future;
             try {
                 future = client.delete(preparedKey);
@@ -148,38 +176,32 @@ final class MemcacheProvider implements InternalCacheProvider {
     }
 
     private Collection<String> makeKeys(final String namespace, Collection<String> keys) {
-        Base64 base64 = base64ThreadLocal.get();
-        final String namespaceb64 = base64.encodeAsString(namespace.getBytes(Charsets.UTF_8));
+        final String namespaceEncoded = encoder.apply(namespace);
         return Collections2.transform(keys, new Function<String, String>() {
             @Override
             public String apply(String key) {
-                return makeKeyBulk(namespaceb64, key);
+                return makeKeyWithNamespaceAlreadyEncoded(namespaceEncoded, key);
             }
         });
     }
 
     private String makeKey(String namespace, String key) {
-        Base64 base64 = base64ThreadLocal.get();
-        String namespaceKey = base64.encodeAsString(namespace.getBytes(Charsets.UTF_8));
-        String specificKey = base64.encodeAsString(key.getBytes(Charsets.UTF_8));
+        namespace = encoder.apply(namespace);
+        key = encoder.apply(key);
 
-        return namespaceKey + "\u0001" + specificKey;
+        return namespace + SEPARATOR + key;
     }
 
-    private String makeKeyBulk(String b64namespace, String key) {
-        Base64 base64 = base64ThreadLocal.get();
-        String specificKey = base64.encodeAsString(key.getBytes(Charsets.UTF_8));
-
-        return b64namespace + "\u0001" + specificKey;
+    private String makeKeyWithNamespaceAlreadyEncoded(String encodedNamespace, String key) {
+        return encodedNamespace + SEPARATOR + encoder.apply(key);
     }
 
-    private String getSpecificKeyFromEncodedNSKey(String encodedKey) {
+    private String getSpecificKeyFromNSKey(String encodedKey) {
         Matcher m = SPECIFIC_KEY_PATTERN.matcher(encodedKey);
         if (!m.find()) {
             throw new IllegalStateException("makeKey changed but not SPECIFIC_KEY_PATTERN; fixme");
         }
 
-        Base64 base64 = base64ThreadLocal.get();
-        return new String(base64.decode(m.group(2)), Charsets.UTF_8);
+        return decoder.apply(m.group(2));
     }
 }
