@@ -1,21 +1,18 @@
 package ness.cache;
 
-import io.trumpet.lifecycle.Lifecycle;
-import io.trumpet.lifecycle.LifecycleListener;
-import io.trumpet.lifecycle.LifecycleStage;
-import io.trumpet.log.Log;
-
-import java.util.Map;
-
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.weakref.jmx.MBeanExporter;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import io.trumpet.lifecycle.Lifecycle;
+import io.trumpet.lifecycle.LifecycleListener;
+import io.trumpet.lifecycle.LifecycleStage;
+import io.trumpet.log.Log;
+import org.weakref.jmx.MBeanExporter;
+
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.Map;
 
 /**
  * Manage various {@link CacheStatistics} beans exported via JMX.  Exports them on first access,
@@ -54,10 +51,15 @@ class JmxCacheStatisticsManager implements CacheStatisticsManager {
         if (result == null) {
             result = new CacheStatistics(namespace);
 
+            String jmxSafeNamespace = jmxSafe(namespace);
             LOG.debug("Initializing statistics for new cache namespace %s", namespace);
 
+            if (!jmxSafeNamespace.equals(namespace)) {
+                LOG.debug("Using jmx-safe version %s", jmxSafeNamespace);
+            }
+
             if (jmxEnabled && exporter != null) {
-                final String objectName = "ness.cache:namespace=" + namespace;
+                final String objectName = "ness.cache:namespace=" + jmxSafeNamespace;
                 exporter.export(objectName, result);
                 if (lifecycle != null) {
                     lifecycle.addListener(LifecycleStage.STOP_STAGE, new LifecycleListener() {
@@ -72,5 +74,33 @@ class JmxCacheStatisticsManager implements CacheStatisticsManager {
             statistics.put(namespace, result);
         }
         return result;
+    }
+
+
+    /**
+     * Replace keys forbidden in a JMX key, with _.
+     * @param input String, probably namespace
+     * @return JMX-happy string
+     */
+    private String jmxSafe(String input) {
+        if (input == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            switch(c){
+                case ',':
+                case '=':
+                case ':':
+                case '*':
+                case '?':
+                   sb.append("_");
+                   break;
+                default:
+                   sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }
