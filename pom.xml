@@ -30,7 +30,7 @@
     <dependency>
       <groupId>io.trumpet.components</groupId>
       <artifactId>tc-config</artifactId>
-      <version>5.4</version>
+      <version>6.0</version>
     </dependency>
     
     <dependency>
