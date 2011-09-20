@@ -42,6 +42,7 @@ final class MemcacheProvider implements InternalCacheProvider {
         switch(encodingType) {
         case BASE64:
             final ThreadLocal<Base64> base64ThreadLocal =  new ThreadLocal<Base64>() {
+                @Override
                 protected Base64 initialValue() {
                     return new Base64();
                 }
@@ -81,7 +82,7 @@ final class MemcacheProvider implements InternalCacheProvider {
             String preparedKey = makeKey(namespace, action.getKey());
             int expiry = computeMemcacheExpiry(cacheStore.getExpiry());
             byte[] bytes = cacheStore.getBytes();
-            
+
             Future<Boolean> future;
             try {
                 future = client.set(preparedKey, expiry, bytes);
