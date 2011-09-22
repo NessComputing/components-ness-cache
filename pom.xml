@@ -16,7 +16,7 @@
   <groupId>ness.components</groupId>
   <artifactId>ness-cache</artifactId>
   <name>ness-cache</name>
-  <version>7.0</version>
+  <version>7.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Ness Caching Component</description>
   
