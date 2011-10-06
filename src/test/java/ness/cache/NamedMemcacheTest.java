@@ -1,14 +1,13 @@
 package ness.cache;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.LifecycleModule;
-import io.trumpet.log.Log;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
 
@@ -20,14 +19,13 @@ import ness.discovery.client.testing.MockedDiscoveryClient;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.kaching.platform.testing.AllowDNSResolution;
 import com.kaching.platform.testing.AllowNetworkAccess;
 import com.kaching.platform.testing.AllowNetworkListen;
@@ -39,11 +37,14 @@ import com.thimbleware.jmemcached.storage.CacheStorage;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap.EvictionPolicy;
 
+/**
+ * @author christopher
+ *
+ */
 @AllowDNSResolution
 @AllowNetworkListen(ports = {11212, 11213, 11214})
 @AllowNetworkAccess(endpoints = {"127.0.0.1:11212", "127.0.0.1:11213", "127.0.0.1:11214"})
-public class ShardedMemcacheIntegrationTest {
-    private static final Log LOG = Log.findLog();
+public class NamedMemcacheTest {
     private static final long RANDOM_SEED = 1234;
     private static final int NUM_WRITES = 1000;
     private static final String NS = "shard-integration-test";
@@ -87,13 +88,13 @@ public class ShardedMemcacheIntegrationTest {
     public final void setUp() {
         addr1 = new InetSocketAddress("127.0.0.1", 11212);
         daemon1 = createDaemon(addr1.getPort());
-        announce1 = ServiceInformation.forService("memcached", null, "memcache", addr1.getHostName(), addr1.getPort());
+        announce1 = ServiceInformation.forService("memcached", "1", "memcache", addr1.getHostName(), addr1.getPort());
         addr2 = new InetSocketAddress("127.0.0.1", 11213);
         daemon2 = createDaemon(addr2.getPort());
-        announce2 = ServiceInformation.forService("memcached", null, "memcache", addr2.getHostName(), addr2.getPort());
+        announce2 = ServiceInformation.forService("memcached", "2", "memcache", addr2.getHostName(), addr2.getPort());
         addr3 = new InetSocketAddress("127.0.0.1", 11214);
         daemon3 = createDaemon(addr3.getPort());
-        announce3 = ServiceInformation.forService("memcached", null, "memcache", addr3.getHostName(), addr3.getPort());
+        announce3 = ServiceInformation.forService("memcached", "3", "memcache", addr3.getHostName(), addr3.getPort());
 
         discovery.announce(announce1);
         discovery.announce(announce2);
@@ -102,13 +103,15 @@ public class ShardedMemcacheIntegrationTest {
         Guice.createInjector(new AbstractModule() {
             @Override
             protected void configure() {
-                requestInjection (ShardedMemcacheIntegrationTest.this);
-
-                install (new CacheModule(configuration, null, null, true));
+                install (new CacheModule(configuration, null, "1", false));
+                install (new CacheModule(configuration, null, "2", false));
+                install (new CacheModule(configuration, null, "3", false));
 
                 install (new LifecycleModule());
 
                 bind (ReadOnlyDiscoveryClient.class).toInstance(discovery);
+                
+                requestInjection (NamedMemcacheTest.this);
             }
         });
         lifecycle.executeTo(LifecycleStage.START_STAGE);
@@ -124,7 +127,7 @@ public class ShardedMemcacheIntegrationTest {
 
     private final Set<String> allKeys = Sets.newHashSet();
 
-    private void writeLots() {
+    private void writeLots(Cache cache) {
         Random r = new Random(RANDOM_SEED);
         NamespacedCache c = cache.withNamespace(NS);
 
@@ -138,7 +141,7 @@ public class ShardedMemcacheIntegrationTest {
         }
     }
 
-    private void verifyWrites() {
+    private boolean verifyWrites(Cache cache) {
         Random r = new Random(RANDOM_SEED);
         NamespacedCache c = cache.withNamespace(NS);
 
@@ -146,117 +149,43 @@ public class ShardedMemcacheIntegrationTest {
             byte[] data = new byte[4];
             r.nextBytes(data);
             String key = Integer.toString(r.nextInt());
-            assertArrayEquals("verify failed at key " + key, data, c.get(key));
+            if (!Arrays.equals(data, c.get(key))) {
+            	return false;
+            }
         }
+        
+        return true;
     }
 
     private final DiscoveryClient discovery = MockedDiscoveryClient.builder().build();
     @Inject
     Lifecycle lifecycle;
     @Inject
-    CacheTopologyProvider cacheTopology;
+    @Named("1")
+    Cache cache1;
     @Inject
-    MemcachedClientFactory clientFactory;
+    @Named("2")
+    Cache cache2;
     @Inject
-    Cache cache;
+    @Named("3")
+    Cache cache3;
 
     @Test
-    public void testSimpleClusterReconfiguration() {
-        assertEquals(ImmutableSet.of(addr1, addr2, addr3), cacheTopology.get());
-        discovery.unannounce(announce2);
-        assertEquals(ImmutableSet.of(addr1, addr3), cacheTopology.get());
-        discovery.announce(announce2);
-        assertEquals(ImmutableSet.of(addr1, addr2, addr3), cacheTopology.get());
+    public void testSimpleReadWrite() {
+    	writeLots(cache1);
+    	assertTrue(verifyWrites(cache1));
+    	writeLots(cache2);
+    	assertTrue(verifyWrites(cache2));
+    	writeLots(cache3);
+    	assertTrue(verifyWrites(cache3));
     }
-
+    
     @Test
-    public void testDistributesWrites() {
-        writeLots();
-        verifyWrites();
-        long items1 = daemon1.getCache().getCurrentItems();
-        long items2 = daemon2.getCache().getCurrentItems();
-        long items3 = daemon3.getCache().getCurrentItems();
-        LOG.info("%d %d %d", items1, items2, items3);
-        assertTrue("" + items1, items1 > 250 && items1 < 400);
-        assertTrue("" + items2, items2 > 250 && items2 < 400);
-        assertTrue("" + items3, items3 > 250 && items3 < 400);
-    }
-
-    @Test
-    public void testUnannouncedCaches() throws Exception {
-        writeLots();
-
-        int size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.9 * NUM_WRITES && size <= 1.0 * NUM_WRITES);
-
-        clientFactory.readyAwaitTopologyChange();
-        discovery.unannounce(announce2);
-        clientFactory.awaitTopologyChange();
-
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.6 * NUM_WRITES && size <= 0.7 * NUM_WRITES);
-
-        clientFactory.readyAwaitTopologyChange();
-        discovery.unannounce(announce1);
-        clientFactory.awaitTopologyChange();
-
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.3 * NUM_WRITES && size <= 0.4 * NUM_WRITES);
-
-        clientFactory.readyAwaitTopologyChange();
-        discovery.unannounce(announce3);
-        clientFactory.awaitTopologyChange();
-
-        size = cache.get(NS, allKeys).size();
-        assertEquals("" + size, 0, size);
-
-        clientFactory.readyAwaitTopologyChange();
-        discovery.announce(announce2);
-        clientFactory.awaitTopologyChange();
-
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.3 * NUM_WRITES && size <= 0.4 * NUM_WRITES);
-
-        clientFactory.readyAwaitTopologyChange();
-        discovery.announce(announce3);
-        clientFactory.awaitTopologyChange();
-
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.6 * NUM_WRITES && size <= 0.7 * NUM_WRITES);
-
-        clientFactory.readyAwaitTopologyChange();
-        discovery.announce(announce1);
-        clientFactory.awaitTopologyChange();
-
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.9 * NUM_WRITES && size <= 1.0 * NUM_WRITES);
-
-        verifyWrites();
-    }
-
-    @Test
-    @Ignore // Pending http://code.google.com/p/spymemcached/issues/detail?id=189
-    public void testCrashedCaches() throws Exception {
-        writeLots();
-
-        int size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.9 * NUM_WRITES && size <= 1.0 * NUM_WRITES);
-
-        daemon2.stop();
-
-        cache.get(NS, allKeys);
-
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.6 * NUM_WRITES && size <= 0.7 * NUM_WRITES);
-
-        daemon1.stop();
-
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.3 * NUM_WRITES && size <= 0.4 * NUM_WRITES);
-
-        daemon3.stop();
-
-        size = cache.get(NS, allKeys).size();
-        assertEquals("" + size, 0, size);
+    public void testLocalizedWrites() {
+    	writeLots(cache1);
+    	assertTrue(verifyWrites(cache1));
+    	assertFalse(verifyWrites(cache2));
+    	assertFalse(verifyWrites(cache3));
     }
 }
+
