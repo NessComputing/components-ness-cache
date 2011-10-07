@@ -28,11 +28,15 @@ public class CacheModule extends PrivateModule {
     }
 
     public CacheModule(CacheConfiguration config) {
-        this (config, null);
+        this (config, (Annotation) null);
     }
 
     public CacheModule(CacheConfiguration config, Annotation bindingAnnotation) {
         this(config, bindingAnnotation, null, false);
+    }
+    
+    public CacheModule(CacheConfiguration config, String cacheName) {
+        this(config, null, cacheName, false);
     }
 
     CacheModule(CacheConfiguration config, Annotation bindingAnnotation, String cacheName, boolean exposeInternalClasses) {
@@ -54,10 +58,10 @@ public class CacheModule extends PrivateModule {
         bind (NessMemcachedConnectionFactory.class);
 
         if (bindingAnnotation != null) {
-            bind (Cache.class).annotatedWith(bindingAnnotation).to(Cache.class);
+            bind (Cache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
             expose (Cache.class).annotatedWith(bindingAnnotation);
         } else {
-            bind (Cache.class);
+            bind (Cache.class).to(CacheImpl.class);
             expose (Cache.class);
         }
         
@@ -84,6 +88,10 @@ public class CacheModule extends PrivateModule {
             bind (InternalCacheProvider.class).to(JvmCacheProvider.class);
             break;
 
+        case JVM_NO_EVICTION:
+        	bind (InternalCacheProvider.class).to(NonEvictingJvmCacheProvider.class);
+        	break;
+            
         case MEMCACHE:
             bind (InternalCacheProvider.class).to(MemcacheProvider.class);
             bind (MemcachedClientFactory.class);

@@ -16,6 +16,8 @@ public abstract class CacheConfiguration {
         NONE,
         /** In-JVM caching only */
         JVM,
+        /** In-JVM. Does not evict keys when low on memory (you will get an OOM error) */
+        JVM_NO_EVICTION,
         /** External Memcache server */
         MEMCACHE
     }
@@ -106,6 +108,13 @@ public abstract class CacheConfiguration {
         @Override
         public CacheType getCacheType() {
             return CacheType.JVM;
+        }
+    };
+    
+    public static final CacheConfiguration IN_JVM_NO_EVICTION = new CacheConfiguration() {
+        @Override
+        public CacheType getCacheType() {
+            return CacheType.JVM_NO_EVICTION;
         }
     };
 

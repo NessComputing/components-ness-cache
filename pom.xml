@@ -35,6 +35,12 @@
     
     <dependency>
       <groupId>io.trumpet.components</groupId>
+      <artifactId>tc-base</artifactId>
+      <version>4.4</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>io.trumpet.components</groupId>
       <artifactId>tc-lifecycle</artifactId>
       <version>2.0</version>
     </dependency>
