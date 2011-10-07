@@ -1,4 +1,4 @@
-package ness.cache;
+package ness.cache2;
 
 import io.trumpet.config.Config;
 import io.trumpet.log.Log;

@@ -1,6 +1,9 @@
-package ness.cache;
+package ness.cache2;
 
 import io.trumpet.lifecycle.Lifecycle;
+
+import ness.cache2.CacheConfiguration;
+import ness.cache2.CacheModule;
 
 import org.easymock.EasyMock;
 import org.junit.Before;

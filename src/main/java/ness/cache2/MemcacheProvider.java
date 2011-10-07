@@ -1,4 +1,4 @@
-package ness.cache;
+package ness.cache2;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;

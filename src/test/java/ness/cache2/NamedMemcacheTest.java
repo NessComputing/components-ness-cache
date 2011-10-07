@@ -1,4 +1,4 @@
-package ness.cache;
+package ness.cache2;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -11,6 +11,10 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
 
+import ness.cache2.Cache;
+import ness.cache2.CacheConfiguration;
+import ness.cache2.CacheModule;
+import ness.cache2.NamespacedCache;
 import ness.discovery.client.DiscoveryClient;
 import ness.discovery.client.ReadOnlyDiscoveryClient;
 import ness.discovery.client.ServiceInformation;

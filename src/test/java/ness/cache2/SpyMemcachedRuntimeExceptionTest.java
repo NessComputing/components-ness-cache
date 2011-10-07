@@ -1,4 +1,4 @@
-package ness.cache;
+package ness.cache2;
 
 import static org.junit.Assert.assertEquals;
 

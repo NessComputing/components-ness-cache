@@ -1,4 +1,4 @@
-package ness.cache;
+package ness.cache2;
 
 import org.skife.config.Config;
 import org.skife.config.Default;

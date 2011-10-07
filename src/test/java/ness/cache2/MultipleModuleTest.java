@@ -1,6 +1,13 @@
-package ness.cache;
+package ness.cache2;
 
 import static org.junit.Assert.assertTrue;
+
+import ness.cache2.Cache;
+import ness.cache2.CacheConfiguration;
+import ness.cache2.CacheImpl;
+import ness.cache2.CacheModule;
+import ness.cache2.NonEvictingJvmCacheProvider;
+import ness.cache2.NullProvider;
 
 import org.junit.Test;
 

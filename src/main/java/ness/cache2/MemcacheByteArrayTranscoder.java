@@ -1,4 +1,4 @@
-package ness.cache;
+package ness.cache2;
 
 import net.spy.memcached.CachedData;
 import net.spy.memcached.transcoders.Transcoder;

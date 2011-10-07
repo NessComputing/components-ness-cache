@@ -1,4 +1,4 @@
-package ness.cache;
+package ness.cache2;
 
 import static org.junit.Assert.*;
 
@@ -8,6 +8,11 @@ import java.util.Collections;
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.LifecycleModule;
+
+import ness.cache2.Cache;
+import ness.cache2.CacheConfiguration;
+import ness.cache2.CacheModule;
+import ness.cache2.CacheStore;
 
 import org.joda.time.DateTime;
 import org.junit.After;

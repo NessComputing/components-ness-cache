@@ -1,4 +1,4 @@
-package ness.cache;
+package ness.cache2;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.*;
@@ -6,6 +6,10 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+
+import ness.cache2.Cache;
+import ness.cache2.CacheStore;
+import ness.cache2.NamespacedCache;
 
 import org.joda.time.DateTime;
 import org.junit.Test;

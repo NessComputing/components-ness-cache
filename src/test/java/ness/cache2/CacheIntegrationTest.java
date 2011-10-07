@@ -1,4 +1,4 @@
-package ness.cache;
+package ness.cache2;
 
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleStage;
@@ -8,6 +8,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
+import ness.cache2.CacheConfiguration;
+import ness.cache2.CacheModule;
 import ness.discovery.client.ReadOnlyDiscoveryClient;
 
 import org.easymock.EasyMock;
