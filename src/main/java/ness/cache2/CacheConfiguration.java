@@ -29,7 +29,7 @@ public abstract class CacheConfiguration {
     /**
      * @return the requested type of caching
      */
-    @Config("ness.cache")
+    @Config({"ness.cache.${cacheName}", "ness.cache"})
     @Default("NONE")
     public CacheType getCacheType() {
         return CacheType.NONE;
@@ -44,7 +44,7 @@ public abstract class CacheConfiguration {
      *
      * @return the desired ns/key encoding within the memcached provider
      */
-    @Config("ness.cache.memcached-encoding")
+    @Config({"ness.cache.${cacheName}.memcached-encoding", "ness.cache.memcached-encoding"})
     @Default("BASE64")
     public EncodingType getMemcachedEncoding() {
         return EncodingType.BASE64;
@@ -53,7 +53,7 @@ public abstract class CacheConfiguration {
     /**
      * @return the period between updating the cache server topology information from service discovery, in milliseconds
      */
-    @Config("ness.cache.rediscover-interval")
+    @Config({"ness.cache.${cacheName}.rediscover-interval", "ness.cache.rediscover-interval"})
     @Default("1000ms")
     public TimeSpan getCacheServerRediscoveryInterval() {
         return new TimeSpan(1000, TimeUnit.MILLISECONDS);
@@ -62,7 +62,7 @@ public abstract class CacheConfiguration {
     /**
      * @return whether the cache should wait for set and clear operations to report success before proceeding forward
      */
-    @Config("ness.cache.synchronous")
+    @Config({"ness.cache.${cacheName}.synchronous", "ness.cache.synchronous"})
     @Default("false")
     public boolean isCacheSynchronous() {
         return false;
@@ -71,7 +71,7 @@ public abstract class CacheConfiguration {
     /**
      * @return the cache locations to use; overrides and disables discovery.
      */
-    @Config("ness.cache.uri")
+    @Config({"ness.cache.${cacheName}.uri", "ness.cache.uri"})
     @DefaultNull
     public List<URI> getCacheUri() {
         return null;
@@ -80,7 +80,7 @@ public abstract class CacheConfiguration {
     /**
      * @return whether cache JMX exporting is enabled
      */
-    @Config("ness.cache.jmx")
+    @Config({"ness.cache.${cacheName}.jmx", "ness.cache.jmx"})
     @Default("true")
     public boolean isJmxEnabled() {
         return true;
@@ -118,25 +118,25 @@ public abstract class CacheConfiguration {
         }
     };
 
-    @Config("ness.cache.read-queue")
+    @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})
     @Default("1000")
     public int getReadQueueSize() {
         return 1000;
     }
 
-    @Config("ness.cache.write-queue")
+    @Config({"ness.cache.${cacheName}.write-queue", "ness.cache.write-queue"})
     @Default("10000")
     public int getWriteQueueSize() {
         return 10000;
     }
 
-    @Config("ness.cache.incoming-queue")
+    @Config({"ness.cache.${cacheName}.incoming-queue", "ness.cache.incoming-queue"})
     @Default("1000")
     public int getIncomingQueueSize() {
         return 1000;
     }
 
-    @Config("ness.cache.op-max-block-time")
+    @Config({"ness.cache.${cacheName}.op-max-block-time", "ness.cache.${cacheName}.op-max-block-time"})
     @Default("100ms")
     public TimeSpan getOperationQueueBlockTime() {
         return new TimeSpan(100, TimeUnit.MILLISECONDS);

@@ -7,9 +7,12 @@ import java.lang.annotation.Annotation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.PrivateModule;
+import com.google.inject.Scopes;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
+import com.google.inject.util.Providers;
 
 public class CacheModule extends PrivateModule {
     private static final Log LOG = Log.findLog();
@@ -43,24 +46,31 @@ public class CacheModule extends PrivateModule {
 
     @Override
     protected void configure() {
-        final CacheConfiguration cacheConfig = config.getBean(CacheConfiguration.class);
-        bind(CacheConfiguration.class).toInstance(cacheConfig);
 
         final String cacheName;
+        final CacheConfiguration cacheConfig;
 
         if (bindingAnnotation == null) {
             cacheName = null;
+            cacheConfig = config.getBean(CacheConfiguration.class, ImmutableMap.of("cacheName", "default"));
+
             bind (Cache.class).to(CacheImpl.class);
             expose (Cache.class);
         }
         else {
             cacheName = bindingAnnotation == null ? null : (bindingAnnotation instanceof Named) ? ((Named)bindingAnnotation).value() : bindingAnnotation.toString();
+            cacheConfig = config.getBean(CacheConfiguration.class, ImmutableMap.of("cacheName", cacheName));
+
             bind (Cache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
             expose (Cache.class).annotatedWith(bindingAnnotation);
         }
 
-        bindConstant().annotatedWith(Names.named("cacheName")).to(cacheName);
+        bind(String.class).annotatedWith(Names.named("cacheName")).toProvider(Providers.of(cacheName)).in(Scopes.SINGLETON);
         LOG.info("Caching initialize... binding=%s, type=%s, cacheName=%s", Objects.firstNonNull(bindingAnnotation, "<unset>"), cacheConfig.getCacheType(), Objects.firstNonNull(cacheName, "<default>"));
+
+
+
+        bind(CacheConfiguration.class).toInstance(cacheConfig);
 
         if (cacheConfig.isJmxEnabled()) {
             bind (CacheStatisticsManager.class).to(JmxCacheStatisticsManager.class);
