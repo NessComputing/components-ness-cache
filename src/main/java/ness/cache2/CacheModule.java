@@ -58,7 +58,7 @@ public class CacheModule extends PrivateModule {
             expose (Cache.class);
         }
         else {
-            cacheName = bindingAnnotation == null ? null : (bindingAnnotation instanceof Named) ? ((Named)bindingAnnotation).value() : bindingAnnotation.toString();
+            cacheName = bindingAnnotation instanceof Named ? ((Named)bindingAnnotation).value() : bindingAnnotation.toString();
             cacheConfig = config.getBean(CacheConfiguration.class, ImmutableMap.of("cacheName", cacheName));
 
             bind (Cache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
