@@ -14,30 +14,23 @@ import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.Set;
 
-import ness.cache2.Cache;
-import ness.cache2.CacheConfiguration;
-import ness.cache2.CacheModule;
-import ness.cache2.CacheTopologyProvider;
-import ness.cache2.MemcachedClientFactory;
-import ness.cache2.NamespacedCache;
-import ness.discovery.client.DiscoveryClient;
-import ness.discovery.client.ReadOnlyDiscoveryClient;
-import ness.discovery.client.ServiceInformation;
-import ness.discovery.client.testing.MockedDiscoveryClient;
-
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import ness.discovery.client.DiscoveryClient;
+import ness.discovery.client.ReadOnlyDiscoveryClient;
+import ness.discovery.client.ServiceInformation;
+import ness.discovery.client.testing.MockedDiscoveryClient;
+
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.Module;
-import com.google.inject.util.Modules;
 import com.kaching.platform.testing.AllowDNSResolution;
 import com.kaching.platform.testing.AllowNetworkAccess;
 import com.kaching.platform.testing.AllowNetworkListen;
@@ -109,25 +102,18 @@ public class ShardedMemcacheIntegrationTest {
         discovery.announce(announce2);
         discovery.announce(announce3);
 
-        final TestingConfigModule tcm = new TestingConfigModule();
+        final TestingConfigModule tcm = new TestingConfigModule(ImmutableMap.of("ness.cache", "MEMCACHE",
+                                                                                "ness.cache.synchronous", "true",
+                                                                                "ness.cache.jmx", "false"));
         final Config config = tcm.getConfig();
 
-        final Module testModule = Modules.override(new CacheModule(config, null, true)).with(new AbstractModule() {
-            @Override
-            public void configure()
-            {
-                bind(CacheConfiguration.class).toInstance(configuration);
-            }
-        });
-
-        Guice.createInjector(new AbstractModule() {
+        Guice.createInjector(tcm,
+                             new CacheModule(config, null, true),
+                             new LifecycleModule(),
+                             new AbstractModule() {
             @Override
             protected void configure() {
                 requestInjection (ShardedMemcacheIntegrationTest.this);
-                install (tcm);
-                install (testModule);
-                install (new LifecycleModule());
-
                 bind (ReadOnlyDiscoveryClient.class).toInstance(discovery);
             }
         });

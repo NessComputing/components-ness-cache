@@ -15,10 +15,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.util.Modules;
 
 public class NullCacheTest {
 
@@ -30,34 +30,17 @@ public class NullCacheTest {
 
     @Before
     public final void setUpClient() {
-        final TestingConfigModule tcm = new TestingConfigModule();
+        final TestingConfigModule tcm = new TestingConfigModule(ImmutableMap.of("ness.cache", "NONE",
+                                                                                "ness.cache.jmx", "false"));
         final Config config = tcm.getConfig();
 
         Guice.createInjector(tcm,
+                             new CacheModule(config),
+                             new LifecycleModule(),
                              new AbstractModule() {
             @Override
             protected void configure() {
                 requestInjection (NullCacheTest.this);
-
-                install (Modules.override(new CacheModule(config)).with(new AbstractModule()
-                {
-                    @Override
-                    public void configure()
-                    {
-                        bind(CacheConfiguration.class).toInstance(new CacheConfiguration() {
-                            @Override
-                            public CacheType getCacheType() {
-                                return CacheType.NONE;
-                            }
-                            @Override
-                            public boolean isJmxEnabled() {
-                                return false;
-                            }
-                        });
-                    }
-                }));
-
-                install (new LifecycleModule());
             }
         });
 

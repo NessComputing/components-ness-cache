@@ -7,10 +7,10 @@ import io.trumpet.lifecycle.Lifecycle;
 import org.easymock.EasyMock;
 import org.junit.Before;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.google.inject.util.Modules;
 import com.kaching.platform.testing.AllowDNSResolution;
 
 @AllowDNSResolution
@@ -21,33 +21,16 @@ public class JvmCacheTest extends BaseCachingTests {
     @Before
     public final void setUpClient() {
 
-        final TestingConfigModule tcm = new TestingConfigModule();
+        final TestingConfigModule tcm = new TestingConfigModule(ImmutableMap.of("ness.cache", "JVM",
+                                                                                "ness.cache.jmx", "false"));
         final Config config = tcm.getConfig();
 
         Guice.createInjector(tcm,
+                             new CacheModule(config),
                              new AbstractModule() {
             @Override
             protected void configure() {
                 requestInjection (JvmCacheTest.this);
-
-                install (Modules.override(new CacheModule(config)).with(new AbstractModule()
-                {
-                    @Override
-                    public void configure()
-                    {
-                        bind(CacheConfiguration.class).toInstance(new CacheConfiguration() {
-                            @Override
-                            public CacheType getCacheType() {
-                                return CacheType.JVM;
-                            }
-                            @Override
-                            public boolean isJmxEnabled() {
-                                return false;
-                            }
-                        });
-                    }
-                }));
-
                 bind (Lifecycle.class).toInstance(EasyMock.createMock(Lifecycle.class));
             }
         });
