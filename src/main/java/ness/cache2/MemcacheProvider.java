@@ -1,17 +1,6 @@
 package ness.cache2;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.Ints;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import io.trumpet.log.Log;
-import net.spy.memcached.MemcachedClient;
-import org.apache.commons.codec.binary.Base64;
-import org.joda.time.DateTime;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -20,11 +9,41 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.apache.commons.codec.binary.Base64;
+import org.joda.time.DateTime;
+
+import net.spy.memcached.MemcachedClient;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Ints;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+
 /**
  * Provide a cache based upon a memached server
  */
 @Singleton
 final class MemcacheProvider implements InternalCacheProvider {
+
+    private static final Function<String, String> BASE64_ENCODER = new Function<String, String>() {
+        @Override
+        public String apply(final String input) {
+            return new String(Base64.encodeBase64(input.getBytes(Charsets.UTF_8)), Charsets.UTF_8);
+        }
+    };
+
+    private static final Function<String, String> BASE64_DECODER = new Function<String, String>() {
+        @Override
+        public String apply(final String input) {
+            return new String(Base64.decodeBase64(input.getBytes(Charsets.UTF_8)), Charsets.UTF_8);
+        }
+    };
+
     private static final Log LOG = Log.findLog();
     private static final String SEPARATOR = "\u0001";
 
@@ -41,24 +60,8 @@ final class MemcacheProvider implements InternalCacheProvider {
 
         switch(encodingType) {
         case BASE64:
-            final ThreadLocal<Base64> base64ThreadLocal =  new ThreadLocal<Base64>() {
-                @Override
-                protected Base64 initialValue() {
-                    return new Base64();
-                }
-            };
-            encoder = new Function<String, String>() {
-                @Override
-                public String apply(String input) {
-                    return base64ThreadLocal.get().encodeAsString(input.getBytes(Charsets.UTF_8));
-                }
-            };
-            decoder = new Function<String, String>() {
-                @Override
-                public String apply(String input) {
-                    return new String(base64ThreadLocal.get().decode(input), Charsets.UTF_8);
-                }
-            };
+            this.encoder = BASE64_ENCODER;
+            this.decoder = BASE64_DECODER;
             break;
         case NONE:
             this.encoder = Functions.identity();
