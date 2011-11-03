@@ -5,81 +5,72 @@ import io.trumpet.log.Log;
 
 import java.lang.annotation.Annotation;
 
-import com.google.common.base.Preconditions;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.inject.PrivateModule;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
 public class CacheModule extends PrivateModule {
     private static final Log LOG = Log.findLog();
 
     private final Annotation bindingAnnotation;
-    private final CacheConfiguration config;
-    /** Use a particular named cache of the type specified in config. Allows you to have two disjoint memcache clusters. */
-    private final String cacheName;
+    private final Config config;
+
     /** Expose additional bindings for integration testing */
     private final boolean exposeInternalClasses;
 
-    public CacheModule(Config config) {
-        this (config.getBean(CacheConfiguration.class));
-    }
-    
-    public CacheModule(Config config, String cacheName) {
-    	this(config.getBean(CacheConfiguration.class), null, cacheName, false);
+    public CacheModule(final Config config)
+    {
+       this(config, null, false);
     }
 
-    public CacheModule(CacheConfiguration config) {
-        this (config, (Annotation) null);
+    public CacheModule(Config config, String cacheName)
+    {
+    	this(config, Names.named(cacheName), false);
     }
 
-    public CacheModule(CacheConfiguration config, Annotation bindingAnnotation) {
-        this(config, bindingAnnotation, null, false);
-    }
-    
-    public CacheModule(CacheConfiguration config, String cacheName) {
-        this(config, null, cacheName, false);
+    public CacheModule(Config config, Annotation bindingAnnotation) {
+        this(config, bindingAnnotation, false);
     }
 
-    CacheModule(CacheConfiguration config, Annotation bindingAnnotation, String cacheName, boolean exposeInternalClasses) {
-    	Preconditions.checkArgument(bindingAnnotation == null || cacheName == null, "cacheName overrides bindingAnnotation, so both cannot be set");
+    @VisibleForTesting
+    CacheModule(final Config config, final Annotation bindingAnnotation, final boolean exposeInternalClasses) {
         this.config = config;
-        if (cacheName != null) {
-        	this.bindingAnnotation = Names.named(cacheName);
-        } else {
-        	this.bindingAnnotation = bindingAnnotation;
-        }
+        this.bindingAnnotation = bindingAnnotation;
         this.exposeInternalClasses = exposeInternalClasses;
-        this.cacheName = cacheName;
     }
 
     @Override
     protected void configure() {
-        LOG.info("Caching initialize... binding=%s, type=%s cacheName=%s", bindingAnnotation, config.getCacheType(), cacheName);
+        final CacheConfiguration cacheConfig = config.getBean(CacheConfiguration.class);
+        bind(CacheConfiguration.class).toInstance(cacheConfig);
 
-        bind (NessMemcachedConnectionFactory.class);
+        final String cacheName;
 
-        if (bindingAnnotation != null) {
-            bind (Cache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
-            expose (Cache.class).annotatedWith(bindingAnnotation);
-        } else {
+        if (bindingAnnotation == null) {
+            cacheName = null;
             bind (Cache.class).to(CacheImpl.class);
             expose (Cache.class);
         }
-        
-        if (cacheName != null) {
-        	bind (String.class).annotatedWith(Names.named("cacheName")).toInstance(cacheName);
+        else {
+            cacheName = bindingAnnotation == null ? null : (bindingAnnotation instanceof Named) ? ((Named)bindingAnnotation).value() : bindingAnnotation.toString();
+            bind (Cache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
+            expose (Cache.class).annotatedWith(bindingAnnotation);
         }
 
-        if (config.isJmxEnabled()) {
+        bindConstant().annotatedWith(Names.named("cacheName")).to(cacheName);
+        LOG.info("Caching initialize... binding=%s, type=%s, cacheName=%s", Objects.firstNonNull(bindingAnnotation, "<unset>"), cacheConfig.getCacheType(), Objects.firstNonNull(cacheName, "<default>"));
+
+        if (cacheConfig.isJmxEnabled()) {
             bind (CacheStatisticsManager.class).to(JmxCacheStatisticsManager.class);
         } else {
             bind (CacheStatisticsManager.class).to(NullCacheStatisticsManager.class);
         }
 
-        bind (CacheConfiguration.class).toInstance(config);
-
         // Internal bindings are not exposed, so do not need to be annotated.
 
-        switch (config.getCacheType()) {
+        switch (cacheConfig.getCacheType()) {
         case NONE:
             bind (InternalCacheProvider.class).to(NullProvider.class);
             break;
@@ -91,15 +82,17 @@ public class CacheModule extends PrivateModule {
         case JVM_NO_EVICTION:
         	bind (InternalCacheProvider.class).to(NonEvictingJvmCacheProvider.class);
         	break;
-            
+
         case MEMCACHE:
+            bind (NessMemcachedConnectionFactory.class);
+
             bind (InternalCacheProvider.class).to(MemcacheProvider.class);
             bind (MemcachedClientFactory.class);
             bind (CacheTopologyProvider.class);
             break;
 
         default:
-            throw new IllegalStateException("Unrecognized cache type " + config.getCacheType());
+            throw new IllegalStateException("Unrecognized cache type " + cacheConfig.getCacheType());
         }
 
         if (exposeInternalClasses) {

@@ -1,9 +1,8 @@
 package ness.cache2;
 
+import io.trumpet.config.Config;
+import io.trumpet.config.guice.TestingConfigModule;
 import io.trumpet.lifecycle.Lifecycle;
-
-import ness.cache2.CacheConfiguration;
-import ness.cache2.CacheModule;
 
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -11,6 +10,7 @@ import org.junit.Before;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.util.Modules;
 import com.kaching.platform.testing.AllowDNSResolution;
 
 @AllowDNSResolution
@@ -20,19 +20,31 @@ public class JvmCacheTest extends BaseCachingTests {
 
     @Before
     public final void setUpClient() {
-        Guice.createInjector(new AbstractModule() {
+
+        final TestingConfigModule tcm = new TestingConfigModule();
+        final Config config = tcm.getConfig();
+
+        Guice.createInjector(tcm,
+                             new AbstractModule() {
             @Override
             protected void configure() {
                 requestInjection (JvmCacheTest.this);
 
-                install (new CacheModule(new CacheConfiguration() {
+                install (Modules.override(new CacheModule(config)).with(new AbstractModule()
+                {
                     @Override
-                    public CacheType getCacheType() {
-                        return CacheType.JVM;
-                    }
-                    @Override
-                    public boolean isJmxEnabled() {
-                        return false;
+                    public void configure()
+                    {
+                        bind(CacheConfiguration.class).toInstance(new CacheConfiguration() {
+                            @Override
+                            public CacheType getCacheType() {
+                                return CacheType.JVM;
+                            }
+                            @Override
+                            public boolean isJmxEnabled() {
+                                return false;
+                            }
+                        });
                     }
                 }));
 

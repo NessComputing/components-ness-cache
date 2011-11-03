@@ -1,5 +1,7 @@
 package ness.cache2;
 
+import io.trumpet.config.Config;
+import io.trumpet.config.guice.TestingConfigModule;
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.LifecycleModule;
@@ -8,17 +10,17 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
-import ness.cache2.CacheConfiguration;
-import ness.cache2.CacheModule;
-import ness.discovery.client.ReadOnlyDiscoveryClient;
-
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 
+import ness.discovery.client.ReadOnlyDiscoveryClient;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
 import com.kaching.platform.testing.AllowDNSResolution;
 import com.kaching.platform.testing.AllowNetworkAccess;
 
@@ -49,15 +51,26 @@ public class CacheIntegrationTest extends BaseCacheIntegrationSetup {
 
     @Before
     public final void setUpClient() {
+        final TestingConfigModule tcm = new TestingConfigModule();
+        final Config config = tcm.getConfig();
+
+        final Module testModule = Modules.override(new CacheModule(config)).with(new AbstractModule() {
+            @Override
+            public void configure()
+            {
+                bind(CacheConfiguration.class).toInstance(configuration);
+            }
+        });
+
+
         Guice.createInjector(new AbstractModule() {
             @Override
             protected void configure() {
                 requestInjection (CacheIntegrationTest.this);
 
-                install (new CacheModule(configuration));
-
+                install (tcm);
+                install (testModule);
                 install (new LifecycleModule());
-
                 bind (ReadOnlyDiscoveryClient.class).toInstance(EasyMock.createNiceMock(ReadOnlyDiscoveryClient.class));
             }
         });

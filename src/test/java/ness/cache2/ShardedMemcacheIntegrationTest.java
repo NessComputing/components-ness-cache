@@ -3,6 +3,8 @@ package ness.cache2;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import io.trumpet.config.Config;
+import io.trumpet.config.guice.TestingConfigModule;
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.LifecycleModule;
@@ -34,6 +36,8 @@ import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
 import com.kaching.platform.testing.AllowDNSResolution;
 import com.kaching.platform.testing.AllowNetworkAccess;
 import com.kaching.platform.testing.AllowNetworkListen;
@@ -105,13 +109,23 @@ public class ShardedMemcacheIntegrationTest {
         discovery.announce(announce2);
         discovery.announce(announce3);
 
+        final TestingConfigModule tcm = new TestingConfigModule();
+        final Config config = tcm.getConfig();
+
+        final Module testModule = Modules.override(new CacheModule(config, null, true)).with(new AbstractModule() {
+            @Override
+            public void configure()
+            {
+                bind(CacheConfiguration.class).toInstance(configuration);
+            }
+        });
+
         Guice.createInjector(new AbstractModule() {
             @Override
             protected void configure() {
                 requestInjection (ShardedMemcacheIntegrationTest.this);
-
-                install (new CacheModule(configuration, null, null, true));
-
+                install (tcm);
+                install (testModule);
                 install (new LifecycleModule());
 
                 bind (ReadOnlyDiscoveryClient.class).toInstance(discovery);

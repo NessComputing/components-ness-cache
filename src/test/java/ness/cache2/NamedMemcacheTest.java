@@ -2,29 +2,29 @@ package ness.cache2;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import io.trumpet.config.Config;
+import io.trumpet.config.guice.TestingConfigModule;
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.LifecycleModule;
+import io.trumpet.log.Log;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
 
-import ness.cache2.Cache;
-import ness.cache2.CacheConfiguration;
-import ness.cache2.CacheModule;
-import ness.cache2.NamespacedCache;
-import ness.discovery.client.DiscoveryClient;
-import ness.discovery.client.ReadOnlyDiscoveryClient;
-import ness.discovery.client.ServiceInformation;
-import ness.discovery.client.testing.MockedDiscoveryClient;
-
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import ness.discovery.client.DiscoveryClient;
+import ness.discovery.client.ReadOnlyDiscoveryClient;
+import ness.discovery.client.ServiceInformation;
+import ness.discovery.client.testing.MockedDiscoveryClient;
+
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -49,6 +49,8 @@ import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap.EvictionP
 @AllowNetworkListen(ports = {11212, 11213, 11214})
 @AllowNetworkAccess(endpoints = {"127.0.0.1:11212", "127.0.0.1:11213", "127.0.0.1:11214"})
 public class NamedMemcacheTest {
+    private static final Log LOG = Log.findLog();
+
     private static final long RANDOM_SEED = 1234;
     private static final int NUM_WRITES = 1000;
     private static final String NS = "shard-integration-test";
@@ -104,17 +106,21 @@ public class NamedMemcacheTest {
         discovery.announce(announce2);
         discovery.announce(announce3);
 
-        Guice.createInjector(new AbstractModule() {
+        final TestingConfigModule tcm = new TestingConfigModule(ImmutableMap.of(
+                                                                    "ness.cache", "MEMCACHE",
+                                                                    "ness.cache.synchronous", "true",
+                                                                    "ness.cache.jmx", "false"));
+        final Config config = tcm.getConfig();
+
+        Guice.createInjector(tcm,
+                             new CacheModule(config, "1"),
+                             new CacheModule(config, "2"),
+                             new CacheModule(config, "3"),
+                             new LifecycleModule(),
+                             new AbstractModule() {
             @Override
             protected void configure() {
-                install (new CacheModule(configuration, null, "1", false));
-                install (new CacheModule(configuration, null, "2", false));
-                install (new CacheModule(configuration, null, "3", false));
-
-                install (new LifecycleModule());
-
                 bind (ReadOnlyDiscoveryClient.class).toInstance(discovery);
-                
                 requestInjection (NamedMemcacheTest.this);
             }
         });
@@ -157,7 +163,7 @@ public class NamedMemcacheTest {
             	return false;
             }
         }
-        
+
         return true;
     }
 
@@ -176,19 +182,29 @@ public class NamedMemcacheTest {
 
     @Test
     public void testSimpleReadWrite() {
+        LOG.info("Writing into cache 1...");
     	writeLots(cache1);
+        LOG.info("Verify cache 1...");
     	assertTrue(verifyWrites(cache1));
+        LOG.info("Writing into cache 2...");
     	writeLots(cache2);
+        LOG.info("Verify cache 2...");
     	assertTrue(verifyWrites(cache2));
+        LOG.info("Writing into cache 3...");
     	writeLots(cache3);
+        LOG.info("Verify cache 3...");
     	assertTrue(verifyWrites(cache3));
     }
-    
+
     @Test
     public void testLocalizedWrites() {
+        LOG.info("Writing into cache 1...");
     	writeLots(cache1);
+        LOG.info("Verify cache 1...");
     	assertTrue(verifyWrites(cache1));
+        LOG.info("Verify cache 2...");
     	assertFalse(verifyWrites(cache2));
+        LOG.info("Verify cache 3...");
     	assertFalse(verifyWrites(cache3));
     }
 }
