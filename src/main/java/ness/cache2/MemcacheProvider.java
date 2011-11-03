@@ -9,7 +9,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import org.apache.commons.codec.binary.Base64;
 import org.joda.time.DateTime;
 
 import net.spy.memcached.MemcachedClient;
@@ -33,14 +32,14 @@ final class MemcacheProvider implements InternalCacheProvider {
     private static final Function<String, String> BASE64_ENCODER = new Function<String, String>() {
         @Override
         public String apply(final String input) {
-            return new String(Base64.encodeBase64(input.getBytes(Charsets.UTF_8)), Charsets.UTF_8);
+            return new String(Base64.encode(input), Charsets.UTF_8);
         }
     };
 
     private static final Function<String, String> BASE64_DECODER = new Function<String, String>() {
         @Override
         public String apply(final String input) {
-            return new String(Base64.decodeBase64(input.getBytes(Charsets.UTF_8)), Charsets.UTF_8);
+            return new String(Base64.decode(input), Charsets.UTF_8);
         }
     };
 

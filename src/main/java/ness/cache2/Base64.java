@@ -64,6 +64,8 @@
 
 package ness.cache2;
 
+import com.google.common.base.Charsets;
+
 /**
  * This class provides encode/decode for RFC 2045 Base64 as defined by
  * RFC 2045, N. Freed and N. Borenstein.  <a
@@ -319,7 +321,7 @@ final class Base64
      * @return Encoded Base64 array
      */
     public static byte[] encode(String data) {
-        return encode(data.getBytes());
+        return encode(data.getBytes(Charsets.UTF_8));
     }
 
     /**
@@ -329,7 +331,7 @@ final class Base64
      * @return Decoded Base64 array
      */
     public static byte[] decode(String data) {
-        return decode(data.getBytes());
+        return decode(data.getBytes(Charsets.UTF_8));
     }
 
     private static final int base64[] = {
