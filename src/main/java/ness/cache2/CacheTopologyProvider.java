@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import ness.discovery.client.ReadOnlyDiscoveryClient;
 import ness.discovery.client.ServiceInformation;
 
@@ -30,8 +32,9 @@ class CacheTopologyProvider {
     private String cacheName;
 
     @Inject
-    CacheTopologyProvider(CacheConfiguration config, ReadOnlyDiscoveryClient discoveryClient) {
+    CacheTopologyProvider(final CacheConfiguration config, final ReadOnlyDiscoveryClient discoveryClient, @Nullable @Named("cacheName") String cacheName) {
         this.discoveryClient = discoveryClient;
+        this.cacheName = cacheName;
 
         List<URI> uris = config.getCacheUri();
         if (uris != null) {
@@ -47,11 +50,6 @@ class CacheTopologyProvider {
         } else {
             addrs = null;
         }
-    }
-    
-    @Inject(optional=true)
-    public void setCacheName(@Named("cacheName") String cacheName) {
-    	this.cacheName = cacheName;
     }
 
     public Set<InetSocketAddress> get() {
@@ -75,7 +73,7 @@ class CacheTopologyProvider {
 		return ImmutableSet.copyOf(Collections2.transform(serviceInformation, new Function<ServiceInformation, InetSocketAddress>() {
             @Override
             public InetSocketAddress apply(ServiceInformation input) {
-                return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS), 
+                return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS),
                         Integer.valueOf(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));
             }
         }));
