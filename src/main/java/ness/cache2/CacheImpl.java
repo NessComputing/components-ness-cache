@@ -19,11 +19,17 @@ public class CacheImpl implements Cache {
     private static final Log LOG = Log.findLog();
     @VisibleForTesting
     final InternalCacheProvider provider;
-    private final CacheStatisticsManager cacheStatistics;
+
+    private CacheStatisticsManager cacheStatistics = null;
 
     @Inject
-    protected CacheImpl(InternalCacheProvider provider, CacheStatisticsManager cacheStatistics) {
+    protected CacheImpl(InternalCacheProvider provider) {
         this.provider = provider;
+    }
+
+    @Inject(optional=true)
+    void injectCacheStatisticsManager(final CacheStatisticsManager cacheStatistics)
+    {
         this.cacheStatistics = cacheStatistics;
     }
 
@@ -45,23 +51,31 @@ public class CacheImpl implements Cache {
     @Override
     public void set(String namespace, Map<String, CacheStore> stores) {
         LOG.trace("set(%s, %s)", namespace, stores);
-        cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
+        if (cacheStatistics != null) {
+            cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
+        }
         provider.set(namespace, stores);
     }
 
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
         LOG.trace("get(%s, %s)", namespace, keys);
-        cacheStatistics.getCacheStatistics(namespace).incrementFetches(keys.size());
+        if (cacheStatistics != null) {
+            cacheStatistics.getCacheStatistics(namespace).incrementFetches(keys.size());
+        }
         Map<String, byte[]> result = provider.get(namespace, keys);
-        cacheStatistics.getCacheStatistics(namespace).incrementHits(result.size());
+        if (cacheStatistics != null) {
+            cacheStatistics.getCacheStatistics(namespace).incrementHits(result.size());
+        }
         return result;
     }
 
     @Override
     public void clear(String namespace, Collection<String> keys) {
         LOG.trace("clear(%s, %s)", namespace, keys);
-        cacheStatistics.getCacheStatistics(namespace).incrementClears(keys.size());
+        if (cacheStatistics != null) {
+            cacheStatistics.getCacheStatistics(namespace).incrementClears(keys.size());
+        }
         provider.clear(namespace,keys);
     }
 }

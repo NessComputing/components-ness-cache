@@ -68,14 +68,10 @@ public class CacheModule extends PrivateModule {
         bind(String.class).annotatedWith(Names.named("cacheName")).toProvider(Providers.of(cacheName)).in(Scopes.SINGLETON);
         LOG.info("Caching initialize... binding=%s, type=%s, cacheName=%s", Objects.firstNonNull(bindingAnnotation, "<unset>"), cacheConfig.getCacheType(), Objects.firstNonNull(cacheName, "<default>"));
 
-
-
         bind(CacheConfiguration.class).toInstance(cacheConfig);
 
         if (cacheConfig.isJmxEnabled()) {
             bind (CacheStatisticsManager.class).to(JmxCacheStatisticsManager.class);
-        } else {
-            bind (CacheStatisticsManager.class).to(NullCacheStatisticsManager.class);
         }
 
         // Internal bindings are not exposed, so do not need to be annotated.
