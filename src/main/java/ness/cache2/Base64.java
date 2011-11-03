@@ -75,6 +75,9 @@ package ness.cache2;
  */
 final class Base64
 {
+    private Base64() {
+    }
+
     static private final int  BASELENGTH         = 255;
     static private final int  LOOKUPLENGTH       = 64;
     static private final int  TWENTYFOURBITGROUP = 24;
@@ -329,7 +332,7 @@ final class Base64
         return decode(data.getBytes());
     }
 
-    static final int base64[] = {
+    private static final int base64[] = {
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
         64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 62, 64, 64, 64, 63,
@@ -359,9 +362,7 @@ final class Base64
         for (i = 0; i < chars.length; i++) {
             int v = base64[chars[i] & 0xFF];
 
-            if (v >= 64) {
-                // Removed logging at finest level
-            } else {
+            if (v < 64) {
                 acc = (acc << 6) | v;
                 shift += 6;
                 if (shift >= 8) {
