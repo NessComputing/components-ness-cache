@@ -19,7 +19,7 @@
   <version>2.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Ness Caching Component</description>
-  
+
   <dependencies>
     <dependency>
       <groupId>io.trumpet.components</groupId>
@@ -32,13 +32,7 @@
       <artifactId>tc-config</artifactId>
       <version>6.2</version>
     </dependency>
-    
-    <dependency>
-      <groupId>io.trumpet.components</groupId>
-      <artifactId>tc-base</artifactId>
-      <version>4.4</version>
-    </dependency>
-    
+
     <dependency>
       <groupId>io.trumpet.components</groupId>
       <artifactId>tc-lifecycle</artifactId>
@@ -50,13 +44,13 @@
       <artifactId>discovery-client</artifactId>
       <version>2.6</version>
     </dependency>
-    
+
     <dependency>
       <groupId>spymemcached</groupId>
       <artifactId>memcached</artifactId>
       <version>2.7.1</version>
     </dependency>
-    
+
     <dependency>
       <groupId>net.sf.ehcache</groupId>
       <artifactId>ehcache-core</artifactId>
@@ -137,7 +131,7 @@
       <version>3.0</version>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit-dep</artifactId>
