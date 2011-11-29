@@ -51,8 +51,8 @@ public class JvmCacheProvider implements InternalCacheProvider {
     }
 
     @Override
-    public void set(String namespace, Map<String, CacheStore> stores) {
-        for (Entry<String, CacheStore> e : stores.entrySet()) {
+    public void set(String namespace, Map<String, ? extends DataProvider<byte []>> stores) {
+        for (Entry<String, ? extends DataProvider<byte []>> e : stores.entrySet()) {
             ehCache.put(new Element(
                     makeKey(namespace, e.getKey()),
                     e.getValue()));
@@ -66,9 +66,10 @@ public class JvmCacheProvider implements InternalCacheProvider {
             Element value = ehCache.get(makeKey(namespace, key));
 
             if (value != null && value.getObjectValue() != null) {
-                CacheStore storedEntry = (CacheStore) value.getObjectValue();
+                @SuppressWarnings("unchecked")
+                DataProvider<byte []> storedEntry = (DataProvider<byte []>)value.getObjectValue();
                 if (storedEntry.getExpiry().isAfterNow()) {
-                    builder.put(key, storedEntry.getBytes());
+                    builder.put(key, storedEntry.getData());
                 } else {
                     clear(namespace, Collections.singleton(key));
                 }

@@ -21,10 +21,10 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 	private final Map<Map.Entry<String, String>, byte[]> map = Maps.newConcurrentMap();
 
 	@Override
-	public void set(String namespace, Map<String, CacheStore> stores) {
-		for (Map.Entry<String, CacheStore> entry: stores.entrySet()) {
+	public void set(String namespace, Map<String, ? extends DataProvider<byte []>> stores) {
+		for (Map.Entry<String, ? extends DataProvider<byte []>> entry: stores.entrySet()) {
 			LOG.trace("%s setting %s:%s", this, namespace, entry.getKey());
-			map.put(Maps.immutableEntry(namespace, entry.getKey()), entry.getValue().getBytes());
+			map.put(Maps.immutableEntry(namespace, entry.getKey()), entry.getValue().getData());
 		}
 	}
 

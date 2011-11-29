@@ -11,7 +11,7 @@ interface InternalCacheProvider {
     /**
      * In a given namespace, store (add or overwrite) a collection of keys and corresponding values
      */
-    void set(String namespace, Map<String, CacheStore> stores);
+    void set(String namespace, Map<String, ? extends DataProvider<byte []>> stores);
 
     /**
      * Bulk fetch a collection of keys

@@ -13,7 +13,7 @@ import com.google.common.base.Preconditions;
  * Encapsulates a single store of arbitrary data, which expires at a given time.
  */
 @NotThreadSafe
-public class CacheStore {
+public class CacheStore implements DataProvider<byte[]> {
     private final byte[] data;
     private final DateTime expiry;
 
@@ -58,11 +58,22 @@ public class CacheStore {
     }
 
     /**
-     * @return the data for this cache entry; this is shared and must not be modified via this reference.
+     * @deprecated use {@link CacheStore#getData()}
      */
     @Nonnull
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="EI_EXPOSE_REP", justification="efficiency")
+    @Deprecated
     public byte[] getBytes() {
+        return data;
+    }
+
+    /**
+     * @return the data for this cache entry; this is shared and must not be modified via this reference.
+     */
+    @Override
+    @Nonnull
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="EI_EXPOSE_REP", justification="efficiency")
+    public byte[] getData() {
         return data;
     }
 }

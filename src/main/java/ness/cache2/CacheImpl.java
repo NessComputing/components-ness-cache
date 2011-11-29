@@ -49,7 +49,7 @@ public class CacheImpl implements Cache {
     }
 
     @Override
-    public void set(String namespace, Map<String, CacheStore> stores) {
+    public void set(String namespace, Map<String, ? extends DataProvider<byte []>> stores) {
         LOG.trace("set(%s, %s)", namespace, stores);
         if (cacheStatistics != null) {
             cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());

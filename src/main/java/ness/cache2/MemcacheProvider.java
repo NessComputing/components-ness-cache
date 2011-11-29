@@ -18,6 +18,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -72,18 +73,18 @@ final class MemcacheProvider implements InternalCacheProvider {
     }
 
     @Override
-    public void set(String namespace, Map<String, CacheStore> stores) {
+    public void set(String namespace, Map<String, ? extends DataProvider<byte []>> stores) {
         MemcachedClient client = clientFactory.get();
         if (client == null) {
             return;
         }
 
-        for (final Entry<String, CacheStore> action : stores.entrySet()) {
+        for (final Entry<String, ? extends DataProvider<byte []>> action : stores.entrySet()) {
 
-            CacheStore cacheStore = action.getValue();
+            DataProvider<byte []> cacheStore = action.getValue();
             String preparedKey = makeKey(namespace, action.getKey());
             int expiry = computeMemcacheExpiry(cacheStore.getExpiry());
-            byte[] bytes = cacheStore.getBytes();
+            byte[] bytes = cacheStore.getData();
 
             Future<Boolean> future;
             try {
@@ -103,6 +104,80 @@ final class MemcacheProvider implements InternalCacheProvider {
                 }
             }
         }
+    }
+
+    public static final FetchingCallback<Boolean, byte[]> ADD_CALLBACK = new FetchingCallback<Boolean, byte[]>() {
+        @Override
+        public Future<Boolean> callback(final MemcachedClient client, final String key, final int expiry, final byte [] data) throws InterruptedException {
+            return client.add(key, expiry, data);
+        }
+    };
+
+    public Map<String, Boolean> add(final String namespace, final Map<String, CacheStore> stores)
+    {
+        return fetchingCallback(namespace, stores, ADD_CALLBACK);
+    }
+
+    private <T, U> Map<String, T> fetchingCallback(final String namespace, final Map<String, ? extends DataProvider<U>> stores, final FetchingCallback<T, U> callback)
+    {
+        final MemcachedClient client = clientFactory.get();
+
+        if (client == null) {
+            return Collections.emptyMap();
+        }
+
+        final Map<String, Future<T>> futures = Maps.newHashMap();
+        final Map<String, T> results = Maps.newHashMap();
+
+        try {
+            for (final Entry<String, ? extends DataProvider<U>> action : stores.entrySet()) {
+
+                final DataProvider<U> dataProvider = action.getValue();
+                final String key = action.getKey();
+
+                Future<T> future = null;
+                try {
+                    future = callback.callback(client,
+                                               makeKey(namespace, key),
+                                               computeMemcacheExpiry(dataProvider.getExpiry()),
+                                               dataProvider.getData()); // client.add(preparedKey, expiry, bytes);
+                    futures.put(key, future);
+                } catch (IllegalStateException ise) {
+                    LOG.errorDebug(ise, "Memcache Queue was full while storing %s:%s", namespace, key);
+                }
+
+                syncCheck(future, namespace, action);
+            }
+
+            for (Map.Entry<String, Future<T>> entry : futures.entrySet()) {
+                try {
+                    results.put(entry.getKey(), entry.getValue().get());
+                } catch (ExecutionException e) {
+                    LOG.errorDebug(e.getCause(), "Cache entry %s:%s", namespace, entry.getKey());
+                }
+            }
+        }
+        catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+        return results;
+    }
+
+    private void syncCheck(final Future<?> future, final String namespace, final Entry<String, ? extends DataProvider<?>> action)
+        throws InterruptedException
+    {
+        if (future != null && config.isCacheSynchronous()) {
+            try {
+                future.get();
+            } catch (ExecutionException e) {
+                LOG.errorDebug(e.getCause(), "Cache entry %s:%s", namespace, action.getKey());
+            }
+        }
+    }
+
+    public interface FetchingCallback<T, U>
+    {
+        Future<T> callback(MemcachedClient client, String key, int expiry, U data) throws InterruptedException;
     }
 
     @SuppressWarnings("unchecked")
