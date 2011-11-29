@@ -44,6 +44,28 @@ final class MemcacheProvider implements InternalCacheProvider {
         }
     };
 
+    private static final FetchingCallback<Boolean, byte[]> ADD_CALLBACK = new FetchingCallback<Boolean, byte[]>() {
+        @Override
+        public Future<Boolean> callback(final MemcachedClient client, final String key, final int expiry, final byte [] data) throws InterruptedException {
+            return client.add(key, expiry, data);
+        }
+    };
+
+    private static final FetchingCallback<Boolean, byte[]> SET_CALLBACK = new FetchingCallback<Boolean, byte[]>() {
+        @Override
+        public Future<Boolean> callback(final MemcachedClient client, final String key, final int expiry, final byte [] data) throws InterruptedException {
+            return client.set(key, expiry, data);
+        }
+    };
+
+    private static final OpCallback<Boolean> CLEAR_CALLBACK = new FetchingCallback<Void, Void>() {
+        @Override
+        public Future<Boolean> callback(final MemcachedClient client, final String key) throws InterruptedException {
+            return client.delete(key);
+        }
+    };
+
+
     private static final Log LOG = Log.findLog();
     private static final String SEPARATOR = "\u0001";
 
@@ -73,52 +95,23 @@ final class MemcacheProvider implements InternalCacheProvider {
     }
 
     @Override
-    public void set(String namespace, Map<String, ? extends DataProvider<byte []>> stores) {
-        MemcachedClient client = clientFactory.get();
-        if (client == null) {
-            return;
-        }
-
-        for (final Entry<String, ? extends DataProvider<byte []>> action : stores.entrySet()) {
-
-            DataProvider<byte []> cacheStore = action.getValue();
-            String preparedKey = makeKey(namespace, action.getKey());
-            int expiry = computeMemcacheExpiry(cacheStore.getExpiry());
-            byte[] bytes = cacheStore.getData();
-
-            Future<Boolean> future;
-            try {
-                future = client.set(preparedKey, expiry, bytes);
-            } catch (Exception e) {
-                LOG.error(e, "Spymemcached tossed an exception while storing %s", preparedKey);
-                continue;
-            }
-
-            if (config.isCacheSynchronous()) {
-                try {
-                    future.get();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } catch (ExecutionException e) {
-                    LOG.error(e, "Exception while setting cache entry %s %s", namespace, action);
-                }
-            }
-        }
-    }
-
-    public static final FetchingCallback<Boolean, byte[]> ADD_CALLBACK = new FetchingCallback<Boolean, byte[]>() {
-        @Override
-        public Future<Boolean> callback(final MemcachedClient client, final String key, final int expiry, final byte [] data) throws InterruptedException {
-            return client.add(key, expiry, data);
-        }
-    };
-
-    public Map<String, Boolean> add(final String namespace, final Map<String, CacheStore> stores)
+    public void set(final String namespace, final Map<String, ? extends DataProvider<byte []>> stores)
     {
-        return fetchingCallback(namespace, stores, ADD_CALLBACK);
+        op(namespace, stores, SET_CALLBACK, false);
     }
 
-    private <T, U> Map<String, T> fetchingCallback(final String namespace, final Map<String, ? extends DataProvider<U>> stores, final FetchingCallback<T, U> callback)
+    public Map<String, Boolean> add(final String namespace, final Map<String, ? extends DataProvider<byte []>> stores)
+    {
+        return op(namespace, stores, ADD_CALLBACK, true);
+    }
+
+    @Override
+    public Map<String, Boolean> clear(final String namespace, final Collection<String> keys)
+    {
+        return op(namespace, keys, CLEAR_CALLBACK);
+    }
+
+    private <T, U> Map<String, T> op(final String namespace, final Map<String, ? extends DataProvider<U>> stores, final FetchingCallback<T, U> callback, final boolean wait)
     {
         final MemcachedClient client = clientFactory.get();
 
@@ -149,11 +142,53 @@ final class MemcacheProvider implements InternalCacheProvider {
                 syncCheck(future, namespace, action);
             }
 
-            for (Map.Entry<String, Future<T>> entry : futures.entrySet()) {
+            if (wait) {
+                for (Map.Entry<String, Future<T>> entry : futures.entrySet()) {
+                    try {
+                        results.put(entry.getKey(), entry.getValue().get());
+                    } catch (ExecutionException e) {
+                        LOG.errorDebug(e.getCause(), "Cache entry %s:%s", namespace, entry.getKey());
+                    }
+                }
+            }
+        }
+        catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+        return results;
+    }
+
+    private <T> Map<String, T> op(final String namespace, final Collection<String> keys, final OpCallback<T> callback, final boolean wait)
+    {
+        final MemcachedClient client = clientFactory.get();
+
+        if (client == null) {
+            return Collections.emptyMap();
+        }
+
+        final Map<String, Future<T>> futures = Maps.newHashMap();
+        final Map<String, T> results = Maps.newHashMap();
+
+        try {
+            for (final String key : keys) {
+                Future<T> future = null;
                 try {
-                    results.put(entry.getKey(), entry.getValue().get());
-                } catch (ExecutionException e) {
-                    LOG.errorDebug(e.getCause(), "Cache entry %s:%s", namespace, entry.getKey());
+                    future = callback.callback(client, makeKey(namespace, key));
+                    futures.put(key, future);
+                } catch (IllegalStateException ise) {
+                    LOG.errorDebug(ise, "Memcache Queue was full while storing %s:%s", namespace, key);
+                }
+
+                syncCheck(future, namespace, action);
+            }
+
+            if (wait) {
+                for (Map.Entry<String, Future<T>> entry : futures.entrySet()) {
+                    try {
+                        results.put(entry.getKey(), entry.getValue().get());
+                    } catch (ExecutionException e) {
+                        LOG.errorDebug(e.getCause(), "Cache entry %s:%s", namespace, entry.getKey());
+                    }
                 }
             }
         }
@@ -179,6 +214,12 @@ final class MemcacheProvider implements InternalCacheProvider {
     {
         Future<T> callback(MemcachedClient client, String key, int expiry, U data) throws InterruptedException;
     }
+
+    public interface OpCallback<T>
+    {
+        Future<T> callback(MemcachedClient client, String key) throws InterruptedException;
+    }
+
 
     @SuppressWarnings("unchecked")
     @Override
