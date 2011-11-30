@@ -90,19 +90,15 @@ public class JvmCacheProvider implements InternalCacheProvider {
         }
     }
 
+    @Override
     public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
     {
-        throw new UnsupportedOperationException("not supported in this implementation!");
-    }
-
-    public Map<String, Long> incr(final String namespace, final Collection<CacheStore<Integer>> stores)
-    {
-        throw new UnsupportedOperationException("not supported in this implementation!");
-    }
-
-    public Map<String, Long> decr(final String namespace, final Collection<CacheStore<Integer>> stores)
-    {
-        throw new UnsupportedOperationException("not supported in this implementation!");
+        final Map<String, Boolean> resultMap = Maps.newHashMap();
+        for (CacheStore<byte []> e : stores) {
+            final Element old = ehCache.putIfAbsent(new Element(makeKey(namespace, e.getKey()), e));
+            resultMap.put(e.getKey(), old == null);
+        }
+        return resultMap;
     }
 
     private Entry<String, String> makeKey(String namespace, String key) {
