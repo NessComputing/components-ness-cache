@@ -159,7 +159,7 @@ final class MemcacheProvider implements InternalCacheProvider {
     }
 
     /** Memcache expects expiration dates in seconds since the epoch. */
-    public static final int computeMemcacheExpiry(@Nullable DateTime when)
+    public static int computeMemcacheExpiry(@Nullable DateTime when)
     {
         return when == null ? -1 : Ints.saturatedCast(when.getMillis() / 1000);
     }
@@ -178,7 +178,7 @@ final class MemcacheProvider implements InternalCacheProvider {
         return encodedNamespace + SEPARATOR + encoder.apply(key);
     }
 
-    private <F, D> Map<String, F> processOps(final String namespace, final boolean wait, final Collection<CacheStore<D>> dataCollection, Callback<F, D> callback)
+    private <F, D> Map<String, F> processOps(final String namespace, final boolean wait, final Collection<CacheStore<D>> stores, Callback<F, D> callback)
     {
         final MemcachedClient client = clientFactory.get();
 
@@ -190,19 +190,19 @@ final class MemcacheProvider implements InternalCacheProvider {
 
         try {
             final String nsEncoded = encoder.apply(namespace);
-            for (final CacheStore<D> dataProvider : dataCollection) {
+            for (final CacheStore<D> cacheStore : stores) {
 
-                final String key = dataProvider.getKey();
+                final String key = cacheStore.getKey();
 
                 Future<F> future = null;
                 try {
-                    future = callback.callback(client, makeKeyWithNamespaceAlreadyEncoded(nsEncoded, key), dataProvider);
+                    future = callback.callback(client, makeKeyWithNamespaceAlreadyEncoded(nsEncoded, key), cacheStore);
                     futures.put(key, future);
                 } catch (IllegalStateException ise) {
                     LOG.errorDebug(ise, "Memcache Queue was full while storing %s:%s", namespace, key);
                 }
 
-                syncCheck(future, namespace, dataProvider);
+                syncCheck(future, namespace, cacheStore);
             }
 
             if (wait) {
