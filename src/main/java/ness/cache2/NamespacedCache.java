@@ -45,9 +45,9 @@ public class NamespacedCache {
      *
      *  This is an optional operation.
      */
-    public Map<String, Boolean> add(String key, byte[] value, DateTime expiry)
+    public Boolean add(String key, byte[] value, DateTime expiry)
     {
-        return cache.add(namespace, Collections.singleton(CacheStores.fromSharedBytes(key, value, expiry)));
+        return cache.add(namespace, Collections.singleton(CacheStores.fromSharedBytes(key, value, expiry))).get(key);
     }
 
     /**
@@ -111,37 +111,5 @@ public class NamespacedCache {
      */
     public void clear(Collection<String> keys) {
         cache.clear(namespace, keys);
-    }
-
-    /**
-     * Increment a single key.
-     */
-    public Long incr(final String key, final int value, final DateTime expiry)
-    {
-        return cache.incr(namespace, CacheStores.forKeys(Collections.singleton(key), value, expiry)).get(key);
-    }
-
-    /**
-     * Bulk increment keys.
-     */
-    public Map<String, Long> incr(final Collection<String> keys, final int value, final DateTime expiry)
-    {
-        return cache.incr(namespace, CacheStores.forKeys(keys, value, expiry));
-    }
-
-    /**
-     * Decrement a single key.
-     */
-    public Long decr(final String key, final int value, final DateTime expiry)
-    {
-        return cache.decr(namespace, CacheStores.forKeys(Collections.singleton(key), value, expiry)).get(key);
-    }
-
-    /**
-     * Bulk decrement keys.
-     */
-    public Map<String, Long> decr(final Collection<String> keys, final int value, final DateTime expiry)
-    {
-        return cache.decr(namespace, CacheStores.forKeys(keys, value, expiry));
     }
 }

@@ -23,14 +23,4 @@ public class NullProvider implements InternalCacheProvider {
     {
         return Collections.emptyMap();
     }
-
-    public Map<String, Long> incr(final String namespace, final Collection<CacheStore<Integer>> stores)
-    {
-        return Collections.emptyMap();
-    }
-
-    public Map<String, Long> decr(final String namespace, final Collection<CacheStore<Integer>> stores)
-    {
-        return Collections.emptyMap();
-    }
 }

@@ -29,22 +29,4 @@ interface InternalCacheProvider {
      * This is an optional operation.
      */
     Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>> stores);
-
-    /**
-     * Increment a number of keys by the values provided in the cache store objects.
-     *
-     * This is an optional operation.
-     *
-     * @See {@link CacheStores#forKeys(Collection, int, org.joda.time.DateTime)}.
-     */
-    Map<String, Long> incr(String namespace, Collection<CacheStore<Integer>> stores);
-
-    /**
-     * Increment a number of keys by the values provided in the cache store objects.
-     *
-     * This is an optional operation.
-     *
-     * @See {@link CacheStores#forKeys(Collection, int, org.joda.time.DateTime)}.
-     */
-    Map<String, Long> decr(String namespace, Collection<CacheStore<Integer>> stores);
 }

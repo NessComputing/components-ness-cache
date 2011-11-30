@@ -19,12 +19,10 @@ import net.spy.memcached.OperationTimeoutException;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
-import com.google.common.base.Objects;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
-import com.google.common.util.concurrent.Futures;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -64,26 +62,6 @@ final class MemcacheProvider implements InternalCacheProvider {
             return client.set(key,
                               computeMemcacheExpiry(cacheStore.getExpiry()),
                               cacheStore.getData());
-        }
-    };
-
-    private static final Callback<Long, Integer> INC_CALLBACK = new Callback<Long, Integer>() {
-        @Override
-        public Future<Long> callback(final MemcachedClient client, final String key, final CacheStore<Integer> cacheStore) throws InterruptedException {
-            return Futures.immediateFuture(client.incr(key,
-                                                       Objects.firstNonNull(cacheStore.getData(), Integer.valueOf(1)),
-                                                       0,
-                                                       computeMemcacheExpiry(cacheStore.getExpiry())));
-        }
-    };
-
-    private static final Callback<Long, Integer> DEC_CALLBACK = new Callback<Long, Integer>() {
-        @Override
-        public Future<Long> callback(final MemcachedClient client, final String key, final CacheStore<Integer> cacheStore) throws InterruptedException {
-            return Futures.immediateFuture(client.decr(key,
-                                                       Objects.firstNonNull(cacheStore.getData(), Integer.valueOf(1)),
-                                                       0,
-                                                       computeMemcacheExpiry(cacheStore.getExpiry())));
         }
     };
 
@@ -139,18 +117,6 @@ final class MemcacheProvider implements InternalCacheProvider {
     public void clear(final String namespace, final Collection<String> keys)
     {
         processOps(namespace, false, CacheStores.forKeys(keys, null), CLEAR_CALLBACK);
-    }
-
-    @Override
-    public Map<String, Long> incr(final String namespace, final Collection<CacheStore<Integer>> stores)
-    {
-        return processOps(namespace, false, stores, INC_CALLBACK);
-    }
-
-    @Override
-    public Map<String, Long> decr(final String namespace, final Collection<CacheStore<Integer>> stores)
-    {
-        return processOps(namespace, false, stores, DEC_CALLBACK);
     }
 
     @Override

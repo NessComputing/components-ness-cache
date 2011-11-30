@@ -87,22 +87,4 @@ public class CacheImpl implements Cache {
         }
         provider.clear(namespace,keys);
     }
-
-    @Override
-    public Map<String, Long> incr(String namespace, Collection<CacheStore<Integer>>  stores) {
-        LOG.trace("incr(%s, %s)", namespace, stores);
-        if (cacheStatistics != null) {
-            cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
-        }
-        return provider.incr(namespace, stores);
-    }
-
-    @Override
-    public Map<String, Long> decr(String namespace, Collection<CacheStore<Integer>>  stores) {
-        LOG.trace("incr(%s, %s)", namespace, stores);
-        if (cacheStatistics != null) {
-            cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
-        }
-        return provider.decr(namespace, stores);
-    }
 }

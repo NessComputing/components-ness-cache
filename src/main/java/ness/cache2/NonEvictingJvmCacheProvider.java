@@ -47,17 +47,8 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 		}
 	}
 
+    @Override
     public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
-    {
-        throw new UnsupportedOperationException("not supported in this implementation!");
-    }
-
-    public Map<String, Long> incr(final String namespace, final Collection<CacheStore<Integer>> stores)
-    {
-        throw new UnsupportedOperationException("not supported in this implementation!");
-    }
-
-    public Map<String, Long> decr(final String namespace, final Collection<CacheStore<Integer>> stores)
     {
         throw new UnsupportedOperationException("not supported in this implementation!");
     }
