@@ -1,8 +1,8 @@
 package ness.cache2;
 
-import java.util.Arrays;
-
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import org.joda.time.DateTime;
@@ -13,8 +13,9 @@ import com.google.common.base.Preconditions;
  * Encapsulates a single store of arbitrary data, which expires at a given time.
  */
 @NotThreadSafe
-public class CacheStore implements DataProvider<byte[]> {
-    private final byte[] data;
+public class CacheStore<D> {
+    private final String key;
+    private final D data;
     private final DateTime expiry;
 
     /**
@@ -23,57 +24,43 @@ public class CacheStore implements DataProvider<byte[]> {
      * @param expiry the expiration instant; this is advisory and cache entries may expire sooner (or later, in certain circumstances)
      */
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="EI_EXPOSE_REP", justification="efficiency")
-    CacheStore(byte[] data, DateTime expiry) {
-        Preconditions.checkNotNull(data);
-        Preconditions.checkNotNull(expiry);
-        Preconditions.checkArgument(expiry.isAfterNow(), "expiry time in the past");
+    CacheStore(@Nonnull final String key,
+               @Nullable final D data,
+               @Nullable DateTime expiry) {
+        Preconditions.checkNotNull(key);
+
+        if (expiry != null) {
+            Preconditions.checkArgument(expiry.isAfterNow(), "expiry time in the past");
+        }
+
+        this.key = key;
         this.data = data;
         this.expiry = expiry;
     }
 
     /**
-     * Create a new cache entry ready for storing
-     * @param data the data to store; this data is shared (not copied) for efficiency and should never be modified after being handed off.
-     * @param expiry the expiration instant; this is advisory and cache entries may expire sooner (or later, in certain circumstances)
+     * Returns the store key.
      */
-    public static CacheStore fromSharedBytes(byte[] data, DateTime expiry) {
-        return new CacheStore(data, expiry);
-    }
-
-    /**
-     * Create a new cache entry ready for storing
-     * @param data the data to store; this data is copied and may be modified after the invocation completes
-     * @param expiry the expiration instant; this is advisory and cache entries may expire sooner (or later, in certain circumstances)
-     */
-    public static CacheStore fromClonedBytes(byte[] data, DateTime expiry) {
-        return new CacheStore(Arrays.copyOf(data, data.length), expiry);
+    @Nonnull
+    public String getKey()
+    {
+        return key;
     }
 
     /**
      * @return the advisory cache entry expiry time.
      */
-    @Nonnull
+    @CheckForNull
     public DateTime getExpiry() {
         return expiry;
     }
 
     /**
-     * @deprecated use {@link CacheStore#getData()}
-     */
-    @Nonnull
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="EI_EXPOSE_REP", justification="efficiency")
-    @Deprecated
-    public byte[] getBytes() {
-        return data;
-    }
-
-    /**
      * @return the data for this cache entry; this is shared and must not be modified via this reference.
      */
-    @Override
-    @Nonnull
+    @CheckForNull
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="EI_EXPOSE_REP", justification="efficiency")
-    public byte[] getData() {
+    public D getData() {
         return data;
     }
 }

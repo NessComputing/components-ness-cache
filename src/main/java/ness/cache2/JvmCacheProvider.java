@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.joda.time.DateTime;
+
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -51,11 +53,11 @@ public class JvmCacheProvider implements InternalCacheProvider {
     }
 
     @Override
-    public void set(String namespace, Map<String, ? extends DataProvider<byte []>> stores) {
-        for (Entry<String, ? extends DataProvider<byte []>> e : stores.entrySet()) {
+    public void set(String namespace, Collection<CacheStore<byte []>> stores) {
+        for (CacheStore<byte []> e : stores) {
             ehCache.put(new Element(
                     makeKey(namespace, e.getKey()),
-                    e.getValue()));
+                    e));
         }
     }
 
@@ -67,9 +69,11 @@ public class JvmCacheProvider implements InternalCacheProvider {
 
             if (value != null && value.getObjectValue() != null) {
                 @SuppressWarnings("unchecked")
-                DataProvider<byte []> storedEntry = (DataProvider<byte []>)value.getObjectValue();
-                if (storedEntry.getExpiry().isAfterNow()) {
-                    builder.put(key, storedEntry.getData());
+                CacheStore<byte []> storedEntry = (CacheStore<byte []>)value.getObjectValue();
+                final DateTime expiry = storedEntry.getExpiry();
+                final byte [] data = storedEntry.getData();
+                if ((expiry == null || expiry.isAfterNow()) && data != null) {
+                    builder.put(key, data);
                 } else {
                     clear(namespace, Collections.singleton(key));
                 }
@@ -84,6 +88,21 @@ public class JvmCacheProvider implements InternalCacheProvider {
         for (String key : keys) {
             ehCache.remove(makeKey(namespace, key));
         }
+    }
+
+    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
+    {
+        throw new UnsupportedOperationException("not supported in this implementation!");
+    }
+
+    public Map<String, Long> incr(final String namespace, final Collection<CacheStore<Integer>> stores)
+    {
+        throw new UnsupportedOperationException("not supported in this implementation!");
+    }
+
+    public Map<String, Long> decr(final String namespace, final Collection<CacheStore<Integer>> stores)
+    {
+        throw new UnsupportedOperationException("not supported in this implementation!");
     }
 
     private Entry<String, String> makeKey(String namespace, String key) {

@@ -49,12 +49,21 @@ public class CacheImpl implements Cache {
     }
 
     @Override
-    public void set(String namespace, Map<String, ? extends DataProvider<byte []>> stores) {
+    public void set(String namespace, Collection<CacheStore<byte []>>  stores) {
         LOG.trace("set(%s, %s)", namespace, stores);
         if (cacheStatistics != null) {
             cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
         }
         provider.set(namespace, stores);
+    }
+
+    @Override
+    public Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>>  stores) {
+        LOG.trace("add(%s, %s)", namespace, stores);
+        if (cacheStatistics != null) {
+            cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
+        }
+        return provider.add(namespace, stores);
     }
 
     @Override
@@ -77,5 +86,23 @@ public class CacheImpl implements Cache {
             cacheStatistics.getCacheStatistics(namespace).incrementClears(keys.size());
         }
         provider.clear(namespace,keys);
+    }
+
+    @Override
+    public Map<String, Long> incr(String namespace, Collection<CacheStore<Integer>>  stores) {
+        LOG.trace("incr(%s, %s)", namespace, stores);
+        if (cacheStatistics != null) {
+            cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
+        }
+        return provider.incr(namespace, stores);
+    }
+
+    @Override
+    public Map<String, Long> decr(String namespace, Collection<CacheStore<Integer>>  stores) {
+        LOG.trace("incr(%s, %s)", namespace, stores);
+        if (cacheStatistics != null) {
+            cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
+        }
+        return provider.decr(namespace, stores);
     }
 }
