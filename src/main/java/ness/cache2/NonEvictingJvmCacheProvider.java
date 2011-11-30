@@ -21,10 +21,10 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 	private final Map<Map.Entry<String, String>, byte[]> map = Maps.newConcurrentMap();
 
 	@Override
-	public void set(String namespace, Map<String, CacheStore> stores) {
-		for (Map.Entry<String, CacheStore> entry: stores.entrySet()) {
+	public void set(String namespace, Collection<CacheStore<byte []>> stores) {
+		for (CacheStore<byte []> entry: stores) {
 			LOG.trace("%s setting %s:%s", this, namespace, entry.getKey());
-			map.put(Maps.immutableEntry(namespace, entry.getKey()), entry.getValue().getBytes());
+			map.put(Maps.immutableEntry(namespace, entry.getKey()), entry.getData());
 		}
 	}
 
@@ -46,4 +46,10 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 			map.remove(Maps.immutableEntry(namespace, key));
 		}
 	}
+
+    @Override
+    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
+    {
+        throw new UnsupportedOperationException("not supported in this implementation!");
+    }
 }

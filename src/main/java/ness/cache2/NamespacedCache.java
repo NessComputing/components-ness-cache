@@ -10,7 +10,8 @@ import javax.annotation.Nonnull;
 
 import org.joda.time.DateTime;
 
-import com.google.common.collect.Maps;
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 
 /**
  * A facade over a {@link Cache} which has the namespace field
@@ -36,7 +37,17 @@ public class NamespacedCache {
      * @see Cache#set(String, java.util.Map)
      */
     public void set(String key, byte[] value, DateTime expiry) {
-        cache.set(namespace, Collections.singletonMap(key, CacheStore.fromSharedBytes(value, expiry)));
+        cache.set(namespace, Collections.singleton(CacheStores.fromSharedBytes(key, value, expiry)));
+    }
+
+    /**
+     * Tries to add a cache entry if it does not already exist.
+     *
+     *  This is an optional operation.
+     */
+    public Boolean add(String key, byte[] value, DateTime expiry)
+    {
+        return cache.add(namespace, Collections.singleton(CacheStores.fromSharedBytes(key, value, expiry))).get(key);
     }
 
     /**
@@ -44,14 +55,28 @@ public class NamespacedCache {
      * is shared, and the cache infrastructure assumes that it owns the passed in byte array.
      * @see Cache#set(String, java.util.Map)
      */
-    public void set(Map<String, byte[]> entries, DateTime expiry) {
-        Map<String, CacheStore> stores = Maps.newHashMap();
+    public void set(Map<String, byte[]> entries, final DateTime expiry) {
+        cache.set(namespace, Collections2.transform(entries.entrySet(), new Function<Map.Entry<String, byte []>, CacheStore<byte []>>() {
+            @Override
+            public CacheStore<byte[]> apply(final Entry<String, byte[]> entry) {
+                return CacheStores.fromSharedBytes(entry.getKey(), entry.getValue(), expiry);
+            }
+        }));
+    }
 
-        for (Entry<String, byte[]> e : entries.entrySet()) {
-            stores.put(e.getKey(), CacheStore.fromSharedBytes(e.getValue(), expiry));
-        }
 
-        cache.set(namespace, stores);
+    /**
+     * Add many cache entries with given values and expiration date.  Note that the value byte array
+     * is shared, and the cache infrastructure assumes that it owns the passed in byte array.
+     * @see Cache#set(String, java.util.Map)
+     */
+    public Map<String, Boolean> add(Map<String, byte[]> entries, final DateTime expiry) {
+        return cache.add(namespace, Collections2.transform(entries.entrySet(), new Function<Map.Entry<String, byte []>, CacheStore<byte []>>() {
+            @Override
+            public CacheStore<byte[]> apply(final Entry<String, byte[]> entry) {
+                return CacheStores.fromSharedBytes(entry.getKey(), entry.getValue(), expiry);
+            }
+        }));
     }
 
     /**

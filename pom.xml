@@ -16,7 +16,7 @@
   <groupId>ness.components</groupId>
   <artifactId>ness-cache2</artifactId>
   <name>ness-cache2</name>
-  <version>2.2-SNAPSHOT</version>
+  <version>3.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Ness Caching Component</description>
 
@@ -30,7 +30,7 @@
     <dependency>
       <groupId>io.trumpet.components</groupId>
       <artifactId>tc-config</artifactId>
-      <version>6.2</version>
+      <version>6.3</version>
     </dependency>
 
     <dependency>
@@ -54,7 +54,8 @@
     <dependency>
       <groupId>net.sf.ehcache</groupId>
       <artifactId>ehcache-core</artifactId>
-      <version>2.4.6</version>
+      <version>2.5.0</version>
+      <optional>true</optional>
     </dependency>
 
     <!-- Guice and Guava -->

@@ -49,12 +49,21 @@ public class CacheImpl implements Cache {
     }
 
     @Override
-    public void set(String namespace, Map<String, CacheStore> stores) {
+    public void set(String namespace, Collection<CacheStore<byte []>>  stores) {
         LOG.trace("set(%s, %s)", namespace, stores);
         if (cacheStatistics != null) {
             cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
         }
         provider.set(namespace, stores);
+    }
+
+    @Override
+    public Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>>  stores) {
+        LOG.trace("add(%s, %s)", namespace, stores);
+        if (cacheStatistics != null) {
+            cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
+        }
+        return provider.add(namespace, stores);
     }
 
     @Override

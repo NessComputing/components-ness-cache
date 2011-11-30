@@ -57,7 +57,7 @@ public class NullCacheTest {
         String ns = "a";
         Collection<String> b = Collections.singleton("b");
         assertTrue(cache.get(ns, b).isEmpty());
-        cache.set(ns, Collections.singletonMap("b", new CacheStore(new byte[1], new DateTime().plusMinutes(1))));
+        cache.set(ns, Collections.singleton(new CacheStore<byte []>("b", new byte[1], new DateTime().plusMinutes(1))));
         assertTrue(cache.get(ns, b).isEmpty());
         cache.clear(ns, b);
         assertTrue(cache.get(ns, b).isEmpty());

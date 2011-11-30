@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class NullProvider implements InternalCacheProvider {
     @Override
-    public void set(String namepsace, Map<String, CacheStore> stores) { }
+    public void set(String namespace, Collection<CacheStore<byte []>> stores) { }
 
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
@@ -18,4 +18,9 @@ public class NullProvider implements InternalCacheProvider {
 
     @Override
     public void clear(String namepsace, Collection<String> keys) { }
+
+    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
+    {
+        return Collections.emptyMap();
+    }
 }

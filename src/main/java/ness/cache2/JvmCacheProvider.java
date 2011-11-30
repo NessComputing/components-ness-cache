@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.joda.time.DateTime;
+
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -51,11 +53,11 @@ public class JvmCacheProvider implements InternalCacheProvider {
     }
 
     @Override
-    public void set(String namespace, Map<String, CacheStore> stores) {
-        for (Entry<String, CacheStore> e : stores.entrySet()) {
+    public void set(String namespace, Collection<CacheStore<byte []>> stores) {
+        for (CacheStore<byte []> e : stores) {
             ehCache.put(new Element(
                     makeKey(namespace, e.getKey()),
-                    e.getValue()));
+                    e));
         }
     }
 
@@ -66,9 +68,12 @@ public class JvmCacheProvider implements InternalCacheProvider {
             Element value = ehCache.get(makeKey(namespace, key));
 
             if (value != null && value.getObjectValue() != null) {
-                CacheStore storedEntry = (CacheStore) value.getObjectValue();
-                if (storedEntry.getExpiry().isAfterNow()) {
-                    builder.put(key, storedEntry.getBytes());
+                @SuppressWarnings("unchecked")
+                CacheStore<byte []> storedEntry = (CacheStore<byte []>)value.getObjectValue();
+                final DateTime expiry = storedEntry.getExpiry();
+                final byte [] data = storedEntry.getData();
+                if ((expiry == null || expiry.isAfterNow()) && data != null) {
+                    builder.put(key, data);
                 } else {
                     clear(namespace, Collections.singleton(key));
                 }
@@ -83,6 +88,17 @@ public class JvmCacheProvider implements InternalCacheProvider {
         for (String key : keys) {
             ehCache.remove(makeKey(namespace, key));
         }
+    }
+
+    @Override
+    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
+    {
+        final Map<String, Boolean> resultMap = Maps.newHashMap();
+        for (CacheStore<byte []> e : stores) {
+            final Element old = ehCache.putIfAbsent(new Element(makeKey(namespace, e.getKey()), e));
+            resultMap.put(e.getKey(), old == null);
+        }
+        return resultMap;
     }
 
     private Entry<String, String> makeKey(String namespace, String key) {
