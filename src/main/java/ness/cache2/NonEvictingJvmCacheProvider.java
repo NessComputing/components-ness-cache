@@ -4,6 +4,7 @@ import io.trumpet.log.Log;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Singleton;
@@ -18,7 +19,7 @@ import com.google.inject.Singleton;
 @Singleton
 public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 	private final static Log LOG = Log.findLog();
-	private final Map<Map.Entry<String, String>, byte[]> map = Maps.newConcurrentMap();
+	private final ConcurrentMap<Map.Entry<String, String>, byte[]> map = Maps.newConcurrentMap();
 
 	@Override
 	public void set(String namespace, Collection<CacheStore<byte []>> stores) {
@@ -48,8 +49,15 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 	}
 
     @Override
-    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
+    public Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>> stores)
     {
-        throw new UnsupportedOperationException("not supported in this implementation!");
+        final Map<String, Boolean> result = Maps.newHashMap();
+
+        for (CacheStore<byte []> entry: stores) {
+            LOG.trace("%s setting %s:%s", this, namespace, entry.getKey());
+            final byte [] old = map.putIfAbsent(Maps.immutableEntry(namespace, entry.getKey()), entry.getData());
+            result.put(entry.getKey(), old == null);
+        }
+        return result;
     }
 }
