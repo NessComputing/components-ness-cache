@@ -9,8 +9,10 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.joda.time.DateTime;
+import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.base.Charsets;
 import com.google.inject.Inject;
 
 public abstract class BaseCachingTests {
@@ -68,5 +70,26 @@ public abstract class BaseCachingTests {
         assertArrayEquals(new byte[] { 69 }, namedCache.get("x z "));
         assertNull(namedCache.get("y"));
         assertTrue(cache.get("test2", Collections.singleton("x z ")).isEmpty());
+    }
+
+    @Test
+    public void testAddOperation() throws Exception
+    {
+        final byte [] bytes = "foo".getBytes(Charsets.UTF_8);
+        final NamespacedCache namedCache = cache.withNamespace("test");
+
+        assertNull(namedCache.get("y"));
+
+        final Boolean result = namedCache.add("y", bytes, null);
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result);
+
+        Assert.assertArrayEquals(bytes, namedCache.get("y"));
+
+
+        final Boolean result2 = namedCache.add("y", bytes, null);
+        Assert.assertNotNull(result2);
+        // Second add should not succeed.
+        Assert.assertFalse(result2);
     }
 }
