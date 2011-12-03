@@ -16,7 +16,7 @@
   <groupId>ness.components</groupId>
   <artifactId>ness-cache2</artifactId>
   <name>ness-cache2</name>
-  <version>3.0-SNAPSHOT</version>
+  <version>3.0</version>
   <packaging>jar</packaging>
   <description>Ness Caching Component</description>
 
