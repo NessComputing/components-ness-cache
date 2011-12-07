@@ -35,7 +35,9 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 		for (String key: keys) {
 			byte[] data = map.get(Maps.immutableEntry(namespace, key));
 			LOG.trace("%s getting %s:%s=%s", this, namespace, key, data);
-			ret.put(key, data);
+			if (data != null) {
+			    ret.put(key, data);
+			}
 		}
 		return ret;
 	}
