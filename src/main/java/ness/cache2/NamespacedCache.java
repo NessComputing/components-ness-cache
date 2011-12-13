@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Function;
@@ -45,9 +46,9 @@ public class NamespacedCache {
      *
      *  This is an optional operation.
      */
-    public Boolean add(String key, byte[] value, DateTime expiry)
+    public boolean add(String key, byte[] value, DateTime expiry)
     {
-        return cache.add(namespace, Collections.singleton(CacheStores.fromSharedBytes(key, value, expiry))).get(key);
+        return BooleanUtils.toBoolean(cache.add(namespace, Collections.singleton(CacheStores.fromSharedBytes(key, value, expiry))).get(key));
     }
 
     /**
