@@ -1,27 +1,33 @@
 package ness.cache2;
 
-import io.trumpet.lifecycle.Lifecycle;
-import io.trumpet.lifecycle.LifecycleListener;
 import io.trumpet.lifecycle.LifecycleStage;
+import io.trumpet.lifecycle.guice.OnStage;
 import io.trumpet.log.Log;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import net.spy.memcached.MemcachedClient;
+
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+
+import edu.umd.cs.findbugs.annotations.SuppressWarnings;
 
 /**
  * Maintain a {@link MemcachedClient} which is always connected to the currently operating
@@ -32,120 +38,152 @@ import com.google.inject.Singleton;
 @ThreadSafe
 class MemcachedClientFactory {
     private static final Log LOG = Log.findLog();
-    private volatile MemcachedClient client;
-    private volatile List<InetSocketAddress> memcachedCluster = ImmutableList.of();
-    private final ScheduledExecutorService clientReconfigurationService;
+
+    private final AtomicReference<MemcachedClient> client = new AtomicReference<MemcachedClient>();
+    private final AtomicReference<ScheduledExecutorService> clientReconfigurationService = new AtomicReference<ScheduledExecutorService>();
+    private final AtomicInteger topologyGeneration = new AtomicInteger();
+    private final Object topologyBarrier = new Object();
+
+    private final AtomicReference<ImmutableList<InetSocketAddress>> addrHolder = new AtomicReference<ImmutableList<InetSocketAddress>>(ImmutableList.<InetSocketAddress>of());
+
     private final CacheTopologyProvider cacheTopology;
 
-    private volatile CountDownLatch awaitLatch = new CountDownLatch(1);
     private final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider;
+    private final String cacheName;
+    private final CacheConfiguration configuration;
 
     @Inject
-    MemcachedClientFactory(
-            final CacheConfiguration configuration,
-            Lifecycle lifecycle,
-            CacheTopologyProvider cacheTopology,
-            Provider<NessMemcachedConnectionFactory> connectionFactoryProvider) {
+    MemcachedClientFactory(final CacheConfiguration configuration,
+                           final CacheTopologyProvider cacheTopology,
+                           final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider,
+                           @Nullable @Named("cacheName") final String cacheName)
+    {
 
         this.cacheTopology = cacheTopology;
+        this.cacheName = Objects.firstNonNull(cacheName, "<default>");
+        this.configuration = configuration;
+
         this.connectionFactoryProvider = connectionFactoryProvider;
-        clientReconfigurationService = new ScheduledThreadPoolExecutor(1,
-                new ThreadFactoryBuilder().setNameFormat("memcached-discovery-%d").build());
+    }
 
-        lifecycle.addListener(LifecycleStage.START_STAGE, new LifecycleListener() {
-            @Override
-            public void onStage(LifecycleStage lifecycleStage) {
-                LOG.info("Kicking off memcache topology discovery thread");
-                MemcachedDiscoveryUpdate updater = new MemcachedDiscoveryUpdate();
+    @OnStage(LifecycleStage.START)
+    public void start()
+    {
+        Preconditions.checkState(clientReconfigurationService.get() == null, "client is already started!");
 
-                // Run update once before anything else happens so we don't
-                // observe a null client after the lifecycle starts
-                updater.run();
+        final ThreadFactory tf = new ThreadFactoryBuilder().setNameFormat("memcached-discovery-" + cacheName).setDaemon(true).build();
+        final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, tf);
+        if(clientReconfigurationService.compareAndSet(null, executor)) {
+            LOG.info("Kicking off memcache topology discovery thread");
+            final MemcachedDiscoveryUpdate updater = new MemcachedDiscoveryUpdate();
 
-                clientReconfigurationService.scheduleAtFixedRate(
-                        updater,
-                        configuration.getCacheServerRediscoveryInterval().getMillis(),
-                        configuration.getCacheServerRediscoveryInterval().getMillis(), TimeUnit.MILLISECONDS);
+            // Run update once before anything else happens so we don't
+            // observe a null client after the lifecycle starts
+            updater.run();
+
+            final long rediscoveryInterval = configuration.getCacheServerRediscoveryInterval().getMillis();
+            executor.scheduleAtFixedRate(updater, rediscoveryInterval, rediscoveryInterval, TimeUnit.MILLISECONDS);
+        }
+        else {
+            LOG.warn("Race condition while starting discovery thread!");
+            executor.shutdown();
+        }
+    }
+
+    @OnStage(LifecycleStage.STOP)
+    public void stop()
+    {
+        final ScheduledExecutorService executor = clientReconfigurationService.getAndSet(null);
+        if (executor != null) {
+            executor.shutdown();
+
+            //  Since the executor service is shutdown, no more updates may happen.  So this client
+            // is the final one that will be created, and client will not be concurrently modified
+            final MemcachedClient clientToShutdown = client.getAndSet(null);
+
+            if (clientToShutdown != null) {
+                clientToShutdown.shutdown(30, TimeUnit.SECONDS); // Shut down gracefully
             }
-        });
 
-        lifecycle.addListener(LifecycleStage.STOP_STAGE, new LifecycleListener() {
-            @Override
-            public void onStage(LifecycleStage lifecycleStage) {
-                clientReconfigurationService.shutdown();
-                // Since the executor service is shutdown, no more updates may happen.  So this client
-                // is the final one that will be created, and client will not be concurrently modified
-                MemcachedClient clientToShutdown;
-                if ((clientToShutdown = client) != null) {
-                    client = null; // Prevent further operations
-                    clientToShutdown.shutdown(30, TimeUnit.SECONDS); // Shut down gracefully
-                }
-                LOG.info("Caching system stopped");
-            }
-        });
+            LOG.info("Caching system stopped");
+        }
+        else {
+            LOG.info("Caching system was already stopped!");
+        }
     }
 
     // This method must be very cheap, it is called per-operation
-    public MemcachedClient get() {
-        return client;
+    public MemcachedClient get()
+    {
+        return client.get();
     }
 
-    private class MemcachedDiscoveryUpdate implements Runnable {
+    private class MemcachedDiscoveryUpdate implements Runnable
+    {
         @Override
-        public void run() {
+        public void run()
+        {
             // Guaranteed to not run multiply so no additional coordination is required; see ScheduledExecutorService.
-            LOG.trace("Cache prior to discovery = %s", client);
+            LOG.trace("Cache prior to discovery: %s", client.get());
 
             // Discover potentially new cluster topology
-            List<InetSocketAddress> addrs = ImmutableList.copyOf(cacheTopology.get());
+            final ImmutableList<InetSocketAddress> newAddrs = cacheTopology.get();
+            final ImmutableList<InetSocketAddress> addrs = addrHolder.get();
 
-            if (!memcachedCluster.equals(addrs)) {
-                memcachedCluster = addrs;
+            if (addrs != null && addrs.equals(newAddrs)) {
+                LOG.trace("Topology change ignored, identical list of servers (%s)", addrs);
+            }
+            else {
+                if(addrHolder.compareAndSet(addrs, newAddrs)) {
+                    MemcachedClient oldClient = null;
 
-                try {
-                    final MemcachedClient newClient;
-                    if (memcachedCluster.isEmpty()) {
-                        newClient = null;
-                    } else {
-                        newClient = new MemcachedClient(connectionFactoryProvider.get(), addrs);
+                    try {
+                        final MemcachedClient newClient;
+                        if (newAddrs.isEmpty()) {
+                            newClient = null;
+                            LOG.warn("All memcached servers disappeared!");
+                        }
+                        else {
+                            newClient = new MemcachedClient(connectionFactoryProvider.get(), newAddrs);
+                        }
+
+                        oldClient = client.getAndSet(newClient);
+                        final int topologyCount = topologyGeneration.incrementAndGet();
+
+                        synchronized (topologyBarrier) {
+                            topologyBarrier.notifyAll();
+                        }
+
+                        LOG.debug("Topology change for %s, generation is now %d, client: %s", cacheName, topologyCount, newClient);
                     }
-
-                    MemcachedClient oldClient = client;
-                    client = newClient;
-
-                    LOG.info("Discovery complete, new client talks to %s -> %s", addrs, newClient);
-                    if (oldClient != null) {
-                        LOG.debug("Shutting down old client");
-                        oldClient.shutdown(100, TimeUnit.MILLISECONDS);
-                        LOG.trace("Old client shutdown");
+                    catch (IOException ioe) {
+                        LOG.errorDebug(ioe, "Could not connect to memcached cluster %s", cacheName);
                     }
-
-                    awaitLatch.countDown();
-
-                    if (client == null) {
-                        LOG.warn("WARNING: all memcached servers disappeared!");
+                    finally {
+                        if (oldClient != null) {
+                            LOG.debug("Shutting down old client");
+                            oldClient.shutdown(100, TimeUnit.MILLISECONDS);
+                            LOG.trace("Old client shutdown");
+                        }
                     }
-                } catch (IOException e) {
-                    LOG.error(e, "Could not connect to memcached cluster");
                 }
-            } else {
-                LOG.trace("No cache update due to identical cluster configuration %s", memcachedCluster);
+                else {
+                    LOG.warn("Tried to update cache address to %s, but topology changed behind my back!", newAddrs);
+                }
             }
         }
     }
 
-    void readyAwaitTopologyChange() {
-        awaitLatch = new CountDownLatch(1);
+    @SuppressWarnings(value={"UW_UNCOND_WAIT", "WA_NOT_IN_LOOP"}, justification="test code")
+    void waitTopologyChange() throws InterruptedException
+    {
+        synchronized (topologyBarrier) {
+            topologyBarrier.wait();
+        }
     }
 
-    /**
-     * Wait for the cache topology to change.  ONLY SUITABLE FOR USE IN UNIT TESTS.
-     * USING THIS METHOD FROM ANY THREAD OTHER THAN THE MAIN JUNIT THREAD WILL INVOKE
-     * UNDEFINED BEHAVIOR.
-     */
-    void awaitTopologyChange() throws InterruptedException {
-        LOG.info("Begin awaiting topology change");
-        Preconditions.checkState(awaitLatch.await(5, TimeUnit.SECONDS), "state did not change");
-        LOG.info("Finished awaiting topology change");
+    public int getTopologyGeneration()
+    {
+        return topologyGeneration.get();
     }
 }

@@ -11,10 +11,10 @@ import java.util.concurrent.Future;
 
 import javax.annotation.Nullable;
 
-import org.joda.time.DateTime;
-
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.OperationTimeoutException;
+
+import org.joda.time.DateTime;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -82,7 +82,9 @@ final class MemcacheProvider implements InternalCacheProvider {
     private final Function<String,String> decoder;
 
     @Inject
-    MemcacheProvider(CacheConfiguration config, MemcachedClientFactory clientFactory) {
+    MemcacheProvider(final CacheConfiguration config,
+                     final MemcachedClientFactory clientFactory)
+    {
         this.config = config;
         this.clientFactory = clientFactory;
         CacheConfiguration.EncodingType encodingType = config.getMemcachedEncoding();

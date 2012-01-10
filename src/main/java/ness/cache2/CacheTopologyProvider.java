@@ -5,8 +5,8 @@ import io.trumpet.log.Log;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -16,7 +16,8 @@ import ness.discovery.client.ServiceInformation;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -26,8 +27,16 @@ import com.google.inject.name.Named;
  */
 @Singleton
 class CacheTopologyProvider {
+    private static final Function<ServiceInformation, InetSocketAddress> SERVICE_INFORMATION_TO_INET_SOCKET_ADDRESS = new Function<ServiceInformation, InetSocketAddress>() {
+        @Override
+        public InetSocketAddress apply(ServiceInformation input) {
+            return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS),
+                    Integer.valueOf(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));
+        }
+    };
+
     private static final Log LOG = Log.findLog();
-    private final Set<InetSocketAddress> addrs;
+    private final ImmutableList<InetSocketAddress> addrs;
     private final ReadOnlyDiscoveryClient discoveryClient;
     private String cacheName;
 
@@ -38,7 +47,7 @@ class CacheTopologyProvider {
 
         List<URI> uris = config.getCacheUri();
         if (uris != null) {
-            ImmutableSet.Builder<InetSocketAddress> addrBuilder = ImmutableSet.builder();
+            ImmutableList.Builder<InetSocketAddress> addrBuilder = ImmutableList.builder();
             for (URI uri : uris) {
                 if ("memcache".equals(uri.getScheme())) {
                     addrBuilder.add(new InetSocketAddress(uri.getHost(), uri.getPort()));
@@ -47,35 +56,38 @@ class CacheTopologyProvider {
                 }
             }
             addrs = addrBuilder.build();
+            LOG.info("Using configured caches: %s", addrs);
         } else {
             addrs = null;
+            LOG.info("Using dynamically discovered caches.");
         }
     }
 
-    public Set<InetSocketAddress> get() {
+    public ImmutableList<InetSocketAddress> get() {
         if (addrs != null) {
             return addrs;
         }
 
-        Collection<ServiceInformation> serviceInformation;
+        final Collection<ServiceInformation> serviceInformation;
         if (cacheName == null) {
         	serviceInformation = discoveryClient.findAllServiceInformation("memcached");
-        } else {
-        	serviceInformation = discoveryClient.findAllServiceInformation("memcached", cacheName);
+        }
+        else {
+        	final List<ServiceInformation> discoverInformation  = discoveryClient.findAllServiceInformation("memcached", cacheName);
         	//Discovery might have fallen back to un-typed entries, and we want strict typing
-        	serviceInformation = Collections2.filter(serviceInformation, new Predicate<ServiceInformation>() {
+        	serviceInformation = Collections2.filter(discoverInformation, new Predicate<ServiceInformation>() {
 				@Override
-				public boolean apply(ServiceInformation input) {
-					return cacheName.equals(input.getServiceType());
+				public boolean apply(final ServiceInformation input) {
+					boolean result = input.getServiceType() != null;
+					if (!result) {
+					    LOG.debug("ignored result %s", input);
+					}
+					return result;
 				}
 			});
         }
-		return ImmutableSet.copyOf(Collections2.transform(serviceInformation, new Function<ServiceInformation, InetSocketAddress>() {
-            @Override
-            public InetSocketAddress apply(ServiceInformation input) {
-                return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS),
-                        Integer.valueOf(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));
-            }
-        }));
+		final List<InetSocketAddress> results = Lists.newArrayList(Collections2.transform(serviceInformation, SERVICE_INFORMATION_TO_INET_SOCKET_ADDRESS));
+		Collections.sort(results, InetSocketAddressComparator.DEFAULT);
+		return ImmutableList.copyOf(results);
     }
 }

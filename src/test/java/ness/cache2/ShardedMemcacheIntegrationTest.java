@@ -14,19 +14,20 @@ import java.net.InetSocketAddress;
 import java.util.Random;
 import java.util.Set;
 
-import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import ness.discovery.client.DiscoveryClient;
 import ness.discovery.client.ReadOnlyDiscoveryClient;
 import ness.discovery.client.ServiceInformation;
 import ness.discovery.client.testing.MockedDiscoveryClient;
 
+import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -168,11 +169,11 @@ public class ShardedMemcacheIntegrationTest {
 
     @Test
     public void testSimpleClusterReconfiguration() {
-        assertEquals(ImmutableSet.of(addr1, addr2, addr3), cacheTopology.get());
+        assertEquals(ImmutableList.of(addr1, addr2, addr3), cacheTopology.get());
         discovery.unannounce(announce2);
-        assertEquals(ImmutableSet.of(addr1, addr3), cacheTopology.get());
+        assertEquals(ImmutableList.of(addr1, addr3), cacheTopology.get());
         discovery.announce(announce2);
-        assertEquals(ImmutableSet.of(addr1, addr2, addr3), cacheTopology.get());
+        assertEquals(ImmutableList.of(addr1, addr2, addr3), cacheTopology.get());
     }
 
     @Test
@@ -195,44 +196,50 @@ public class ShardedMemcacheIntegrationTest {
         int size = cache.get(NS, allKeys).size();
         assertTrue("" + size, size >= 0.9 * NUM_WRITES && size <= 1.0 * NUM_WRITES);
 
-        clientFactory.readyAwaitTopologyChange();
+        int generation = clientFactory.getTopologyGeneration();
         discovery.unannounce(announce2);
-        clientFactory.awaitTopologyChange();
+        clientFactory.waitTopologyChange();
+        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
         size = cache.get(NS, allKeys).size();
         assertTrue("" + size, size >= 0.6 * NUM_WRITES && size <= 0.7 * NUM_WRITES);
 
-        clientFactory.readyAwaitTopologyChange();
+        generation = clientFactory.getTopologyGeneration();
         discovery.unannounce(announce1);
-        clientFactory.awaitTopologyChange();
+        clientFactory.waitTopologyChange();
+        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
         size = cache.get(NS, allKeys).size();
         assertTrue("" + size, size >= 0.3 * NUM_WRITES && size <= 0.4 * NUM_WRITES);
 
-        clientFactory.readyAwaitTopologyChange();
+        generation = clientFactory.getTopologyGeneration();
         discovery.unannounce(announce3);
-        clientFactory.awaitTopologyChange();
+        clientFactory.waitTopologyChange();
+        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
         size = cache.get(NS, allKeys).size();
         assertEquals("" + size, 0, size);
 
-        clientFactory.readyAwaitTopologyChange();
+        generation = clientFactory.getTopologyGeneration();
         discovery.announce(announce2);
-        clientFactory.awaitTopologyChange();
+        clientFactory.waitTopologyChange();
+        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
         size = cache.get(NS, allKeys).size();
         assertTrue("" + size, size >= 0.3 * NUM_WRITES && size <= 0.4 * NUM_WRITES);
 
-        clientFactory.readyAwaitTopologyChange();
+        generation = clientFactory.getTopologyGeneration();
         discovery.announce(announce3);
-        clientFactory.awaitTopologyChange();
+        clientFactory.waitTopologyChange();
+        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
         size = cache.get(NS, allKeys).size();
         assertTrue("" + size, size >= 0.6 * NUM_WRITES && size <= 0.7 * NUM_WRITES);
 
-        clientFactory.readyAwaitTopologyChange();
+        generation = clientFactory.getTopologyGeneration();
         discovery.announce(announce1);
-        clientFactory.awaitTopologyChange();
+        clientFactory.waitTopologyChange();
+        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
         size = cache.get(NS, allKeys).size();
         assertTrue("" + size, size >= 0.9 * NUM_WRITES && size <= 1.0 * NUM_WRITES);
