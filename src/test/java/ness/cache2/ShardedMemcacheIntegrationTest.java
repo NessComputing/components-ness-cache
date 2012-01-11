@@ -15,19 +15,17 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
+import ness.discovery.client.DiscoveryClient;
+import ness.discovery.client.ReadOnlyDiscoveryClient;
+import ness.discovery.client.ServiceInformation;
+import ness.discovery.client.testing.MockedDiscoveryClient;
+
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import ness.discovery.client.DiscoveryClient;
-import ness.discovery.client.ReadOnlyDiscoveryClient;
-import ness.discovery.client.ServiceInformation;
-import ness.discovery.client.testing.MockedDiscoveryClient;
-
-import net.spy.memcached.compat.log.Log4JLogger;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -89,12 +87,6 @@ public class ShardedMemcacheIntegrationTest {
             return false;
         }
     };
-
-    @Before
-    public void setUpLogging()
-    {
-        System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
-    }
 
     @Before
     public final void setUp() {

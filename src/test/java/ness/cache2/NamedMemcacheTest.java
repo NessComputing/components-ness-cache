@@ -14,17 +14,15 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
 
-import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import ness.discovery.client.DiscoveryClient;
 import ness.discovery.client.ReadOnlyDiscoveryClient;
 import ness.discovery.client.ServiceInformation;
 import ness.discovery.client.testing.MockedDiscoveryClient;
 
-import net.spy.memcached.compat.log.Log4JLogger;
+import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -91,12 +89,6 @@ public class NamedMemcacheTest {
             return false;
         }
     };
-
-    @Before
-    public void setUpLogging()
-    {
-        System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
-    }
 
     @Before
     public final void setUp() {

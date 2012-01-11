@@ -8,10 +8,8 @@ import net.spy.memcached.BinaryConnectionFactory;
 import net.spy.memcached.DefaultConnectionFactory;
 import net.spy.memcached.FailureMode;
 import net.spy.memcached.MemcachedClient;
-import net.spy.memcached.compat.log.Log4JLogger;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -29,12 +27,6 @@ public class SpyMemcachedRuntimeExceptionTest {
 
     private MemCacheDaemon<LocalCacheElement> daemon;
     private MemcachedClient client;
-
-    @Before
-    public void setUpLogging()
-    {
-        System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
-    }
 
     private InetSocketAddress setUp(boolean binary) {
         InetSocketAddress addr = new InetSocketAddress("127.0.0.1", 11212);

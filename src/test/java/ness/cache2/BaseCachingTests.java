@@ -10,10 +10,7 @@ import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-
-import net.spy.memcached.compat.log.Log4JLogger;
 
 import com.google.common.base.Charsets;
 import com.google.inject.Inject;
@@ -21,12 +18,6 @@ import com.google.inject.Inject;
 public abstract class BaseCachingTests {
     @Inject
     Cache cache;
-
-    @Before
-    public void setUp()
-    {
-        System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
-    }
 
     @Test
     public void testSimpleCache() {
