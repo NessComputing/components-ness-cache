@@ -11,13 +11,9 @@ import io.trumpet.lifecycle.guice.LifecycleModule;
 import io.trumpet.log.Log;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.Random;
-import java.util.Set;
-
-import ness.discovery.client.DiscoveryClient;
-import ness.discovery.client.ReadOnlyDiscoveryClient;
-import ness.discovery.client.ServiceInformation;
-import ness.discovery.client.testing.MockedDiscoveryClient;
+import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.junit.After;
@@ -26,9 +22,16 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import ness.discovery.client.DiscoveryClient;
+import ness.discovery.client.ReadOnlyDiscoveryClient;
+import ness.discovery.client.ServiceInformation;
+import ness.discovery.client.testing.MockedDiscoveryClient;
+
+import net.spy.memcached.compat.log.Log4JLogger;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -88,6 +91,12 @@ public class ShardedMemcacheIntegrationTest {
     };
 
     @Before
+    public void setUpLogging()
+    {
+        System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
+    }
+
+    @Before
     public final void setUp() {
         addr1 = new InetSocketAddress("127.0.0.1", 11212);
         daemon1 = createDaemon(addr1.getPort());
@@ -129,7 +138,7 @@ public class ShardedMemcacheIntegrationTest {
         daemon3.stop();
     }
 
-    private final Set<String> allKeys = Sets.newHashSet();
+    private final Map<String, byte[]> allKeys = Maps.newHashMap();
 
     private void writeLots() {
         Random r = new Random(RANDOM_SEED);
@@ -138,23 +147,28 @@ public class ShardedMemcacheIntegrationTest {
         for (int i = 0; i < NUM_WRITES; i++) {
             byte[] data = new byte[4];
             r.nextBytes(data);
-            String key = Integer.toString(r.nextInt());
+            String key = UUID.randomUUID().toString();
             c.set(key, data, expiry);
 
-            allKeys.add(key);
+            allKeys.put(key, data);
         }
+
+        Assert.assertEquals(NUM_WRITES, allKeys.size());
     }
 
     private void verifyWrites() {
-        Random r = new Random(RANDOM_SEED);
         NamespacedCache c = cache.withNamespace(NS);
 
-        for (int i = 0; i < NUM_WRITES; i++) {
-            byte[] data = new byte[4];
-            r.nextBytes(data);
-            String key = Integer.toString(r.nextInt());
-            assertArrayEquals("verify failed at key " + key, data, c.get(key));
+        for (Map.Entry<String, byte[]> key : allKeys.entrySet()) {
+            assertArrayEquals("verify failed at key " + key.getKey(), key.getValue(), c.get(key.getKey()));
         }
+    }
+
+    private void checkCaches(final long items1, final long items2, final long items3)
+    {
+        Assert.assertEquals(items1, daemon1.getCache().getCurrentItems());
+        Assert.assertEquals(items2, daemon2.getCache().getCurrentItems());
+        Assert.assertEquals(items3, daemon3.getCache().getCurrentItems());
     }
 
     private final DiscoveryClient discovery = MockedDiscoveryClient.builder().build();
@@ -183,7 +197,7 @@ public class ShardedMemcacheIntegrationTest {
         long items1 = daemon1.getCache().getCurrentItems();
         long items2 = daemon2.getCache().getCurrentItems();
         long items3 = daemon3.getCache().getCurrentItems();
-        LOG.info("%d %d %d", items1, items2, items3);
+        LOG.info("Cache distribution: %d %d %d", items1, items2, items3);
         assertTrue("" + items1, items1 > 250 && items1 < 400);
         assertTrue("" + items2, items2 > 250 && items2 < 400);
         assertTrue("" + items3, items3 > 250 && items3 < 400);
@@ -192,57 +206,63 @@ public class ShardedMemcacheIntegrationTest {
     @Test
     public void testUnannouncedCaches() throws Exception {
         writeLots();
+        verifyWrites();
 
-        int size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.9 * NUM_WRITES && size <= 1.0 * NUM_WRITES);
+        long items1 = daemon1.getCache().getCurrentItems();
+        long items2 = daemon2.getCache().getCurrentItems();
+        long items3 = daemon3.getCache().getCurrentItems();
+        LOG.info("Cache distribution: %d %d %d", items1, items2, items3);
+
+        checkCaches(items1, items2, items3);
+        Assert.assertEquals(items1 + items2 + items3, cache.get(NS, allKeys.keySet()).size());
 
         int generation = clientFactory.getTopologyGeneration();
         discovery.unannounce(announce2);
-        clientFactory.waitTopologyChange();
+        clientFactory.waitTopologyChange(generation);
         Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.6 * NUM_WRITES && size <= 0.7 * NUM_WRITES);
+        checkCaches(items1, items2, items3);
+        Assert.assertEquals(items1 + items3, cache.get(NS, allKeys.keySet()).size());
 
         generation = clientFactory.getTopologyGeneration();
         discovery.unannounce(announce1);
-        clientFactory.waitTopologyChange();
+        clientFactory.waitTopologyChange(generation);
         Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.3 * NUM_WRITES && size <= 0.4 * NUM_WRITES);
+        checkCaches(items1, items2, items3);
+        Assert.assertEquals(items3, cache.get(NS, allKeys.keySet()).size());
 
         generation = clientFactory.getTopologyGeneration();
         discovery.unannounce(announce3);
-        clientFactory.waitTopologyChange();
+        clientFactory.waitTopologyChange(generation);
         Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
-        size = cache.get(NS, allKeys).size();
-        assertEquals("" + size, 0, size);
+        checkCaches(items1, items2, items3);
+        Assert.assertEquals(0, cache.get(NS, allKeys.keySet()).size());
 
         generation = clientFactory.getTopologyGeneration();
         discovery.announce(announce2);
-        clientFactory.waitTopologyChange();
+        clientFactory.waitTopologyChange(generation);
         Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.3 * NUM_WRITES && size <= 0.4 * NUM_WRITES);
+        checkCaches(items1, items2, items3);
+        Assert.assertEquals(items2, cache.get(NS, allKeys.keySet()).size());
 
         generation = clientFactory.getTopologyGeneration();
         discovery.announce(announce3);
-        clientFactory.waitTopologyChange();
+        clientFactory.waitTopologyChange(generation);
         Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.6 * NUM_WRITES && size <= 0.7 * NUM_WRITES);
+        checkCaches(items1, items2, items3);
+        Assert.assertEquals(items2 + items3, cache.get(NS, allKeys.keySet()).size());
 
         generation = clientFactory.getTopologyGeneration();
         discovery.announce(announce1);
-        clientFactory.waitTopologyChange();
+        clientFactory.waitTopologyChange(generation);
         Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.9 * NUM_WRITES && size <= 1.0 * NUM_WRITES);
+        checkCaches(items1, items2, items3);
+        Assert.assertEquals(items1 + items2 + items3, cache.get(NS, allKeys.keySet()).size());
 
         verifyWrites();
     }
@@ -252,24 +272,23 @@ public class ShardedMemcacheIntegrationTest {
     public void testCrashedCaches() throws Exception {
         writeLots();
 
-        int size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.9 * NUM_WRITES && size <= 1.0 * NUM_WRITES);
+        long items1 = daemon1.getCache().getCurrentItems();
+        long items2 = daemon2.getCache().getCurrentItems();
+        long items3 = daemon3.getCache().getCurrentItems();
+        LOG.info("Cache distribution: %d %d %d", items1, items2, items3);
+
+        Assert.assertEquals(items1 + items2 + items3, cache.get(NS, allKeys.keySet()).size());
 
         daemon2.stop();
 
-        cache.get(NS, allKeys);
+        cache.get(NS, allKeys.keySet());
 
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.6 * NUM_WRITES && size <= 0.7 * NUM_WRITES);
+        Assert.assertEquals(items1 + items3, cache.get(NS, allKeys.keySet()).size());
 
         daemon1.stop();
-
-        size = cache.get(NS, allKeys).size();
-        assertTrue("" + size, size >= 0.3 * NUM_WRITES && size <= 0.4 * NUM_WRITES);
+        Assert.assertEquals(items1, cache.get(NS, allKeys.keySet()).size());
 
         daemon3.stop();
-
-        size = cache.get(NS, allKeys).size();
-        assertEquals("" + size, 0, size);
+        assertEquals(0, cache.get(NS, allKeys.keySet()).size());
     }
 }

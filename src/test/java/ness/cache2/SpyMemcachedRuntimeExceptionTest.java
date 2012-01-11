@@ -8,8 +8,10 @@ import net.spy.memcached.BinaryConnectionFactory;
 import net.spy.memcached.DefaultConnectionFactory;
 import net.spy.memcached.FailureMode;
 import net.spy.memcached.MemcachedClient;
+import net.spy.memcached.compat.log.Log4JLogger;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -28,13 +30,19 @@ public class SpyMemcachedRuntimeExceptionTest {
     private MemCacheDaemon<LocalCacheElement> daemon;
     private MemcachedClient client;
 
+    @Before
+    public void setUpLogging()
+    {
+        System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
+    }
+
     private InetSocketAddress setUp(boolean binary) {
         InetSocketAddress addr = new InetSocketAddress("127.0.0.1", 11212);
-        
+
         daemon = new MemCacheDaemon<LocalCacheElement>();
-        
+
         CacheStorage<Key, LocalCacheElement> storage = ConcurrentLinkedHashMap.create(EvictionPolicy.FIFO, 10000, 10000000);
-        
+
         daemon.setCache(new CacheImpl(storage));
         daemon.setBinary(binary);
         daemon.setAddr(new InetSocketAddress("127.0.0.1", addr.getPort()));
@@ -45,52 +53,52 @@ public class SpyMemcachedRuntimeExceptionTest {
     @Test
     public void testCrashedCacheDefaultStrict() throws Exception {
         InetSocketAddress addr = setUp(false);
-        
+
         client = new MemcachedClient(new DefaultConnectionFactory() {
             @Override
             public FailureMode getFailureMode() {
                 return FailureMode.Retry;
             }
         }, Lists.newArrayList(addr));
-        
+
         runCrashTest(false);
     }
-    
+
     @Test
     public void testCrashedCacheDefaultLoose() throws Exception {
         InetSocketAddress addr = setUp(false);
-        
+
         client = new MemcachedClient(new DefaultConnectionFactory() {
             @Override
             public FailureMode getFailureMode() {
                 return FailureMode.Retry;
             }
         }, Lists.newArrayList(addr));
-        
+
         runCrashTest(true);
     }
-    
+
     @Test
     public void testCrashedCacheBinary() throws Exception {
         InetSocketAddress addr = setUp(true);
-        
+
         client = new MemcachedClient(new BinaryConnectionFactory() {
             @Override
             public FailureMode getFailureMode() {
                 return FailureMode.Retry;
             }
         }, Lists.newArrayList(addr));
-        
+
         runCrashTest(false);
     }
 
     private void runCrashTest(boolean giveGracePeriod) {
         client.set("a", 100, "b");
         assertEquals("b", client.get("a"));
-        
+
         daemon.stop();
         daemon.start();
-        
+
         if (giveGracePeriod) {
             try {
                 client.get("a");
@@ -98,12 +106,12 @@ public class SpyMemcachedRuntimeExceptionTest {
                 // ignore to let the connection fail
             }
         }
-        
+
         client.set("a", 100, "b");
-        
+
         assertEquals("b", client.get("a"));
     }
-    
+
     @After
     public final void tearDown() {
         client.shutdown();

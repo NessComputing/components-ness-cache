@@ -24,6 +24,8 @@ import ness.discovery.client.ReadOnlyDiscoveryClient;
 import ness.discovery.client.ServiceInformation;
 import ness.discovery.client.testing.MockedDiscoveryClient;
 
+import net.spy.memcached.compat.log.Log4JLogger;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
@@ -89,6 +91,12 @@ public class NamedMemcacheTest {
             return false;
         }
     };
+
+    @Before
+    public void setUpLogging()
+    {
+        System.setProperty("net.spy.log.LoggerImpl", Log4JLogger.class.getName());
+    }
 
     @Before
     public final void setUp() {
