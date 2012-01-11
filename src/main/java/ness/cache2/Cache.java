@@ -12,7 +12,7 @@ public interface Cache extends InternalCacheProvider {
      * in constructors, e.g.
      * <pre>
      * private final NamespacedCache myCache;
-     * @Inject
+     * \u0040Inject
      * MyCoolClass(Cache cache) {
      *     myCache = cache.withNamespace("extraCoolWithCheese");
      * }

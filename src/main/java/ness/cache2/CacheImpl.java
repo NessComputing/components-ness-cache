@@ -38,7 +38,7 @@ public class CacheImpl implements Cache {
      * in constructors, e.g.
      * <pre>
      * private final NamespacedCache myCache;
-     * @Inject
+     *
      * MyCoolClass(Cache cache) {
      *     myCache = cache.withNamespace("extraCoolWithCheese");
      * }
