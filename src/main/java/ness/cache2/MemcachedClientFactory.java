@@ -27,8 +27,6 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
-import edu.umd.cs.findbugs.annotations.SuppressWarnings;
-
 /**
  * Maintain a {@link MemcachedClient} which is always connected to the currently operating
  * memcached cluster.  Periodically uses the {@link CacheTopologyProvider} and if there is a change,
@@ -42,7 +40,6 @@ class MemcachedClientFactory {
     private final AtomicReference<MemcachedClient> client = new AtomicReference<MemcachedClient>();
     private final AtomicReference<ScheduledExecutorService> clientReconfigurationService = new AtomicReference<ScheduledExecutorService>();
     private final AtomicInteger topologyGeneration = new AtomicInteger();
-    private final Object topologyBarrier = new Object();
 
     private final AtomicReference<ImmutableList<InetSocketAddress>> addrHolder = new AtomicReference<ImmutableList<InetSocketAddress>>(ImmutableList.<InetSocketAddress>of());
 
@@ -150,10 +147,6 @@ class MemcachedClientFactory {
                         oldClient = client.getAndSet(newClient);
                         final int topologyCount = topologyGeneration.incrementAndGet();
 
-                        synchronized (topologyBarrier) {
-                            topologyBarrier.notifyAll();
-                        }
-
                         LOG.debug("Topology change for %s, generation is now %d, client: %s", cacheName, topologyCount, newClient);
                     }
                     catch (IOException ioe) {
@@ -174,11 +167,11 @@ class MemcachedClientFactory {
         }
     }
 
-    @SuppressWarnings(value={"UW_UNCOND_WAIT", "WA_NOT_IN_LOOP"}, justification="test code")
-    void waitTopologyChange() throws InterruptedException
+
+    void waitTopologyChange(final int generation) throws InterruptedException
     {
-        synchronized (topologyBarrier) {
-            topologyBarrier.wait();
+        while (topologyGeneration.get() <=  generation) {
+            Thread.sleep(10L);
         }
     }
 
