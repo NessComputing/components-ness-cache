@@ -13,6 +13,8 @@ import javax.annotation.Nullable;
 import ness.discovery.client.ReadOnlyDiscoveryClient;
 import ness.discovery.client.ServiceInformation;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -73,20 +75,23 @@ class CacheTopologyProvider {
         	serviceInformation = discoveryClient.findAllServiceInformation("memcached");
         }
         else {
-        	final List<ServiceInformation> discoverInformation  = discoveryClient.findAllServiceInformation("memcached", cacheName);
-        	//Discovery might have fallen back to un-typed entries, and we want strict typing
-        	serviceInformation = Collections2.filter(discoverInformation, new Predicate<ServiceInformation>() {
-				@Override
-				public boolean apply(final ServiceInformation input) {
-					boolean result = input.getServiceType() != null;
-					if (!result) {
-					    LOG.debug("ignored result %s", input);
-					}
-					return result;
-				}
-			});
+        	serviceInformation  = discoveryClient.findAllServiceInformation("memcached", cacheName);
         }
-		final List<InetSocketAddress> results = Lists.newArrayList(Collections2.transform(serviceInformation, SERVICE_INFORMATION_TO_INET_SOCKET_ADDRESS));
+
+        //apply strict typing
+        final Collection<ServiceInformation> discoverInformation = Collections2.filter(serviceInformation, new Predicate<ServiceInformation>() {
+            @Override
+            public boolean apply(final ServiceInformation input) {
+                if (cacheName == null) {
+                    return input.getServiceType() == null;
+                }
+                else {
+                    return StringUtils.equals(cacheName, input.getServiceType());
+                }
+            }
+        });
+
+        final List<InetSocketAddress> results = Lists.newArrayList(Collections2.transform(discoverInformation, SERVICE_INFORMATION_TO_INET_SOCKET_ADDRESS));
 		Collections.sort(results, InetSocketAddressComparator.DEFAULT);
 		return ImmutableList.copyOf(results);
     }
