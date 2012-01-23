@@ -54,4 +54,10 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
     public OperationFactory getOperationFactory() {
         return new BinaryOperationFactory();
     }
+
+    @Override
+    public boolean isDaemon()
+    {
+        return configuration.isDaemonThreads();
+    }
 }

@@ -1,13 +1,13 @@
 package ness.cache2;
 
+import java.net.URI;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.skife.config.Config;
 import org.skife.config.Default;
 import org.skife.config.DefaultNull;
 import org.skife.config.TimeSpan;
-
-import java.net.URI;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public abstract class CacheConfiguration {
 
@@ -110,7 +110,7 @@ public abstract class CacheConfiguration {
             return CacheType.JVM;
         }
     };
-    
+
     public static final CacheConfiguration IN_JVM_NO_EVICTION = new CacheConfiguration() {
         @Override
         public CacheType getCacheType() {
@@ -136,9 +136,15 @@ public abstract class CacheConfiguration {
         return 1000;
     }
 
-    @Config({"ness.cache.${cacheName}.op-max-block-time", "ness.cache.${cacheName}.op-max-block-time"})
+    @Config({"ness.cache.${cacheName}.op-max-block-time", "ness.cache.op-max-block-time"})
     @Default("100ms")
     public TimeSpan getOperationQueueBlockTime() {
         return new TimeSpan(100, TimeUnit.MILLISECONDS);
+    }
+
+    @Config({"ness.cache.${cacheName}.daemon-threads", "ness.cache.daemon-threads"})
+    @Default("false")
+    public boolean isDaemonThreads() {
+        return false;
     }
 }
