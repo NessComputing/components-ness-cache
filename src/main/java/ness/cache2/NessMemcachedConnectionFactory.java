@@ -3,7 +3,7 @@ package ness.cache2;
 import java.net.SocketAddress;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ArrayBlockingQueue;
-import com.google.inject.Inject;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import net.spy.memcached.KetamaConnectionFactory;
 import net.spy.memcached.MemcachedNode;
@@ -12,6 +12,8 @@ import net.spy.memcached.ops.Operation;
 import net.spy.memcached.protocol.binary.BinaryMemcachedNodeImpl;
 import net.spy.memcached.protocol.binary.BinaryOperationFactory;
 import net.spy.memcached.transcoders.Transcoder;
+
+import com.google.inject.Inject;
 
 /**
  * A ConnectionFactory which is Ketama and Binary capable, and uses the custom Ness transcoder.
@@ -40,8 +42,8 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
             SocketChannel c, int bufSize) {
         boolean doAuth = false;
         return new BinaryMemcachedNodeImpl(sa, c, bufSize,
-            new ArrayBlockingQueue<Operation>(configuration.getReadQueueSize()),
-            new ArrayBlockingQueue<Operation>(configuration.getWriteQueueSize()),
+            new LinkedBlockingQueue<Operation>(configuration.getReadQueueSize()),
+            new LinkedBlockingQueue<Operation>(configuration.getWriteQueueSize()),
             new ArrayBlockingQueue<Operation>(configuration.getIncomingQueueSize()),
             configuration.getOperationQueueBlockTime().getMillis(),
             doAuth,
