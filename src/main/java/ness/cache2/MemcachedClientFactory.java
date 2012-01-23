@@ -62,11 +62,11 @@ class MemcachedClientFactory {
     {
 
         this.cacheTopology = cacheTopology;
-        this.cacheName = Objects.firstNonNull(cacheName, "<default>");
+        this.cacheName = Objects.firstNonNull(cacheName, "[default]");
         this.configuration = configuration;
 
         this.connectionFactoryProvider = connectionFactoryProvider;
-        this.jmxPrefix = "ness.memcached:cache=" +cacheName;
+        this.jmxPrefix = "ness.memcached:cache=" + this.cacheName;
     }
 
     @Inject(optional=true)
