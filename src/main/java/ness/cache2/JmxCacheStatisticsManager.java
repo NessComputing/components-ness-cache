@@ -7,7 +7,7 @@ import com.google.inject.Singleton;
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleListener;
 import io.trumpet.lifecycle.LifecycleStage;
-import io.trumpet.log.Log;
+import com.likeness.logging.Log;
 import org.weakref.jmx.MBeanExporter;
 
 import javax.annotation.concurrent.GuardedBy;

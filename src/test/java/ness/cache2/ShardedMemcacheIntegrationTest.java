@@ -8,7 +8,7 @@ import io.trumpet.config.guice.TestingConfigModule;
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.LifecycleModule;
-import io.trumpet.log.Log;
+import com.likeness.logging.Log;
 
 import java.net.InetSocketAddress;
 import java.util.Map;

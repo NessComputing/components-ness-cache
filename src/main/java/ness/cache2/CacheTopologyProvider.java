@@ -1,6 +1,6 @@
 package ness.cache2;
 
-import io.trumpet.log.Log;
+import com.likeness.logging.Log;
 
 import java.net.InetSocketAddress;
 import java.net.URI;

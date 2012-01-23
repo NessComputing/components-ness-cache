@@ -2,7 +2,7 @@ package ness.cache2;
 
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.OnStage;
-import io.trumpet.log.Log;
+import com.likeness.logging.Log;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
