@@ -2,7 +2,6 @@ package ness.cache2;
 
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.OnStage;
-import com.likeness.logging.Log;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -16,6 +15,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import org.weakref.jmx.MBeanExporter;
+
 import net.spy.memcached.MemcachedClient;
 
 import com.google.common.base.Objects;
@@ -26,6 +27,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.likeness.logging.Log;
 
 /**
  * Maintain a {@link MemcachedClient} which is always connected to the currently operating
@@ -48,6 +50,9 @@ class MemcachedClientFactory {
     private final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider;
     private final String cacheName;
     private final CacheConfiguration configuration;
+    private final String jmxPrefix;
+
+    private MBeanExporter exporter = null;
 
     @Inject
     MemcachedClientFactory(final CacheConfiguration configuration,
@@ -61,6 +66,13 @@ class MemcachedClientFactory {
         this.configuration = configuration;
 
         this.connectionFactoryProvider = connectionFactoryProvider;
+        this.jmxPrefix = "ness.memcached:cache=" +cacheName;
+    }
+
+    @Inject(optional=true)
+    void injectMBeanExporter(final MBeanExporter exporter)
+    {
+        this.exporter = exporter;
     }
 
     @OnStage(LifecycleStage.START)
@@ -99,6 +111,7 @@ class MemcachedClientFactory {
             final MemcachedClient clientToShutdown = client.getAndSet(null);
 
             if (clientToShutdown != null) {
+                clientToShutdown.unexportJmx(exporter, jmxPrefix);
                 clientToShutdown.shutdown(30, TimeUnit.SECONDS); // Shut down gracefully
             }
 
@@ -134,8 +147,9 @@ class MemcachedClientFactory {
                 if(addrHolder.compareAndSet(addrs, newAddrs)) {
                     MemcachedClient oldClient = null;
 
+                    MemcachedClient newClient = null;
+
                     try {
-                        final MemcachedClient newClient;
                         if (newAddrs.isEmpty()) {
                             newClient = null;
                             LOG.warn("All memcached servers disappeared!");
@@ -155,8 +169,12 @@ class MemcachedClientFactory {
                     finally {
                         if (oldClient != null) {
                             LOG.debug("Shutting down old client");
+                            oldClient.unexportJmx(exporter, jmxPrefix);
                             oldClient.shutdown(100, TimeUnit.MILLISECONDS);
                             LOG.trace("Old client shutdown");
+                        }
+                        if (newClient != null) {
+                            newClient.exportJmx(exporter, jmxPrefix);
                         }
                     }
                 }
