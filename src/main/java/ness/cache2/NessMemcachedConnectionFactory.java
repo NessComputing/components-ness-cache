@@ -2,7 +2,6 @@ package ness.cache2;
 
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -104,9 +103,9 @@ public class NessMemcachedConnectionFactory extends BinaryConnectionFactory
     }
 
     @Override
-    public final MemcachedNode createMemcachedNode(final SocketAddress sa, final SocketChannel c, final int bufSize)
+    public final MemcachedNode createMemcachedNode(final SocketAddress sa, final int bufSize) throws IOException
     {
-        final MemcachedNode node = super.createMemcachedNode(sa, c, bufSize);
+        final MemcachedNode node = super.createMemcachedNode(sa, bufSize);
         if (exporter != null) {
             final StringBuilder sb = new StringBuilder(jmxPrefix);
             sb.append(",node=");
@@ -147,9 +146,7 @@ public class NessMemcachedConnectionFactory extends BinaryConnectionFactory
 
     public final MemcachedNode createMemcachedNode(final SocketAddress sa) throws IOException
     {
-        final SocketChannel ch = SocketChannel.open();
-        ch.configureBlocking(false);
-        return this.createMemcachedNode(sa, ch, configuration.getReadBufferSize());
+        return this.createMemcachedNode(sa, configuration.getReadBufferSize());
     }
 
     private final void jmxAppend(final String input, final StringBuilder sb)

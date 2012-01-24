@@ -170,8 +170,9 @@ class MemcachedClientFactory {
                     else {
                         final NessKetamaNodeLocator locator = connectionFactory.getNodeLocator();
                         final Map<String, MemcachedNode> nodeKeys = locator.getNodeKeys();
-                        final List<MemcachedNode> newNodes = new ArrayList<MemcachedNode>();
+                        final List<InetSocketAddress> nodesToCreate = new ArrayList<InetSocketAddress>();
                         final List<MemcachedNode> shutdownNodes = new ArrayList<MemcachedNode>(locator.getAll());
+                        final List<MemcachedNode> newNodes = new ArrayList<MemcachedNode>();
 
                         for (InetSocketAddress newAddr : newAddrs) {
                             final String newKey = NessKetamaNodeLocator.getKey(newAddr);
@@ -179,19 +180,24 @@ class MemcachedClientFactory {
                             if (newNode != null) {
                                 shutdownNodes.remove(newNode);
                                 newNodes.add(newNode);
-                                LOG.debug("Found %s, keeping in the ring", newKey);
+                                LOG.trace("Found %s, keeping in the ring", newKey);
                             }
                             else {
                                 LOG.debug("Created a new connection for %s", newAddr);
-                                try {
-                                    newNode = connectionFactory.createMemcachedNode(newAddr);
-                                    newNodes.add(newNode);
-                                }
-                                catch (IOException ioe) {
-                                    LOG.warn(ioe, "Could not create new memcached node for %s", newAddr);
-                                }
+                                nodesToCreate.add(newAddr);
                             }
                         }
+
+                        if (!nodesToCreate.isEmpty()) {
+                            try {
+                                final List<MemcachedNode> createdNodes = memcachedClient.createConnections(nodesToCreate);
+                                newNodes.addAll(createdNodes);
+                            }
+                            catch (IOException ioe) {
+                                LOG.warn(ioe, "Could not create new memcached nodes (%s)", nodesToCreate);
+                            }
+                        }
+
                         locator.updateLocator(newNodes);
                         for (MemcachedNode oldNode : shutdownNodes) {
                             LOG.debug("Shut down node %s", oldNode.getSocketAddress());

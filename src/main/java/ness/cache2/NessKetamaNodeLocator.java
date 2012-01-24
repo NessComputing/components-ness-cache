@@ -44,6 +44,9 @@ public final class NessKetamaNodeLocator extends SpyObject implements NodeLocato
     public MemcachedNode getPrimary(final String k)
     {
         final SortedMap<Long, MemcachedNode> ketamaMap = stateHolder.get().getKetamaMap();
+        if (ketamaMap.isEmpty()) {
+            return null;
+        }
 
         long hashValue = DefaultHashAlgorithm.KETAMA_HASH.hash(k);
         if (!ketamaMap.containsKey(hashValue)) {
@@ -58,7 +61,7 @@ public final class NessKetamaNodeLocator extends SpyObject implements NodeLocato
         }
         final MemcachedNode node = ketamaMap.get(hashValue);
         if (node == null) {
-            throw new IllegalStateException("No node for key '" + k + "'");
+            return null;
         }
         return node;
     }
@@ -149,7 +152,7 @@ public final class NessKetamaNodeLocator extends SpyObject implements NodeLocato
         return stateHolder.get().getNodeKeys();
     }
 
-    public static final String getKey(final SocketAddress sa)
+    public static String getKey(final SocketAddress sa)
     {
         String keyPrefix = String.valueOf(sa);
         if (keyPrefix.startsWith("/")) {
@@ -210,7 +213,7 @@ public final class NessKetamaNodeLocator extends SpyObject implements NodeLocato
                             | ((long) (digest[1 + h * 4] & 0xFF) << 8)
                             | (digest[h * 4] & 0xFF);
                         ketamaMap.put(k, node);
-                        LOG.debug("Adding node %s in position %d", node, k);
+                        LOG.trace("Adding node %s in position %d", node, k);
                     }
                 }
             }
