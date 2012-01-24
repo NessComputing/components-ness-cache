@@ -5,6 +5,9 @@ import io.trumpet.lifecycle.guice.OnStage;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -15,16 +18,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.weakref.jmx.MBeanExporter;
-
 import net.spy.memcached.MemcachedClient;
+import net.spy.memcached.MemcachedNode;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.likeness.logging.Log;
@@ -47,17 +48,14 @@ class MemcachedClientFactory {
 
     private final CacheTopologyProvider cacheTopology;
 
-    private final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider;
+    private final NessMemcachedConnectionFactory connectionFactory;
     private final String cacheName;
     private final CacheConfiguration configuration;
-    private final String jmxPrefix;
-
-    private MBeanExporter exporter = null;
 
     @Inject
     MemcachedClientFactory(final CacheConfiguration configuration,
                            final CacheTopologyProvider cacheTopology,
-                           final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider,
+                           final NessMemcachedConnectionFactory connectionFactory,
                            @Nullable @Named("cacheName") final String cacheName)
     {
 
@@ -65,18 +63,11 @@ class MemcachedClientFactory {
         this.cacheName = Objects.firstNonNull(cacheName, "[default]");
         this.configuration = configuration;
 
-        this.connectionFactoryProvider = connectionFactoryProvider;
-        this.jmxPrefix = "ness.memcached:cache=" + this.cacheName;
-    }
-
-    @Inject(optional=true)
-    void injectMBeanExporter(final MBeanExporter exporter)
-    {
-        this.exporter = exporter;
+        this.connectionFactory = connectionFactory;
     }
 
     @OnStage(LifecycleStage.START)
-    public void start()
+    public void start() throws IOException
     {
         Preconditions.checkState(clientReconfigurationService.get() == null, "client is already started!");
 
@@ -86,9 +77,17 @@ class MemcachedClientFactory {
             LOG.info("Kicking off memcache topology discovery thread");
             final MemcachedDiscoveryUpdate updater = new MemcachedDiscoveryUpdate();
 
-            // Run update once before anything else happens so we don't
-            // observe a null client after the lifecycle starts
-            updater.run();
+            // Bring up the client with the initial topology.
+            final ImmutableList<InetSocketAddress> cacheAddrs = cacheTopology.get();
+            if (!cacheAddrs.isEmpty()) {
+                final MemcachedClient memcachedClient = new MemcachedClient(connectionFactory, cacheAddrs);
+                client.set(memcachedClient);
+                // addrHolder.set(cacheAddrs);
+                LOG.info("Starting memcached client for cache %s on %s", cacheName, cacheAddrs);
+            }
+            else {
+                LOG.warn("No caches found for cache %s, delaying startup!", cacheName);
+            }
 
             final long rediscoveryInterval = configuration.getCacheServerRediscoveryInterval().getMillis();
             executor.scheduleAtFixedRate(updater, rediscoveryInterval, rediscoveryInterval, TimeUnit.MILLISECONDS);
@@ -111,7 +110,6 @@ class MemcachedClientFactory {
             final MemcachedClient clientToShutdown = client.getAndSet(null);
 
             if (clientToShutdown != null) {
-                clientToShutdown.unexportJmx(exporter, jmxPrefix);
                 clientToShutdown.shutdown(30, TimeUnit.SECONDS); // Shut down gracefully
             }
 
@@ -145,37 +143,62 @@ class MemcachedClientFactory {
             }
             else {
                 if(addrHolder.compareAndSet(addrs, newAddrs)) {
-                    MemcachedClient oldClient = null;
+                    MemcachedClient memcachedClient = client.get();
 
-                    MemcachedClient newClient = null;
-
-                    try {
+                    // Delayed startup
+                    if (memcachedClient == null) {
                         if (newAddrs.isEmpty()) {
-                            newClient = null;
-                            LOG.warn("All memcached servers disappeared!");
+                            LOG.warn("No cache servers for %s found, can not start memcached!", cacheName);
                         }
                         else {
-                            newClient = new MemcachedClient(connectionFactoryProvider.get(), newAddrs);
+                            try {
+                                memcachedClient = new MemcachedClient(connectionFactory, newAddrs);
+                                if(!client.compareAndSet(null, memcachedClient)) {
+                                    LOG.info("Starting delayed memcached client for cache %s on %s", cacheName, newAddrs);
+                                }
+                                else {
+                                    LOG.warn("Wanted to start memcached client, but someone else beat me to it. Should never happen!");
+                                    memcachedClient.shutdown();
+                                }
+                            }
+                            catch (IOException ioe) {
+                                LOG.warn(ioe, "Could not create memcached client for %s", newAddrs);
+                            }
                         }
+                    }
+                    // Topology change
+                    else {
+                        final NessKetamaNodeLocator locator = connectionFactory.getNodeLocator();
+                        final Map<String, MemcachedNode> nodeKeys = locator.getNodeKeys();
+                        final List<MemcachedNode> newNodes = new ArrayList<MemcachedNode>();
+                        final List<MemcachedNode> shutdownNodes = new ArrayList<MemcachedNode>(locator.getAll());
 
-                        oldClient = client.getAndSet(newClient);
+                        for (InetSocketAddress newAddr : newAddrs) {
+                            final String newKey = NessKetamaNodeLocator.getKey(newAddr);
+                            MemcachedNode newNode = nodeKeys.get(newKey);
+                            if (newNode != null) {
+                                shutdownNodes.remove(newNode);
+                                newNodes.add(newNode);
+                                LOG.debug("Found %s, keeping in the ring", newKey);
+                            }
+                            else {
+                                LOG.debug("Created a new connection for %s", newAddr);
+                                try {
+                                    newNode = connectionFactory.createMemcachedNode(newAddr);
+                                    newNodes.add(newNode);
+                                }
+                                catch (IOException ioe) {
+                                    LOG.warn(ioe, "Could not create new memcached node for %s", newAddr);
+                                }
+                            }
+                        }
+                        locator.updateLocator(newNodes);
+                        for (MemcachedNode oldNode : shutdownNodes) {
+                            LOG.debug("Shut down node %s", oldNode.getSocketAddress());
+                            connectionFactory.destroyMemcachedNode(oldNode);
+                        }
                         final int topologyCount = topologyGeneration.incrementAndGet();
-
-                        LOG.debug("Topology change for %s, generation is now %d, client: %s", cacheName, topologyCount, newClient);
-                    }
-                    catch (IOException ioe) {
-                        LOG.errorDebug(ioe, "Could not connect to memcached cluster %s", cacheName);
-                    }
-                    finally {
-                        if (oldClient != null) {
-                            LOG.debug("Shutting down old client");
-                            oldClient.unexportJmx(exporter, jmxPrefix);
-                            oldClient.shutdown(100, TimeUnit.MILLISECONDS);
-                            LOG.trace("Old client shutdown");
-                        }
-                        if (newClient != null) {
-                            newClient.exportJmx(exporter, jmxPrefix);
-                        }
+                        LOG.debug("Topology change for %s, generation is now %d, servers: %s", cacheName, topologyCount, locator.getAll());
                     }
                 }
                 else {

@@ -118,28 +118,53 @@ public abstract class CacheConfiguration {
         }
     };
 
+    //
+    // Everything below here is memcache specific.
+    //
+
+    /**
+     * Number of node repetitions in the ketama consistent hash ring.
+     */
+    @Config({"ness.cache.${cacheName}.node-repetitions", "ness.cache.node-repetitions"})
+    @Default("160")
+    public int getNodeRepetitions() {
+        return 160;
+    }
+
     @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})
-    @Default("1000")
+    @Default("32768")
     public int getReadQueueSize() {
-        return 1000;
+        return 32768;
     }
 
     @Config({"ness.cache.${cacheName}.write-queue", "ness.cache.write-queue"})
-    @Default("10000")
+    @Default("32768")
     public int getWriteQueueSize() {
-        return 10000;
+        return 32768;
     }
 
     @Config({"ness.cache.${cacheName}.incoming-queue", "ness.cache.incoming-queue"})
-    @Default("1000")
+    @Default("16384")
     public int getIncomingQueueSize() {
-        return 1000;
+        return 16384;
+    }
+
+    @Config({"ness.cache.${cacheName}.read-buffer-size", "ness.cache.read-buffer-size"})
+    @Default("16384")
+    public int getReadBufferSize() {
+        return 16384;
     }
 
     @Config({"ness.cache.${cacheName}.op-max-block-time", "ness.cache.op-max-block-time"})
     @Default("100ms")
     public TimeSpan getOperationQueueBlockTime() {
         return new TimeSpan(100, TimeUnit.MILLISECONDS);
+    }
+
+    @Config({"ness.cache.${cacheName}.operation-timeout", "ness.cache.operation-timeout"})
+    @Default("2500ms")
+    public TimeSpan getOperationTimeout() {
+        return new TimeSpan(2500, TimeUnit.MILLISECONDS);
     }
 
     @Config({"ness.cache.${cacheName}.daemon-threads", "ness.cache.daemon-threads"})
