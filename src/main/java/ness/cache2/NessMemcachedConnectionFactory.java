@@ -171,6 +171,12 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
       return (oldStats == null) ? stats : oldStats;
     }
 
+    @Override
+    protected String getName()
+    {
+        return "NessMemcachedConnectionFactory";
+    }
+
     private String jmxSafe(String input) {
         if (input == null) {
             return null;
