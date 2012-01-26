@@ -2,7 +2,6 @@ package ness.cache2;
 
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.OnStage;
-import com.likeness.logging.Log;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -23,9 +22,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.likeness.logging.Log;
 
 /**
  * Maintain a {@link MemcachedClient} which is always connected to the currently operating
@@ -45,14 +44,14 @@ class MemcachedClientFactory {
 
     private final CacheTopologyProvider cacheTopology;
 
-    private final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider;
+    private final NessMemcachedConnectionFactory connectionFactory;
     private final String cacheName;
     private final CacheConfiguration configuration;
 
     @Inject
     MemcachedClientFactory(final CacheConfiguration configuration,
                            final CacheTopologyProvider cacheTopology,
-                           final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider,
+                           final NessMemcachedConnectionFactory connectionFactory,
                            @Nullable @Named("cacheName") final String cacheName)
     {
 
@@ -60,7 +59,7 @@ class MemcachedClientFactory {
         this.cacheName = Objects.firstNonNull(cacheName, "<default>");
         this.configuration = configuration;
 
-        this.connectionFactoryProvider = connectionFactoryProvider;
+        this.connectionFactory = connectionFactory;
     }
 
     @OnStage(LifecycleStage.START)
@@ -141,7 +140,7 @@ class MemcachedClientFactory {
                             LOG.warn("All memcached servers disappeared!");
                         }
                         else {
-                            newClient = new MemcachedClient(connectionFactoryProvider.get(), newAddrs);
+                            newClient = new MemcachedClient(connectionFactory, newAddrs);
                         }
 
                         oldClient = client.getAndSet(newClient);
