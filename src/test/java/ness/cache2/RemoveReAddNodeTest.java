@@ -1,14 +1,11 @@
 package ness.cache2;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import io.trumpet.config.Config;
 import io.trumpet.config.guice.TestingConfigModule;
 import io.trumpet.lifecycle.Lifecycle;
 import io.trumpet.lifecycle.LifecycleStage;
 import io.trumpet.lifecycle.guice.LifecycleModule;
-import com.likeness.logging.Log;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -24,18 +21,18 @@ import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.kaching.platform.testing.AllowDNSResolution;
 import com.kaching.platform.testing.AllowNetworkAccess;
 import com.kaching.platform.testing.AllowNetworkListen;
+import com.likeness.logging.Log;
 import com.thimbleware.jmemcached.CacheImpl;
 import com.thimbleware.jmemcached.Key;
 import com.thimbleware.jmemcached.LocalCacheElement;
@@ -47,7 +44,7 @@ import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap.EvictionP
 @AllowDNSResolution
 @AllowNetworkListen(ports = {11212, 11213, 11214})
 @AllowNetworkAccess(endpoints = {"127.0.0.1:11212", "127.0.0.1:11213", "127.0.0.1:11214"})
-public class ShardedMemcacheIntegrationTest {
+public class RemoveReAddNodeTest {
     private static final Log LOG = Log.findLog();
     private static final long RANDOM_SEED = 1234;
     private static final int NUM_WRITES = 1000;
@@ -109,16 +106,18 @@ public class ShardedMemcacheIntegrationTest {
                                                                                 "ness.cache.jmx", "false"));
         final Config config = tcm.getConfig();
 
-        Guice.createInjector(tcm,
-                             new CacheModule(config, null, true),
-                             new LifecycleModule(),
-                             new AbstractModule() {
-            @Override
-            protected void configure() {
-                requestInjection (ShardedMemcacheIntegrationTest.this);
-                bind (ReadOnlyDiscoveryClient.class).toInstance(discovery);
-            }
-        });
+        final Injector injector = Guice.createInjector(tcm,
+                                                       new CacheModule(config, null, true),
+                                                       new LifecycleModule(),
+                                                       new AbstractModule() {
+                                                           @Override
+                                                           protected void configure() {
+                                                               bind (ReadOnlyDiscoveryClient.class).toInstance(discovery);
+                                                           }
+                                                       });
+        injector.injectMembers(this);
+
+        Assert.assertNotNull(lifecycle);
         lifecycle.executeTo(LifecycleStage.START_STAGE);
     }
 
@@ -164,39 +163,18 @@ public class ShardedMemcacheIntegrationTest {
     }
 
     private final DiscoveryClient discovery = MockedDiscoveryClient.builder().build();
+
     @Inject
-    Lifecycle lifecycle;
+    private Lifecycle lifecycle = null;
+
     @Inject
-    CacheTopologyProvider cacheTopology;
+    private MemcachedClientFactory clientFactory = null;
+
     @Inject
-    MemcachedClientFactory clientFactory;
-    @Inject
-    Cache cache;
+    private Cache cache = null;
 
     @Test
-    public void testSimpleClusterReconfiguration() {
-        assertEquals(ImmutableList.of(addr1, addr2, addr3), cacheTopology.get());
-        discovery.unannounce(announce2);
-        assertEquals(ImmutableList.of(addr1, addr3), cacheTopology.get());
-        discovery.announce(announce2);
-        assertEquals(ImmutableList.of(addr1, addr2, addr3), cacheTopology.get());
-    }
-
-    @Test
-    public void testDistributesWrites() {
-        writeLots();
-        verifyWrites();
-        long items1 = daemon1.getCache().getCurrentItems();
-        long items2 = daemon2.getCache().getCurrentItems();
-        long items3 = daemon3.getCache().getCurrentItems();
-        LOG.info("Cache distribution: %d %d %d", items1, items2, items3);
-        assertTrue("" + items1, items1 > 250 && items1 < 400);
-        assertTrue("" + items2, items2 > 250 && items2 < 400);
-        assertTrue("" + items3, items3 > 250 && items3 < 400);
-    }
-
-    @Test
-    public void testUnannouncedCaches() throws Exception {
+    public void testAddingCache() throws Exception {
         writeLots();
         verifyWrites();
 
@@ -206,7 +184,6 @@ public class ShardedMemcacheIntegrationTest {
         LOG.info("Cache distribution: %d %d %d", items1, items2, items3);
 
         checkCaches(items1, items2, items3);
-        Thread.sleep(10);
         Assert.assertEquals(items1 + items2 + items3, cache.get(NS, allKeys.keySet()).size());
 
         int generation = clientFactory.getTopologyGeneration();
@@ -215,80 +192,16 @@ public class ShardedMemcacheIntegrationTest {
         Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
         checkCaches(items1, items2, items3);
-        Thread.sleep(10);
         Assert.assertEquals(items1 + items3, cache.get(NS, allKeys.keySet()).size());
-
-        generation = clientFactory.getTopologyGeneration();
-        discovery.unannounce(announce1);
-        clientFactory.waitTopologyChange(generation);
-        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
-
-        checkCaches(items1, items2, items3);
-        Thread.sleep(10);
-        Assert.assertEquals(items3, cache.get(NS, allKeys.keySet()).size());
-
-        generation = clientFactory.getTopologyGeneration();
-        discovery.unannounce(announce3);
-        clientFactory.waitTopologyChange(generation);
-        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
-
-        checkCaches(items1, items2, items3);
-        Thread.sleep(10);
-        Assert.assertEquals(0, cache.get(NS, allKeys.keySet()).size());
 
         generation = clientFactory.getTopologyGeneration();
         discovery.announce(announce2);
         clientFactory.waitTopologyChange(generation);
-        Thread.sleep(10);
         Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
 
         checkCaches(items1, items2, items3);
-        Thread.sleep(10);
-        Assert.assertEquals(items2, cache.get(NS, allKeys.keySet()).size());
-
-        generation = clientFactory.getTopologyGeneration();
-        discovery.announce(announce3);
-        clientFactory.waitTopologyChange(generation);
-        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
-
-        checkCaches(items1, items2, items3);
-        Thread.sleep(10);
-        Assert.assertEquals(items2 + items3, cache.get(NS, allKeys.keySet()).size());
-
-        generation = clientFactory.getTopologyGeneration();
-        discovery.announce(announce1);
-        clientFactory.waitTopologyChange(generation);
-        Assert.assertEquals(generation + 1, clientFactory.getTopologyGeneration());
-
-        checkCaches(items1, items2, items3);
-        Thread.sleep(10);
         Assert.assertEquals(items1 + items2 + items3, cache.get(NS, allKeys.keySet()).size());
 
         verifyWrites();
-    }
-
-    @Test
-    @Ignore // Pending http://code.google.com/p/spymemcached/issues/detail?id=189
-    public void testCrashedCaches() throws Exception {
-        writeLots();
-
-        long items1 = daemon1.getCache().getCurrentItems();
-        long items2 = daemon2.getCache().getCurrentItems();
-        long items3 = daemon3.getCache().getCurrentItems();
-        LOG.info("Cache distribution: %d %d %d", items1, items2, items3);
-
-        Assert.assertEquals(items1 + items2 + items3, cache.get(NS, allKeys.keySet()).size());
-
-        daemon2.stop();
-
-        cache.get(NS, allKeys.keySet());
-
-        Assert.assertEquals(items1 + items3, cache.get(NS, allKeys.keySet()).size());
-
-        daemon1.stop();
-        Assert.assertEquals(items1, cache.get(NS, allKeys.keySet()).size());
-
-        daemon3.stop();
-        assertEquals(0, cache.get(NS, allKeys.keySet()).size());
     }
 }

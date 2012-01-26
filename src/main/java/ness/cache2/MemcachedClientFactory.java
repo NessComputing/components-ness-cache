@@ -15,8 +15,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.weakref.jmx.MBeanExporter;
-
 import net.spy.memcached.MemcachedClient;
 
 import com.google.common.base.Objects;
@@ -24,7 +22,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.likeness.logging.Log;
@@ -47,32 +44,22 @@ class MemcachedClientFactory {
 
     private final CacheTopologyProvider cacheTopology;
 
-    private final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider;
+    private final NessMemcachedConnectionFactory connectionFactory;
     private final String cacheName;
     private final CacheConfiguration configuration;
-    private final String jmxPrefix;
-
-    private MBeanExporter exporter = null;
 
     @Inject
     MemcachedClientFactory(final CacheConfiguration configuration,
                            final CacheTopologyProvider cacheTopology,
-                           final Provider<NessMemcachedConnectionFactory> connectionFactoryProvider,
+                           final NessMemcachedConnectionFactory connectionFactory,
                            @Nullable @Named("cacheName") final String cacheName)
     {
 
         this.cacheTopology = cacheTopology;
-        this.cacheName = Objects.firstNonNull(cacheName, "[default]");
+        this.cacheName = Objects.firstNonNull(cacheName, "<default>");
         this.configuration = configuration;
 
-        this.connectionFactoryProvider = connectionFactoryProvider;
-        this.jmxPrefix = "ness.memcached:cache=" + this.cacheName;
-    }
-
-    @Inject(optional=true)
-    void injectMBeanExporter(final MBeanExporter exporter)
-    {
-        this.exporter = exporter;
+        this.connectionFactory = connectionFactory;
     }
 
     @OnStage(LifecycleStage.START)
@@ -111,7 +98,6 @@ class MemcachedClientFactory {
             final MemcachedClient clientToShutdown = client.getAndSet(null);
 
             if (clientToShutdown != null) {
-                clientToShutdown.unexportJmx(exporter, jmxPrefix);
                 clientToShutdown.shutdown(30, TimeUnit.SECONDS); // Shut down gracefully
             }
 
@@ -147,15 +133,14 @@ class MemcachedClientFactory {
                 if(addrHolder.compareAndSet(addrs, newAddrs)) {
                     MemcachedClient oldClient = null;
 
-                    MemcachedClient newClient = null;
-
                     try {
+                        final MemcachedClient newClient;
                         if (newAddrs.isEmpty()) {
                             newClient = null;
                             LOG.warn("All memcached servers disappeared!");
                         }
                         else {
-                            newClient = new MemcachedClient(connectionFactoryProvider.get(), newAddrs);
+                            newClient = new MemcachedClient(connectionFactory, newAddrs);
                         }
 
                         oldClient = client.getAndSet(newClient);
@@ -169,12 +154,8 @@ class MemcachedClientFactory {
                     finally {
                         if (oldClient != null) {
                             LOG.debug("Shutting down old client");
-                            oldClient.unexportJmx(exporter, jmxPrefix);
                             oldClient.shutdown(100, TimeUnit.MILLISECONDS);
                             LOG.trace("Old client shutdown");
-                        }
-                        if (newClient != null) {
-                            newClient.exportJmx(exporter, jmxPrefix);
                         }
                     }
                 }

@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import net.spy.memcached.FailureMode;
+
 import org.skife.config.Config;
 import org.skife.config.Default;
 import org.skife.config.DefaultNull;
@@ -118,22 +120,32 @@ public abstract class CacheConfiguration {
         }
     };
 
+    //
+    // Everything below is memcached specific
+    //
+
     @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})
-    @Default("1000")
+    @Default("-1") // -1 == 'use default'
     public int getReadQueueSize() {
-        return 1000;
+        return -1;
     }
 
     @Config({"ness.cache.${cacheName}.write-queue", "ness.cache.write-queue"})
-    @Default("10000")
+    @Default("16384")
     public int getWriteQueueSize() {
-        return 10000;
+        return 16384;
     }
 
     @Config({"ness.cache.${cacheName}.incoming-queue", "ness.cache.incoming-queue"})
-    @Default("1000")
+    @Default("16384")
     public int getIncomingQueueSize() {
-        return 1000;
+        return 16384;
+    }
+
+    @Config({"ness.cache.${cacheName}.read-buffer-size", "ness.cache.read-buffer-size"})
+    @Default("16384")
+    public int getReadBufferSize() {
+        return 16384;
     }
 
     @Config({"ness.cache.${cacheName}.op-max-block-time", "ness.cache.op-max-block-time"})
@@ -142,9 +154,22 @@ public abstract class CacheConfiguration {
         return new TimeSpan(100, TimeUnit.MILLISECONDS);
     }
 
+    @Config({"ness.cache.${cacheName}.operation-timeout", "ness.cache.operation-timeout"})
+    @Default("1s")
+    public TimeSpan getOperationTimeout() {
+        return new TimeSpan(1, TimeUnit.SECONDS);
+    }
+
     @Config({"ness.cache.${cacheName}.daemon-threads", "ness.cache.daemon-threads"})
     @Default("false")
     public boolean isDaemonThreads() {
         return false;
+    }
+
+    @Config({"ness.cache.${cacheName}.failure-mode", "ness.cache.failureMode"})
+    @Default("Cancel")
+    public FailureMode getFailureMode()
+    {
+        return FailureMode.Cancel;
     }
 }

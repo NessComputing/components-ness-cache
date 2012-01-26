@@ -1,11 +1,10 @@
 package ness.cache2;
 
-import com.likeness.logging.Log;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -25,6 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.likeness.logging.Log;
 
 
 /**
@@ -151,11 +151,14 @@ final class MemcacheProvider implements InternalCacheProvider {
 
             return transformedResults.build();
         }
-        catch (IllegalStateException ise) {
-            LOG.errorDebug(ise, "Memcache Queue was full while loading keys!");
-        }
         catch (OperationTimeoutException ote) {
             LOG.errorDebug(ote, "Operation timed out while loading keys!");
+        }
+        catch (CancellationException ce) {
+            LOG.errorDebug(ce, "Operation cancelled while loading keys!");
+        }
+        catch (IllegalStateException ise) {
+            LOG.errorDebug(ise, "Memcache Queue was full while loading keys!");
         }
         return Collections.emptyMap();
     }
@@ -223,9 +226,15 @@ final class MemcacheProvider implements InternalCacheProvider {
     {
         if (future != null && config.isCacheSynchronous()) {
             try {
-                future.get();
-            } catch (ExecutionException e) {
+                if (!future.isCancelled()) {
+                    future.get();
+                }
+            }
+            catch (ExecutionException e) {
                 LOG.errorDebug(e.getCause(), "Cache entry %s:%s", namespace, cacheStore.getKey());
+            }
+            catch (CancellationException ce) {
+                LOG.trace("Cache entry %s:%s was cancelled", namespace, cacheStore.getKey());
             }
         }
     }
@@ -236,10 +245,17 @@ final class MemcacheProvider implements InternalCacheProvider {
         final Map<String, T> results = Maps.newHashMap();
         for (Map.Entry<String, Future<T>> entry : futures.entrySet()) {
             try {
-                results.put(entry.getKey(), entry.getValue().get());
+                final Future<T> value = entry.getValue();
+                if (!value.isCancelled()) {
+                    results.put(entry.getKey(), value.get());
+                }
             } catch (ExecutionException e) {
                 LOG.errorDebug(e.getCause(), "Cache entry %s:%s", namespace, entry.getKey());
             }
+            catch (CancellationException ce) {
+                LOG.trace("Cache entry %s:%s was cancelled", namespace, entry.getKey());
+            }
+
         }
         return results;
     }

@@ -23,6 +23,10 @@ public class CacheModule extends PrivateModule {
     /** Expose additional bindings for integration testing */
     private final boolean exposeInternalClasses;
 
+    /**
+     * @deprecated Cache modules must be explicitly named, do not use the default cache anymore.
+     */
+    @Deprecated
     public CacheModule(final Config config)
     {
        this(config, null, false);
@@ -33,6 +37,10 @@ public class CacheModule extends PrivateModule {
     	this(config, Names.named(cacheName), false);
     }
 
+    /**
+     * @deprecated Use the naming constructor.
+     */
+    @Deprecated
     public CacheModule(Config config, Annotation bindingAnnotation) {
         this(config, bindingAnnotation, false);
     }
@@ -51,6 +59,8 @@ public class CacheModule extends PrivateModule {
         final CacheConfiguration cacheConfig;
 
         if (bindingAnnotation == null) {
+            LOG.warn("Starting the default cache instance! This will soon no longer be possible. Update your code to provide a cache name!");
+
             cacheName = null;
             cacheConfig = config.getBean(CacheConfiguration.class, ImmutableMap.of("cacheName", "default"));
 
