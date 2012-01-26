@@ -125,9 +125,9 @@ public abstract class CacheConfiguration {
     //
 
     @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})
-    @Default("2147483647")
+    @Default("-1") // -1 == 'use default'
     public int getReadQueueSize() {
-        return 2147483647;
+        return -1;
     }
 
     @Config({"ness.cache.${cacheName}.write-queue", "ness.cache.write-queue"})

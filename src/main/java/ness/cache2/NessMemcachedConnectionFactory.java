@@ -118,13 +118,25 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
     @Override
     public final BlockingQueue<Operation> createReadOperationQueue()
     {
-        return new LinkedBlockingQueue<Operation>(configuration.getReadQueueSize());
+        int queueSize = configuration.getReadQueueSize();
+        if (queueSize <= 0) {
+            return new LinkedBlockingQueue<Operation>();
+        }
+        else {
+            return new LinkedBlockingQueue<Operation>(queueSize);
+        }
     }
 
     @Override
     public final BlockingQueue<Operation> createWriteOperationQueue()
     {
-        return new LinkedBlockingQueue<Operation>(configuration.getWriteQueueSize());
+        int queueSize = configuration.getWriteQueueSize();
+        if (queueSize <= 0) {
+            return new LinkedBlockingQueue<Operation>();
+        }
+        else {
+            return new LinkedBlockingQueue<Operation>(queueSize);
+        }
     }
 
     @Override
