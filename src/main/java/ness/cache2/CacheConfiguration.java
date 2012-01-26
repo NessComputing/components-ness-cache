@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import net.spy.memcached.FailureMode;
+
 import org.skife.config.Config;
 import org.skife.config.Default;
 import org.skife.config.DefaultNull;
@@ -118,6 +120,10 @@ public abstract class CacheConfiguration {
         }
     };
 
+    //
+    // Everything below is memcached specific
+    //
+
     @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})
     @Default("2147483647")
     public int getReadQueueSize() {
@@ -158,5 +164,12 @@ public abstract class CacheConfiguration {
     @Default("false")
     public boolean isDaemonThreads() {
         return false;
+    }
+
+    @Config({"ness.cache.${cacheName}.failure-mode", "ness.cache.failureMode"})
+    @Default("Cancel")
+    public FailureMode getFailureMode()
+    {
+        return FailureMode.Cancel;
     }
 }

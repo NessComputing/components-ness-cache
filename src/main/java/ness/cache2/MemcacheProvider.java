@@ -1,7 +1,5 @@
 package ness.cache2;
 
-import com.likeness.logging.Log;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -25,6 +23,7 @@ import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.likeness.logging.Log;
 
 
 /**

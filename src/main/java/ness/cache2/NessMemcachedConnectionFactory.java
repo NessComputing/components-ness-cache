@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nullable;
 
+import net.spy.memcached.FailureMode;
 import net.spy.memcached.KetamaConnectionFactory;
 import net.spy.memcached.MemcachedNode;
 import net.spy.memcached.MemcachedNodeStats;
@@ -143,6 +144,13 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
     {
         return configuration.isDaemonThreads();
     }
+
+    @Override
+    public FailureMode getFailureMode()
+    {
+        return configuration.getFailureMode();
+    }
+
 
     public MemcachedNodeStats getMemcachedNodeStats(final SocketAddress sa)
     {
