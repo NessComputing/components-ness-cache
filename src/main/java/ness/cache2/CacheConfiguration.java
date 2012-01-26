@@ -155,9 +155,9 @@ public abstract class CacheConfiguration {
     }
 
     @Config({"ness.cache.${cacheName}.operation-timeout", "ness.cache.operation-timeout"})
-    @Default("2500ms")
+    @Default("1s")
     public TimeSpan getOperationTimeout() {
-        return new TimeSpan(2500, TimeUnit.MILLISECONDS);
+        return new TimeSpan(1, TimeUnit.SECONDS);
     }
 
     @Config({"ness.cache.${cacheName}.daemon-threads", "ness.cache.daemon-threads"})
