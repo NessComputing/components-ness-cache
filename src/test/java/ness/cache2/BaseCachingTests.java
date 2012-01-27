@@ -14,9 +14,11 @@ import org.junit.Test;
 
 import com.google.common.base.Charsets;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 public abstract class BaseCachingTests {
     @Inject
+    @Named("test")
     Cache cache;
 
     @Test

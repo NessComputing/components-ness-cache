@@ -19,10 +19,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 public class NullCacheTest {
 
     @Inject
+    @Named("test")
     Cache cache;
 
     @Inject
