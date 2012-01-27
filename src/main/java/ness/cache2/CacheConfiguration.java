@@ -132,49 +132,49 @@ public abstract class CacheConfiguration {
 
     @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})
     @Default("-1") // -1 == 'use default'
-    public int getReadQueueSize() {
+    public int getMemcachedReadQueueSize() {
         return -1;
     }
 
     @Config({"ness.cache.${cacheName}.write-queue", "ness.cache.write-queue"})
     @Default("16384")
-    public int getWriteQueueSize() {
+    public int getMemcachedWriteQueueSize() {
         return 16384;
     }
 
     @Config({"ness.cache.${cacheName}.incoming-queue", "ness.cache.incoming-queue"})
     @Default("16384")
-    public int getIncomingQueueSize() {
+    public int getMemcachedIncomingQueueSize() {
         return 16384;
     }
 
     @Config({"ness.cache.${cacheName}.read-buffer-size", "ness.cache.read-buffer-size"})
     @Default("16384")
-    public int getReadBufferSize() {
+    public int getMemcachedReadBufferSize() {
         return 16384;
     }
 
     @Config({"ness.cache.${cacheName}.op-max-block-time", "ness.cache.op-max-block-time"})
     @Default("100ms")
-    public TimeSpan getOperationQueueBlockTime() {
+    public TimeSpan getMemcachedOperationQueueBlockTime() {
         return new TimeSpan(100, TimeUnit.MILLISECONDS);
     }
 
     @Config({"ness.cache.${cacheName}.operation-timeout", "ness.cache.operation-timeout"})
     @Default("1s")
-    public TimeSpan getOperationTimeout() {
+    public TimeSpan getMemcachedOperationTimeout() {
         return new TimeSpan(1, TimeUnit.SECONDS);
     }
 
     @Config({"ness.cache.${cacheName}.daemon-threads", "ness.cache.daemon-threads"})
     @Default("false")
-    public boolean isDaemonThreads() {
+    public boolean isMemcachedDaemonThreads() {
         return false;
     }
 
     @Config({"ness.cache.${cacheName}.failure-mode", "ness.cache.failureMode"})
     @Default("Cancel")
-    public FailureMode getFailureMode()
+    public FailureMode getMemcachedFailureMode()
     {
         return FailureMode.Cancel;
     }

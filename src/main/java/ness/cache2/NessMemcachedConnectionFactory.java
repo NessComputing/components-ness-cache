@@ -72,7 +72,7 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
                                                          createReadOperationQueue(),
                                                          createWriteOperationQueue(),
                                                          createOperationQueue(),
-                                                         configuration.getOperationQueueBlockTime().getMillis(),
+                                                         configuration.getMemcachedOperationQueueBlockTime().getMillis(),
                                                          doAuth,
                                                          getOperationTimeout(),
                                                          getMemcachedNodeStats(sa),
@@ -112,13 +112,13 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
     @Override
     public final int getOpQueueLen()
     {
-        return configuration.getIncomingQueueSize();
+        return configuration.getMemcachedIncomingQueueSize();
     }
 
     @Override
     public final BlockingQueue<Operation> createReadOperationQueue()
     {
-        int queueSize = configuration.getReadQueueSize();
+        int queueSize = configuration.getMemcachedReadQueueSize();
         if (queueSize <= 0) {
             return new LinkedBlockingQueue<Operation>();
         }
@@ -130,7 +130,7 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
     @Override
     public final BlockingQueue<Operation> createWriteOperationQueue()
     {
-        int queueSize = configuration.getWriteQueueSize();
+        int queueSize = configuration.getMemcachedWriteQueueSize();
         if (queueSize <= 0) {
             return new LinkedBlockingQueue<Operation>();
         }
@@ -142,25 +142,25 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
     @Override
     public final long getOpQueueMaxBlockTime()
     {
-        return configuration.getOperationQueueBlockTime().getMillis();
+        return configuration.getMemcachedOperationQueueBlockTime().getMillis();
     }
 
     @Override
     public final long getOperationTimeout()
     {
-        return configuration.getOperationTimeout().getMillis();
+        return configuration.getMemcachedOperationTimeout().getMillis();
     }
 
     @Override
     public boolean isDaemon()
     {
-        return configuration.isDaemonThreads();
+        return configuration.isMemcachedDaemonThreads();
     }
 
     @Override
     public FailureMode getFailureMode()
     {
-        return configuration.getFailureMode();
+        return configuration.getMemcachedFailureMode();
     }
 
 
