@@ -26,7 +26,7 @@ public class JvmCacheTest extends BaseCachingTests {
         final Config config = tcm.getConfig();
 
         Guice.createInjector(tcm,
-                             new CacheModule(config),
+                             new CacheModule(config, "test"),
                              new AbstractModule() {
             @Override
             protected void configure() {

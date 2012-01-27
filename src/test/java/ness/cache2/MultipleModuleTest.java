@@ -31,10 +31,10 @@ public class MultipleModuleTest {
 				binder().requireExplicitBindings();
 			}},
 			tcm,
-			new CacheModule(config),
+			new CacheModule(config, "test"),
 			new CacheModule(config, "noeviction"));
 
-		CacheImpl cache = (CacheImpl) injector.getInstance(Cache.class);
+		CacheImpl cache = (CacheImpl) injector.getInstance(Key.get(Cache.class, Names.named("test")));
 		CacheImpl noEvictionCache = (CacheImpl) injector.getInstance(Key.get(Cache.class, Names.named("noeviction")));
 		assertTrue(cache.provider instanceof NullProvider);
 		assertTrue("Expecting non evicting provider. Got: " +  noEvictionCache.provider.getClass(), noEvictionCache.provider instanceof NonEvictingJvmCacheProvider);

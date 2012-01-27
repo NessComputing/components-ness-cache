@@ -35,7 +35,7 @@ public class NullCacheTest {
         final Config config = tcm.getConfig();
 
         Guice.createInjector(tcm,
-                             new CacheModule(config),
+                             new CacheModule(config, "test"),
                              new LifecycleModule(),
                              new AbstractModule() {
             @Override
