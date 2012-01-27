@@ -38,21 +38,6 @@ public abstract class CacheConfiguration {
     }
 
     /**
-     * Specifies which encoding/decoding scheme all memcached caching should apply to namespaces
-     * and keys before passing them to the memcached client.  The currently supported values are
-     * BASE64 and NONE, defaulting to BASE64.  Only use NONE if you -know- that none of the
-     * namespaces and keys will contain any bytes prohibited by memcached (spaces, newlines,
-     * carriage returns and nulls).
-     *
-     * @return the desired ns/key encoding within the memcached provider
-     */
-    @Config({"ness.cache.${cacheName}.memcached-encoding", "ness.cache.memcached-encoding"})
-    @Default("BASE64")
-    public EncodingType getMemcachedEncoding() {
-        return EncodingType.BASE64;
-    }
-
-    /**
      * @return the period between updating the cache server topology information from service discovery, in milliseconds
      */
     @Config({"ness.cache.${cacheName}.rediscover-interval", "ness.cache.rediscover-interval"})
@@ -123,6 +108,27 @@ public abstract class CacheConfiguration {
     //
     // Everything below is memcached specific
     //
+
+    /**
+     * Specifies which encoding/decoding scheme all memcached caching should apply to namespaces
+     * and keys before passing them to the memcached client.  The currently supported values are
+     * BASE64 and NONE, defaulting to BASE64.  Only use NONE if you -know- that none of the
+     * namespaces and keys will contain any bytes prohibited by memcached (spaces, newlines,
+     * carriage returns and nulls).
+     *
+     * @return the desired ns/key encoding within the memcached provider
+     */
+    @Config({"ness.cache.${cacheName}.memcached-encoding", "ness.cache.memcached-encoding"})
+    @Default("BASE64")
+    public EncodingType getMemcachedEncoding() {
+        return EncodingType.BASE64;
+    }
+
+    @Config({"ness.cache.${cacheName}.separator", "ness.cache.separator"})
+    @Default(":")
+    public String getMemcachedSeparator() {
+        return ":";
+    }
 
     @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})
     @Default("-1") // -1 == 'use default'

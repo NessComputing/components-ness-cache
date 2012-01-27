@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -31,7 +32,9 @@ import com.likeness.logging.Log;
  * Provide a cache based upon a memached server
  */
 @Singleton
-final class MemcacheProvider implements InternalCacheProvider {
+final class MemcacheProvider implements InternalCacheProvider
+{
+    private final ConcurrentMap<String, NamespaceInfo> namespaceMap = Maps.newConcurrentMap();
 
     private static final Function<String, String> BASE64_ENCODER = new Function<String, String>() {
         @Override
@@ -74,12 +77,12 @@ final class MemcacheProvider implements InternalCacheProvider {
 
 
     private static final Log LOG = Log.findLog();
-    private static final String SEPARATOR = "\u0001";
 
     private final MemcachedClientFactory clientFactory;
     private final CacheConfiguration config;
     private final Function<String,String> encoder;
     private final Function<String,String> decoder;
+    private final String separator;
 
     @Inject
     MemcacheProvider(final CacheConfiguration config,
@@ -101,6 +104,8 @@ final class MemcacheProvider implements InternalCacheProvider {
         default:
             throw new IllegalArgumentException("Unknown encoding type " + encodingType);
         }
+
+        this.separator = config.getMemcachedSeparator();
     }
 
     @Override
@@ -123,12 +128,16 @@ final class MemcacheProvider implements InternalCacheProvider {
 
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
-        MemcachedClient client = clientFactory.get();
+
+        final MemcachedClient client = clientFactory.get();
         if (client == null) {
             return Collections.emptyMap();
         }
 
-        Collection<String> preparedKeys = makeKeys(namespace, keys);
+        final NamespaceInfo namespaceInfo = findNamespace(namespace);
+        final int prefixLength = namespaceInfo.getPrefixLength();
+
+        final Collection<String> preparedKeys = makeKeys(namespaceInfo, keys);
         final Map<String, Object> internalResult;
         try {
             // The assertion above protects this somewhat dodgy-looking cast.  Since the transcoder always
@@ -136,9 +145,6 @@ final class MemcacheProvider implements InternalCacheProvider {
             internalResult = client.getBulk(preparedKeys);
 
             final ImmutableMap.Builder<String, byte[]> transformedResults = ImmutableMap.builder();
-
-            final String encodedNamespacePlusSeparator = encoder.apply(namespace) + SEPARATOR;
-            final int prefixLength = encodedNamespacePlusSeparator.length();
 
             for (Entry<String, Object> e : internalResult.entrySet()) {
                 if (e.getValue() == null) {
@@ -169,39 +175,35 @@ final class MemcacheProvider implements InternalCacheProvider {
         return when == null ? -1 : Ints.saturatedCast(when.getMillis() / 1000);
     }
 
-    private Collection<String> makeKeys(final String namespace, Collection<String> keys) {
-        final String namespaceEncoded = encoder.apply(namespace);
+    private Collection<String> makeKeys(final NamespaceInfo namespaceInfo, Collection<String> keys) {
+        final String encodedNamespace = namespaceInfo.getEncodedNamespace();
         return Collections2.transform(keys, new Function<String, String>() {
             @Override
-            public String apply(String key) {
-                return makeKeyWithNamespaceAlreadyEncoded(namespaceEncoded, key);
+            public String apply(final String key) {
+                return encodedNamespace + encoder.apply(key);
             }
         });
-    }
-
-    private String makeKeyWithNamespaceAlreadyEncoded(String encodedNamespace, String key) {
-        return encodedNamespace + SEPARATOR + encoder.apply(key);
     }
 
     private <F, D> Map<String, F> processOps(final String namespace, final boolean wait, final Collection<CacheStore<D>> stores, Callback<F, D> callback)
     {
         final MemcachedClient client = clientFactory.get();
-
         if (client == null) {
             return Collections.emptyMap();
         }
 
+        final NamespaceInfo namespaceInfo = findNamespace(namespace);
+        final String encodedNamespace = namespaceInfo.getEncodedNamespace();
         final Map<String, Future<F>> futures = Maps.newHashMap();
 
         try {
-            final String nsEncoded = encoder.apply(namespace);
             for (final CacheStore<D> cacheStore : stores) {
 
                 final String key = cacheStore.getKey();
 
                 Future<F> future = null;
                 try {
-                    future = callback.callback(client, makeKeyWithNamespaceAlreadyEncoded(nsEncoded, key), cacheStore);
+                    future = callback.callback(client, encodedNamespace + encoder.apply(key), cacheStore);
                     futures.put(key, future);
                 } catch (IllegalStateException ise) {
                     LOG.errorDebug(ise, "Memcache Queue was full while storing %s:%s", namespace, key);
@@ -260,8 +262,43 @@ final class MemcacheProvider implements InternalCacheProvider {
         return results;
     }
 
+    private NamespaceInfo findNamespace(final String namespace)
+    {
+        NamespaceInfo namespaceInfo = namespaceMap.get(namespace);
+        if (namespaceInfo == null) {
+            final NamespaceInfo newNamespaceInfo = new NamespaceInfo(namespace);
+            namespaceInfo = namespaceMap.putIfAbsent(namespace, newNamespaceInfo);
+            if (namespaceInfo == null) {
+                namespaceInfo = newNamespaceInfo;
+            }
+        }
+        return namespaceInfo;
+    }
+
     public interface Callback<F, D>
     {
         Future<F> callback(MemcachedClient client, String nsKey, CacheStore<D> data) throws InterruptedException;
+    }
+
+    private class NamespaceInfo
+    {
+        private final String encodedNamespace;
+        private final int prefixLength;
+
+        private NamespaceInfo(final String namespace)
+        {
+            this.encodedNamespace = encoder.apply(namespace) + separator;
+            this.prefixLength = encodedNamespace.length();
+        }
+
+        private String getEncodedNamespace()
+        {
+            return encodedNamespace;
+        }
+
+        private int getPrefixLength()
+        {
+            return prefixLength;
+        }
     }
 }
