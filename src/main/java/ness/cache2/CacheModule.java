@@ -1,7 +1,6 @@
 package ness.cache2;
 
 import io.trumpet.config.Config;
-import com.likeness.logging.Log;
 
 import java.lang.annotation.Annotation;
 
@@ -13,8 +12,7 @@ import com.google.inject.Scopes;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.EqualsBuilder;
+import com.likeness.logging.Log;
 
 public class CacheModule extends PrivateModule {
     private static final Log LOG = Log.findLog();
