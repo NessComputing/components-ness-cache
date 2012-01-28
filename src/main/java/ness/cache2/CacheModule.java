@@ -118,24 +118,4 @@ public class CacheModule extends PrivateModule {
             expose (CacheTopologyProvider.class);
         }
     }
-
-    @Override
-    public boolean equals(final Object other)
-    {
-        if (!(other instanceof CacheModule))
-            return false;
-        CacheModule castOther = (CacheModule) other;
-        return new EqualsBuilder().append(bindingAnnotation, castOther.bindingAnnotation).append(config, castOther.config).append(exposeInternalClasses, castOther.exposeInternalClasses).isEquals();
-    }
-
-    private transient int hashCode;
-
-    @Override
-    public int hashCode()
-    {
-        if (hashCode == 0) {
-            hashCode = new HashCodeBuilder().append(bindingAnnotation).append(config).append(exposeInternalClasses).toHashCode();
-        }
-        return hashCode;
-    }
 }
