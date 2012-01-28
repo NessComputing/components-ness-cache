@@ -13,6 +13,8 @@ import com.google.inject.Scopes;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 public class CacheModule extends PrivateModule {
     private static final Log LOG = Log.findLog();
@@ -115,5 +117,25 @@ public class CacheModule extends PrivateModule {
             expose (MemcachedClientFactory.class);
             expose (CacheTopologyProvider.class);
         }
+    }
+
+    @Override
+    public boolean equals(final Object other)
+    {
+        if (!(other instanceof CacheModule))
+            return false;
+        CacheModule castOther = (CacheModule) other;
+        return new EqualsBuilder().append(bindingAnnotation, castOther.bindingAnnotation).append(config, castOther.config).append(exposeInternalClasses, castOther.exposeInternalClasses).isEquals();
+    }
+
+    private transient int hashCode;
+
+    @Override
+    public int hashCode()
+    {
+        if (hashCode == 0) {
+            hashCode = new HashCodeBuilder().append(bindingAnnotation).append(config).append(exposeInternalClasses).toHashCode();
+        }
+        return hashCode;
     }
 }
