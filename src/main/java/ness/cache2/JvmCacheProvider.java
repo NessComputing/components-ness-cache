@@ -1,8 +1,8 @@
 package ness.cache2;
 
-import io.trumpet.lifecycle.Lifecycle;
-import io.trumpet.lifecycle.LifecycleListener;
-import io.trumpet.lifecycle.LifecycleStage;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleListener;
+import com.nesscomputing.lifecycle.LifecycleStage;
 
 import java.util.Collection;
 import java.util.Collections;

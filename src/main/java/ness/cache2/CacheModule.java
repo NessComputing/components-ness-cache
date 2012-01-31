@@ -12,7 +12,7 @@ import com.google.inject.Scopes;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
-import com.likeness.logging.Log;
+import com.nesscomputing.logging.Log;
 
 public class CacheModule extends PrivateModule {
     private static final Log LOG = Log.findLog();

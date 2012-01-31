@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import io.trumpet.lifecycle.Lifecycle;
-import io.trumpet.lifecycle.LifecycleListener;
-import io.trumpet.lifecycle.LifecycleStage;
-import com.likeness.logging.Log;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleListener;
+import com.nesscomputing.lifecycle.LifecycleStage;
+import com.nesscomputing.logging.Log;
 import org.weakref.jmx.MBeanExporter;
 
 import javax.annotation.concurrent.GuardedBy;

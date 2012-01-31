@@ -1,6 +1,6 @@
 package ness.cache2;
 
-import com.likeness.logging.Log;
+import com.nesscomputing.logging.Log;
 
 import java.util.Collection;
 import java.util.Map;

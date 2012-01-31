@@ -1,7 +1,7 @@
 package ness.cache2;
 
-import io.trumpet.lifecycle.LifecycleStage;
-import io.trumpet.lifecycle.guice.OnStage;
+import com.nesscomputing.lifecycle.LifecycleStage;
+import com.nesscomputing.lifecycle.guice.OnStage;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -24,7 +24,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import com.likeness.logging.Log;
+import com.nesscomputing.logging.Log;
 
 /**
  * Maintain a {@link MemcachedClient} which is always connected to the currently operating

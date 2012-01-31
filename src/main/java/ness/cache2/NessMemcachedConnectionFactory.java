@@ -25,7 +25,7 @@ import org.weakref.jmx.MBeanExporter;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.likeness.logging.Log;
+import com.nesscomputing.logging.Log;
 
 /**
  * A ConnectionFactory which is Ketama and Binary capable, and uses the custom Ness transcoder.

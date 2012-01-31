@@ -2,7 +2,7 @@ package ness.cache2;
 
 import io.trumpet.config.Config;
 import io.trumpet.config.guice.TestingConfigModule;
-import io.trumpet.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.Lifecycle;
 
 import org.easymock.EasyMock;
 import org.junit.Before;

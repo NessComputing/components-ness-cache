@@ -3,9 +3,9 @@ package ness.cache2;
 import static org.junit.Assert.assertTrue;
 import io.trumpet.config.Config;
 import io.trumpet.config.guice.TestingConfigModule;
-import io.trumpet.lifecycle.Lifecycle;
-import io.trumpet.lifecycle.LifecycleStage;
-import io.trumpet.lifecycle.guice.LifecycleModule;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleStage;
+import com.nesscomputing.lifecycle.guice.LifecycleModule;
 
 import java.util.Collection;
 import java.util.Collections;
