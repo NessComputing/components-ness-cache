@@ -42,7 +42,7 @@
     <dependency>
       <groupId>ness.discovery</groupId>
       <artifactId>discovery-client</artifactId>
-      <version>3.0-SNAPSHOT</version>
+      <version>3.0</version>
     </dependency>
 
     <dependency>
