@@ -23,7 +23,7 @@ public class CacheStore<D> {
      * @param data the data to store; this data is shared (not copied) for efficiency and should never be modified after being handed off.
      * @param expiry the expiration instant; this is advisory and cache entries may expire sooner (or later, in certain circumstances)
      */
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="EI_EXPOSE_REP", justification="efficiency")
+    @SuppressWarnings("EI_EXPOSE_REP")
     CacheStore(@Nonnull final String key,
                @Nullable final D data,
                @Nullable DateTime expiry) {
@@ -59,7 +59,7 @@ public class CacheStore<D> {
      * @return the data for this cache entry; this is shared and must not be modified via this reference.
      */
     @CheckForNull
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="EI_EXPOSE_REP", justification="efficiency")
+    @SuppressWarnings("EI_EXPOSE_REP")
     public D getData() {
         return data;
     }
