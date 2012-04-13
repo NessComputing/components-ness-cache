@@ -25,7 +25,7 @@ public class NullCacheTest {
 
     @Inject
     @Named("test")
-    Cache cache;
+    NessCache cache;
 
     @Inject
     Lifecycle lifecycle;

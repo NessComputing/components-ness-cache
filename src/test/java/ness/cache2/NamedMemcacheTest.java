@@ -137,7 +137,7 @@ public class NamedMemcacheTest {
 
     private final Set<String> allKeys = Sets.newHashSet();
 
-    private void writeLots(Cache cache) {
+    private void writeLots(NessCache cache) {
         Random r = new Random(RANDOM_SEED);
         NamespacedCache c = cache.withNamespace(NS);
 
@@ -151,7 +151,7 @@ public class NamedMemcacheTest {
         }
     }
 
-    private boolean verifyWrites(Cache cache) {
+    private boolean verifyWrites(NessCache cache) {
         Random r = new Random(RANDOM_SEED);
         NamespacedCache c = cache.withNamespace(NS);
 
@@ -172,13 +172,13 @@ public class NamedMemcacheTest {
     Lifecycle lifecycle;
     @Inject
     @Named("1")
-    Cache cache1;
+    NessCache cache1;
     @Inject
     @Named("2")
-    Cache cache2;
+    NessCache cache2;
     @Inject
     @Named("3")
-    Cache cache3;
+    NessCache cache3;
 
     @Test
     public void testSimpleReadWrite() {

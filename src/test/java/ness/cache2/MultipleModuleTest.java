@@ -34,8 +34,8 @@ public class MultipleModuleTest {
 			new CacheModule(config, "test"),
 			new CacheModule(config, "noeviction"));
 
-		CacheImpl cache = (CacheImpl) injector.getInstance(Key.get(Cache.class, Names.named("test")));
-		CacheImpl noEvictionCache = (CacheImpl) injector.getInstance(Key.get(Cache.class, Names.named("noeviction")));
+		CacheImpl cache = (CacheImpl) injector.getInstance(Key.get(NessCache.class, Names.named("test")));
+		CacheImpl noEvictionCache = (CacheImpl) injector.getInstance(Key.get(NessCache.class, Names.named("noeviction")));
 		assertTrue(cache.provider instanceof NullProvider);
 		assertTrue("Expecting non evicting provider. Got: " +  noEvictionCache.provider.getClass(), noEvictionCache.provider instanceof NonEvictingJvmCacheProvider);
 	}

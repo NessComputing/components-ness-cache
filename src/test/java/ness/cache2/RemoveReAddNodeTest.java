@@ -171,7 +171,7 @@ public class RemoveReAddNodeTest {
     private MemcachedClientFactory clientFactory = null;
 
     @Inject
-    private Cache cache = null;
+    private NessCache cache = null;
 
     @Test
     public void testAddingCache() throws Exception {

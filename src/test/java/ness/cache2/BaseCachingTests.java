@@ -19,7 +19,7 @@ import com.google.inject.name.Named;
 public abstract class BaseCachingTests {
     @Inject
     @Named("test")
-    Cache cache;
+    NessCache cache;
 
     @Test
     public void testSimpleCache() {

@@ -15,7 +15,7 @@ import com.google.inject.Singleton;
  * be configured (via {@link CacheConfiguration}) to provide various guarantees.
  */
 @Singleton
-public class CacheImpl implements Cache {
+public class CacheImpl implements NessCache, Cache {
     private static final Log LOG = Log.findLog();
     @VisibleForTesting
     final InternalCacheProvider provider;
@@ -44,6 +44,7 @@ public class CacheImpl implements Cache {
      * }
      * </pre>
      */
+    @Override
     public NamespacedCache withNamespace(String namespace) {
         return new NamespacedCache(this, namespace);
     }

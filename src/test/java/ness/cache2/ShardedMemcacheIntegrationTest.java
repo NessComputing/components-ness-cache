@@ -171,7 +171,7 @@ public class ShardedMemcacheIntegrationTest {
     @Inject
     MemcachedClientFactory clientFactory;
     @Inject
-    Cache cache;
+    NessCache cache;
 
     @Test
     public void testSimpleClusterReconfiguration() {
