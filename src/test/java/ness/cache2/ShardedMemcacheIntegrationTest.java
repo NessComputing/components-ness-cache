@@ -3,12 +3,6 @@ package ness.cache2;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import io.trumpet.config.Config;
-import io.trumpet.config.guice.TestingConfigModule;
-import com.nesscomputing.lifecycle.Lifecycle;
-import com.nesscomputing.lifecycle.LifecycleStage;
-import com.nesscomputing.lifecycle.guice.LifecycleModule;
-import com.nesscomputing.logging.Log;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -28,14 +22,18 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.kaching.platform.testing.AllowDNSResolution;
-import com.kaching.platform.testing.AllowNetworkAccess;
-import com.kaching.platform.testing.AllowNetworkListen;
+import com.nesscomputing.config.Config;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleStage;
+import com.nesscomputing.lifecycle.guice.LifecycleModule;
+import com.nesscomputing.logging.Log;
+import com.nesscomputing.testing.lessio.AllowDNSResolution;
+import com.nesscomputing.testing.lessio.AllowNetworkAccess;
+import com.nesscomputing.testing.lessio.AllowNetworkListen;
 import com.thimbleware.jmemcached.CacheImpl;
 import com.thimbleware.jmemcached.Key;
 import com.thimbleware.jmemcached.LocalCacheElement;
@@ -104,19 +102,19 @@ public class ShardedMemcacheIntegrationTest {
         discovery.announce(announce2);
         discovery.announce(announce3);
 
-        final TestingConfigModule tcm = new TestingConfigModule(ImmutableMap.of("ness.cache", "MEMCACHE",
-                                                                                "ness.cache.synchronous", "true",
-                                                                                "ness.cache.jmx", "false"));
-        final Config config = tcm.getConfig();
+        final Config config = Config.getFixedConfig("ness.cache", "MEMCACHE",
+                                                    "ness.cache.synchronous", "true",
+                                                    "ness.cache.jmx", "false");
 
-        Guice.createInjector(tcm,
-                             new CacheModule(config, null, true),
+        Guice.createInjector(new CacheModule(config, null, true),
                              new LifecycleModule(),
                              new AbstractModule() {
             @Override
             protected void configure() {
                 requestInjection (ShardedMemcacheIntegrationTest.this);
                 bind (ReadOnlyDiscoveryClient.class).toInstance(discovery);
+
+                bind (Config.class).toInstance(config);
             }
         });
         lifecycle.executeTo(LifecycleStage.START_STAGE);

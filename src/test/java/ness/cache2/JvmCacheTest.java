@@ -1,17 +1,14 @@
 package ness.cache2;
 
-import io.trumpet.config.Config;
-import io.trumpet.config.guice.TestingConfigModule;
-import com.nesscomputing.lifecycle.Lifecycle;
-
 import org.easymock.EasyMock;
 import org.junit.Before;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.kaching.platform.testing.AllowDNSResolution;
+import com.nesscomputing.config.Config;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.testing.lessio.AllowDNSResolution;
 
 @AllowDNSResolution
 public class JvmCacheTest extends BaseCachingTests {
@@ -21,17 +18,17 @@ public class JvmCacheTest extends BaseCachingTests {
     @Before
     public final void setUpClient() {
 
-        final TestingConfigModule tcm = new TestingConfigModule(ImmutableMap.of("ness.cache", "JVM",
-                                                                                "ness.cache.jmx", "false"));
-        final Config config = tcm.getConfig();
+        final Config config = Config.getFixedConfig("ness.cache", "JVM",
+                                                    "ness.cache.jmx", "false");
 
-        Guice.createInjector(tcm,
-                             new CacheModule(config, "test"),
+        Guice.createInjector(new CacheModule(config, "test"),
                              new AbstractModule() {
             @Override
             protected void configure() {
                 requestInjection (JvmCacheTest.this);
                 bind (Lifecycle.class).toInstance(EasyMock.createMock(Lifecycle.class));
+
+                bind (Config.class).toInstance(config);
             }
         });
     }

@@ -163,7 +163,7 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
         return configuration.getMemcachedFailureMode();
     }
 
-
+    @Override
     public MemcachedNodeStats getMemcachedNodeStats(final SocketAddress sa)
     {
       final MemcachedNodeStats stats = new MemcachedNodeStats();

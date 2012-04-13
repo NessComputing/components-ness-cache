@@ -1,11 +1,6 @@
 package ness.cache2;
 
 import static org.junit.Assert.assertTrue;
-import io.trumpet.config.Config;
-import io.trumpet.config.guice.TestingConfigModule;
-import com.nesscomputing.lifecycle.Lifecycle;
-import com.nesscomputing.lifecycle.LifecycleStage;
-import com.nesscomputing.lifecycle.guice.LifecycleModule;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -15,11 +10,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import com.nesscomputing.config.Config;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleStage;
+import com.nesscomputing.lifecycle.guice.LifecycleModule;
 
 public class NullCacheTest {
 
@@ -32,17 +30,16 @@ public class NullCacheTest {
 
     @Before
     public final void setUpClient() {
-        final TestingConfigModule tcm = new TestingConfigModule(ImmutableMap.of("ness.cache", "NONE",
-                                                                                "ness.cache.jmx", "false"));
-        final Config config = tcm.getConfig();
+        final Config config = Config.getFixedConfig("ness.cache", "NONE",
+                                                    "ness.cache.jmx", "false");
 
-        Guice.createInjector(tcm,
-                             new CacheModule(config, "test"),
+        Guice.createInjector(new CacheModule(config, "test"),
                              new LifecycleModule(),
                              new AbstractModule() {
             @Override
             protected void configure() {
                 requestInjection (NullCacheTest.this);
+                bind (Config.class).toInstance(config);
             }
         });
 

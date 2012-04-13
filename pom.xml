@@ -6,7 +6,7 @@
   <parent>
     <groupId>ness.maven</groupId>
     <artifactId>base</artifactId>
-    <version>28</version>
+    <version>32-SNAPSHOT</version>
   </parent>
 
   <scm>
@@ -34,15 +34,15 @@
     </dependency>
 
     <dependency>
-      <groupId>io.trumpet.components</groupId>
-      <artifactId>tc-config</artifactId>
-      <version>8.0</version>
+      <groupId>com.nesscomputing.components</groupId>
+      <artifactId>ness-config</artifactId>
+      <version>2.0.3</version>
     </dependency>
 
     <dependency>
       <groupId>ness.discovery</groupId>
       <artifactId>discovery-client</artifactId>
-      <version>3.0</version>
+      <version>5.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -78,7 +78,6 @@
     <dependency>
       <groupId>org.weakref</groupId>
       <artifactId>jmxutils</artifactId>
-      <version>1.11.1-NESS-1.0</version>
     </dependency>
 
     <dependency>

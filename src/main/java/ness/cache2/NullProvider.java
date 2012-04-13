@@ -19,6 +19,7 @@ public class NullProvider implements InternalCacheProvider {
     @Override
     public void clear(String namepsace, Collection<String> keys) { }
 
+    @Override
     public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
     {
         return Collections.emptyMap();
