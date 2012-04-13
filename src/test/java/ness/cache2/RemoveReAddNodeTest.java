@@ -23,6 +23,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.name.Named;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.lifecycle.LifecycleStage;
@@ -104,7 +105,7 @@ public class RemoveReAddNodeTest {
                                                     "ness.cache.jmx", "false");
 
         final Injector injector = Guice.createInjector(
-                                                       new CacheModule(config, null, true),
+                                                       new CacheModule(config, "test", true),
                                                        new LifecycleModule(),
                                                        new AbstractModule() {
                                                            @Override
@@ -169,6 +170,7 @@ public class RemoveReAddNodeTest {
     private MemcachedClientFactory clientFactory = null;
 
     @Inject
+    @Named("test")
     private NessCache cache = null;
 
     @Test

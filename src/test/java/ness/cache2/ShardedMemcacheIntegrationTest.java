@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.lifecycle.LifecycleStage;
@@ -106,7 +107,7 @@ public class ShardedMemcacheIntegrationTest {
                                                     "ness.cache.synchronous", "true",
                                                     "ness.cache.jmx", "false");
 
-        Guice.createInjector(new CacheModule(config, null, true),
+        Guice.createInjector(new CacheModule(config, "test", true),
                              new LifecycleModule(),
                              new AbstractModule() {
             @Override
@@ -169,6 +170,7 @@ public class ShardedMemcacheIntegrationTest {
     @Inject
     MemcachedClientFactory clientFactory;
     @Inject
+    @Named("test")
     NessCache cache;
 
     @Test
