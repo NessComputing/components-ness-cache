@@ -19,7 +19,7 @@
     </logger>
 
     <logger name="ness">
-        <level value="debug" />
+        <level value="trace" />
     </logger>
 
     <root>
