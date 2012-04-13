@@ -2,12 +2,14 @@ package ness.cache2;
 
 import java.lang.annotation.Annotation;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
-import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
 import com.nesscomputing.config.Config;
@@ -16,7 +18,7 @@ import com.nesscomputing.logging.Log;
 public class CacheModule extends PrivateModule {
     private static final Log LOG = Log.findLog();
 
-    private final Annotation bindingAnnotation;
+    private final String cacheName;
     private final Config config;
 
     /** Expose additional bindings for integration testing */
@@ -25,23 +27,24 @@ public class CacheModule extends PrivateModule {
 
     public CacheModule(Config config, String cacheName)
     {
-    	this(config, Names.named(cacheName), false);
+    	this(config, cacheName, false);
     }
 
     @VisibleForTesting
-    CacheModule(final Config config, final Annotation bindingAnnotation, final boolean exposeInternalClasses) {
+    CacheModule(final Config config, final String cacheName, final boolean exposeInternalClasses) {
+        Preconditions.checkArgument(config != null, "null config");
+        Preconditions.checkArgument(!StringUtils.isBlank(cacheName), "blank cache name");
         this.config = config;
-        this.bindingAnnotation = bindingAnnotation;
+        this.cacheName = cacheName;
         this.exposeInternalClasses = exposeInternalClasses;
     }
 
     @Override
     protected void configure() {
 
-        final String cacheName;
         final CacheConfiguration cacheConfig;
+        final Annotation bindingAnnotation = Names.named(cacheName);
 
-        cacheName = bindingAnnotation instanceof Named ? ((Named)bindingAnnotation).value() : bindingAnnotation.toString();
         cacheConfig = config.getBean(CacheConfiguration.class, ImmutableMap.of("cacheName", cacheName));
 
         bind (NessCache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
