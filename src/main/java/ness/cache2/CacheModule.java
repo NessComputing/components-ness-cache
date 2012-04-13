@@ -1,7 +1,5 @@
 package ness.cache2;
 
-import io.trumpet.config.Config;
-
 import java.lang.annotation.Annotation;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -12,6 +10,7 @@ import com.google.inject.Scopes;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
+import com.nesscomputing.config.Config;
 import com.nesscomputing.logging.Log;
 
 public class CacheModule extends PrivateModule {
@@ -23,26 +22,10 @@ public class CacheModule extends PrivateModule {
     /** Expose additional bindings for integration testing */
     private final boolean exposeInternalClasses;
 
-    /**
-     * @deprecated Cache modules must be explicitly named, do not use the default cache anymore.
-     */
-    @Deprecated
-    public CacheModule(final Config config)
-    {
-       this(config, null, false);
-    }
 
     public CacheModule(Config config, String cacheName)
     {
     	this(config, Names.named(cacheName), false);
-    }
-
-    /**
-     * @deprecated Use the naming constructor.
-     */
-    @Deprecated
-    public CacheModule(Config config, Annotation bindingAnnotation) {
-        this(config, bindingAnnotation, false);
     }
 
     @VisibleForTesting
@@ -58,26 +41,12 @@ public class CacheModule extends PrivateModule {
         final String cacheName;
         final CacheConfiguration cacheConfig;
 
-        if (bindingAnnotation == null) {
-            LOG.warn("Starting the default cache instance! This will soon no longer be possible. Update your code to provide a cache name!");
+        cacheName = bindingAnnotation instanceof Named ? ((Named)bindingAnnotation).value() : bindingAnnotation.toString();
+        cacheConfig = config.getBean(CacheConfiguration.class, ImmutableMap.of("cacheName", cacheName));
 
-            cacheName = null;
-            cacheConfig = config.getBean(CacheConfiguration.class, ImmutableMap.of("cacheName", "default"));
-
-            bind (NessCache.class).to(CacheImpl.class);
-            expose (NessCache.class);
-            bind (Cache.class).to(CacheImpl.class);
-            expose (Cache.class);
-        }
-        else {
-            cacheName = bindingAnnotation instanceof Named ? ((Named)bindingAnnotation).value() : bindingAnnotation.toString();
-            cacheConfig = config.getBean(CacheConfiguration.class, ImmutableMap.of("cacheName", cacheName));
-
-            bind (NessCache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
-            expose (NessCache.class).annotatedWith(bindingAnnotation);
-            bind (Cache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
-            expose (Cache.class).annotatedWith(bindingAnnotation);
-        }
+        bind (NessCache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
+        expose (NessCache.class).annotatedWith(bindingAnnotation);
+        bind (Cache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
 
         bind(String.class).annotatedWith(Names.named("cacheName")).toProvider(Providers.of(cacheName)).in(Scopes.SINGLETON);
         LOG.info("Caching initialize... binding=%s, type=%s, cacheName=%s", Objects.firstNonNull(bindingAnnotation, "<unset>"), cacheConfig.getCacheType(), Objects.firstNonNull(cacheName, "<default>"));
