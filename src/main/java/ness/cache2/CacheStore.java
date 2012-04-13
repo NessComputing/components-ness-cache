@@ -63,4 +63,18 @@ public class CacheStore<D> {
     public D getData() {
         return data;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("CacheStore [");
+        if (key != null)
+            builder.append("key=").append(key).append(", ");
+        if (data != null)
+            builder.append("data=").append(data).append(", ");
+        if (expiry != null)
+            builder.append("expiry=").append(expiry);
+        builder.append("]");
+        return builder.toString();
+    }
 }

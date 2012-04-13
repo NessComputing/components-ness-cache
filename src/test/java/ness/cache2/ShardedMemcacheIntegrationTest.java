@@ -91,13 +91,13 @@ public class ShardedMemcacheIntegrationTest {
     public final void setUp() {
         addr1 = new InetSocketAddress("127.0.0.1", 11212);
         daemon1 = createDaemon(addr1.getPort());
-        announce1 = ServiceInformation.forService("memcached", null, "memcache", addr1.getHostName(), addr1.getPort());
+        announce1 = ServiceInformation.forService("memcached", "test", "memcache", addr1.getHostName(), addr1.getPort());
         addr2 = new InetSocketAddress("127.0.0.1", 11213);
         daemon2 = createDaemon(addr2.getPort());
-        announce2 = ServiceInformation.forService("memcached", null, "memcache", addr2.getHostName(), addr2.getPort());
+        announce2 = ServiceInformation.forService("memcached", "test", "memcache", addr2.getHostName(), addr2.getPort());
         addr3 = new InetSocketAddress("127.0.0.1", 11214);
         daemon3 = createDaemon(addr3.getPort());
-        announce3 = ServiceInformation.forService("memcached", null, "memcache", addr3.getHostName(), addr3.getPort());
+        announce3 = ServiceInformation.forService("memcached", "test", "memcache", addr3.getHostName(), addr3.getPort());
 
         discovery.announce(announce1);
         discovery.announce(announce2);
