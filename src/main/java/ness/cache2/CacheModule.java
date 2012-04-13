@@ -39,6 +39,7 @@ public class CacheModule extends PrivateModule {
         this.exposeInternalClasses = exposeInternalClasses;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void configure() {
 

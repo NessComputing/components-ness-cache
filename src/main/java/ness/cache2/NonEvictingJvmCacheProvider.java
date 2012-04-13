@@ -4,6 +4,7 @@ import com.nesscomputing.logging.Log;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.Maps;
@@ -25,7 +26,13 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 	public void set(String namespace, Collection<CacheStore<byte []>> stores) {
 		for (CacheStore<byte []> entry: stores) {
 			LOG.trace("%s setting %s:%s", this, namespace, entry.getKey());
-			map.put(Maps.immutableEntry(namespace, entry.getKey()), entry.getData());
+            Entry<String, String> key = Maps.immutableEntry(namespace, entry.getKey());
+			byte[] value = entry.getData();
+			if (value != null) {
+                map.put(key, value);
+			} else {
+			    map.remove(key);
+			}
 		}
 	}
 
@@ -57,7 +64,14 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 
         for (CacheStore<byte []> entry: stores) {
             LOG.trace("%s setting %s:%s", this, namespace, entry.getKey());
-            final byte [] old = map.putIfAbsent(Maps.immutableEntry(namespace, entry.getKey()), entry.getData());
+            Entry<String, String> key = Maps.immutableEntry(namespace, entry.getKey());
+            byte[] data = entry.getData();
+            byte[] old;
+            if (data != null) {
+                old = map.putIfAbsent(key, data);
+            } else {
+                old = null;
+            }
             result.put(entry.getKey(), old == null);
         }
         return result;

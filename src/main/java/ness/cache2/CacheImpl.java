@@ -14,6 +14,7 @@ import com.google.inject.Singleton;
  * reads.  The API does not promise any sorts of consistency, although the provider may
  * be configured (via {@link CacheConfiguration}) to provide various guarantees.
  */
+@SuppressWarnings("deprecation")
 @Singleton
 public class CacheImpl implements NessCache, Cache {
     private static final Log LOG = Log.findLog();
