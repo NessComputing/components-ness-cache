@@ -129,7 +129,7 @@ final class Base64
 
     public static boolean isBase64( String isValidString )
     {
-        return isArrayByteBase64(isValidString.getBytes());
+        return isArrayByteBase64(isValidString.getBytes(Charsets.US_ASCII));
     }
 
     public static boolean isBase64( byte octect )

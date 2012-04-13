@@ -95,6 +95,13 @@
       <artifactId>config-magic</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>findbugs</groupId>
+      <artifactId>annotations</artifactId>
+      <version>1.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- Test deps -->
 
     <dependency>

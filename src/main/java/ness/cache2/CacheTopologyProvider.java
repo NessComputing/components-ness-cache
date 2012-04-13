@@ -32,6 +32,9 @@ class CacheTopologyProvider {
     private static final Function<ServiceInformation, InetSocketAddress> SERVICE_INFORMATION_TO_INET_SOCKET_ADDRESS = new Function<ServiceInformation, InetSocketAddress>() {
         @Override
         public InetSocketAddress apply(ServiceInformation input) {
+            if (input == null) {
+                return null;
+            }
             return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS),
                     Integer.valueOf(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));
         }

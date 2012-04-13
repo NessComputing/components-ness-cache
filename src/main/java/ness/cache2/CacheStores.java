@@ -6,8 +6,10 @@ import java.util.Collection;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 
+@edu.umd.cs.findbugs.annotations.SuppressWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
 public final class CacheStores
 {
     private CacheStores()
@@ -38,6 +40,7 @@ public final class CacheStores
 
             @Override
             public CacheStore<Void> apply(final String key) {
+                Preconditions.checkArgument(key != null, "null key");
                 return new CacheStore<Void>(key, null, expiry);
             }
 
@@ -50,6 +53,7 @@ public final class CacheStores
 
             @Override
             public CacheStore<Integer> apply(final String key) {
+                Preconditions.checkArgument(key != null, "null key");
                 return new CacheStore<Integer>(key, value, expiry);
             }
 

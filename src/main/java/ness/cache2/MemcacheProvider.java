@@ -39,6 +39,9 @@ final class MemcacheProvider implements InternalCacheProvider
     private static final Function<String, String> BASE64_ENCODER = new Function<String, String>() {
         @Override
         public String apply(final String input) {
+            if (input == null) {
+                return null;
+            }
             return new String(Base64.encode(input), Charsets.UTF_8);
         }
     };
@@ -46,6 +49,9 @@ final class MemcacheProvider implements InternalCacheProvider
     private static final Function<String, String> BASE64_DECODER = new Function<String, String>() {
         @Override
         public String apply(final String input) {
+            if (input == null) {
+                return null;
+            }
             return new String(Base64.decode(input), Charsets.UTF_8);
         }
     };
