@@ -1,6 +1,7 @@
 package ness.cache2;
 
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
@@ -10,16 +11,13 @@ import com.google.inject.Key;
 import com.google.inject.name.Names;
 import com.nesscomputing.config.Config;
 
-/**
- * @author christopher
- *
- */
 public class MultipleModuleTest {
 	@Test
 	public void testMultipleModules() {
 	    final Config config = Config.getFixedConfig("ness.cache", "NONE",
                                                     "ness.cache.noeviction", "JVM_NO_EVICTION",
                                                     "ness.cache.jmx", "false");
+
 
 		Injector injector = Guice.createInjector(new AbstractModule() {
 			@Override

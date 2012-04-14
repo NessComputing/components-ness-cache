@@ -24,7 +24,6 @@ public class CacheModule extends PrivateModule {
     /** Expose additional bindings for integration testing */
     private final boolean exposeInternalClasses;
 
-
     public CacheModule(Config config, String cacheName)
     {
     	this(config, cacheName, false);
