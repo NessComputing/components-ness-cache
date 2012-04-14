@@ -31,6 +31,7 @@ import com.google.inject.name.Named;
 class CacheTopologyProvider {
     private static final Function<ServiceInformation, InetSocketAddress> SERVICE_INFORMATION_TO_INET_SOCKET_ADDRESS = new Function<ServiceInformation, InetSocketAddress>() {
         @Override
+        @edu.umd.cs.findbugs.annotations.SuppressWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
         public InetSocketAddress apply(ServiceInformation input) {
             return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS),
                     Integer.valueOf(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));

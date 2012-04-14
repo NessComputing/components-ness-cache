@@ -1,7 +1,5 @@
 package ness.cache2;
 
-import io.trumpet.config.Config;
-
 import java.lang.annotation.Annotation;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -12,6 +10,7 @@ import com.google.inject.Scopes;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
+import com.nesscomputing.config.Config;
 import com.nesscomputing.logging.Log;
 
 public class CacheModule extends PrivateModule {
@@ -23,26 +22,9 @@ public class CacheModule extends PrivateModule {
     /** Expose additional bindings for integration testing */
     private final boolean exposeInternalClasses;
 
-    /**
-     * @deprecated Cache modules must be explicitly named, do not use the default cache anymore.
-     */
-    @Deprecated
-    public CacheModule(final Config config)
-    {
-       this(config, null, false);
-    }
-
     public CacheModule(Config config, String cacheName)
     {
     	this(config, Names.named(cacheName), false);
-    }
-
-    /**
-     * @deprecated Use the naming constructor.
-     */
-    @Deprecated
-    public CacheModule(Config config, Annotation bindingAnnotation) {
-        this(config, bindingAnnotation, false);
     }
 
     @VisibleForTesting

@@ -37,6 +37,7 @@ public final class CacheStores
         return Collections2.transform(keys, new Function<String, CacheStore<Void>>() {
 
             @Override
+            @edu.umd.cs.findbugs.annotations.SuppressWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
             public CacheStore<Void> apply(final String key) {
                 return new CacheStore<Void>(key, null, expiry);
             }
@@ -49,6 +50,7 @@ public final class CacheStores
         return Collections2.transform(keys, new Function<String, CacheStore<Integer>>() {
 
             @Override
+            @edu.umd.cs.findbugs.annotations.SuppressWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
             public CacheStore<Integer> apply(final String key) {
                 return new CacheStore<Integer>(key, value, expiry);
             }

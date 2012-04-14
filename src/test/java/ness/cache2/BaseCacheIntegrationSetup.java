@@ -5,7 +5,7 @@ import java.net.InetSocketAddress;
 import org.junit.After;
 import org.junit.Before;
 
-import com.kaching.platform.testing.AllowNetworkListen;
+import com.nesscomputing.testing.lessio.AllowNetworkListen;
 import com.thimbleware.jmemcached.CacheImpl;
 import com.thimbleware.jmemcached.Key;
 import com.thimbleware.jmemcached.LocalCacheElement;

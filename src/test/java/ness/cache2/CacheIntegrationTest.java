@@ -1,23 +1,22 @@
 package ness.cache2;
 
-import io.trumpet.config.Config;
-import io.trumpet.config.guice.TestingConfigModule;
-import com.nesscomputing.lifecycle.Lifecycle;
-import com.nesscomputing.lifecycle.LifecycleStage;
-import com.nesscomputing.lifecycle.guice.LifecycleModule;
+import ness.discovery.client.ReadOnlyDiscoveryClient;
 
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 
-import ness.discovery.client.ReadOnlyDiscoveryClient;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
-import com.kaching.platform.testing.AllowDNSResolution;
-import com.kaching.platform.testing.AllowNetworkAccess;
+import com.nesscomputing.config.Config;
+import com.nesscomputing.config.ConfigModule;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleStage;
+import com.nesscomputing.lifecycle.guice.LifecycleModule;
+import com.nesscomputing.testing.lessio.AllowDNSResolution;
+import com.nesscomputing.testing.lessio.AllowNetworkAccess;
 
 @AllowDNSResolution
 @AllowNetworkAccess(endpoints = {"127.0.0.1:11212"})
@@ -27,13 +26,11 @@ public class CacheIntegrationTest extends BaseCacheIntegrationSetup {
 
     @Before
     public final void setUpClient() {
-        final TestingConfigModule tcm = new TestingConfigModule(ImmutableMap.of("ness.cache", "MEMCACHE",
+        final Config config = Config.getFixedConfig(ImmutableMap.of("ness.cache", "MEMCACHE",
                                                                                 "ness.cache.synchronous", "true",
                                                                                 "ness.cache.uri", "memcache://localhost:11212",
                                                                                 "ness.ncache.jmx", "false"));
-        final Config config = tcm.getConfig();
-
-        Guice.createInjector(tcm,
+        Guice.createInjector(new ConfigModule(config),
                              new CacheModule(config, "test"),
                              new LifecycleModule(),
                              new AbstractModule() {

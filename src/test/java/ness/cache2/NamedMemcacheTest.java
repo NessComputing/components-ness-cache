@@ -2,12 +2,6 @@ package ness.cache2;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import io.trumpet.config.Config;
-import io.trumpet.config.guice.TestingConfigModule;
-import com.nesscomputing.lifecycle.Lifecycle;
-import com.nesscomputing.lifecycle.LifecycleStage;
-import com.nesscomputing.lifecycle.guice.LifecycleModule;
-import com.nesscomputing.logging.Log;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -30,9 +24,15 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.kaching.platform.testing.AllowDNSResolution;
-import com.kaching.platform.testing.AllowNetworkAccess;
-import com.kaching.platform.testing.AllowNetworkListen;
+import com.nesscomputing.config.Config;
+import com.nesscomputing.config.ConfigModule;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleStage;
+import com.nesscomputing.lifecycle.guice.LifecycleModule;
+import com.nesscomputing.logging.Log;
+import com.nesscomputing.testing.lessio.AllowDNSResolution;
+import com.nesscomputing.testing.lessio.AllowNetworkAccess;
+import com.nesscomputing.testing.lessio.AllowNetworkListen;
 import com.thimbleware.jmemcached.CacheImpl;
 import com.thimbleware.jmemcached.Key;
 import com.thimbleware.jmemcached.LocalCacheElement;
@@ -106,13 +106,10 @@ public class NamedMemcacheTest {
         discovery.announce(announce2);
         discovery.announce(announce3);
 
-        final TestingConfigModule tcm = new TestingConfigModule(ImmutableMap.of(
-                                                                    "ness.cache", "MEMCACHE",
+        final Config config = Config.getFixedConfig(ImmutableMap.of("ness.cache", "MEMCACHE",
                                                                     "ness.cache.synchronous", "true",
                                                                     "ness.cache.jmx", "false"));
-        final Config config = tcm.getConfig();
-
-        Guice.createInjector(tcm,
+        Guice.createInjector(new ConfigModule(config),
                              new CacheModule(config, "1"),
                              new CacheModule(config, "2"),
                              new CacheModule(config, "3"),
