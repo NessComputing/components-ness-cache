@@ -1,10 +1,13 @@
 package ness.cache2;
 
+import java.util.Arrays;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.joda.time.DateTime;
 
 import com.google.common.base.Preconditions;
@@ -71,10 +74,17 @@ public class CacheStore<D> {
         if (key != null)
             builder.append("key=").append(key).append(", ");
         if (data != null)
-            builder.append("data=").append(data).append(", ");
+            builder.append("data=").append(prettyPrintData()).append(", ");
         if (expiry != null)
             builder.append("expiry=").append(expiry);
         builder.append("]");
         return builder.toString();
+    }
+
+    private String prettyPrintData() {
+        if (data instanceof byte[]) {
+            return Arrays.toString((byte[]) data);
+        }
+        return ObjectUtils.toString(data);
     }
 }
