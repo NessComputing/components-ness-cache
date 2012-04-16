@@ -127,5 +127,5 @@ public interface GuavaCacheModuleBuilder<K, V> {
     /**
      * Configure and return this module with the cache loader injected from the given key
      */
-    Module build(final Key<CacheLoader<? super K, ? extends V>> key);
+    Module build(final Key<? extends CacheLoader<? super K, ? extends V>> key);
 }

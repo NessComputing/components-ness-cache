@@ -37,7 +37,7 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
     private Duration expiry;
     private Duration expiryJitter;
 
-    private volatile Key<CacheLoader<? super K, ? extends V>> loaderKey;
+    private Key<? extends CacheLoader<? super K, ? extends V>> loaderKey;
 
     GuavaCacheModuleBuilderImpl(String cacheName, String namespace, TypeLiteral<K> kClass, TypeLiteral<V> vClass) {
         this.cacheName = cacheName;
@@ -225,16 +225,17 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
     @Override
     public Module build(final Provider<? extends CacheLoader<? super K, ? extends V>> cacheLoaderProvider) {
         return new AbstractModule() {
+            @SuppressWarnings("unchecked")
             @Override
             protected void configure() {
-                bind (loaderKey).toProvider(cacheLoaderProvider);
+                bind ((Key<CacheLoader<? super K, ? extends V>>) loaderKey).toProvider(cacheLoaderProvider);
                 install (build (loaderKey));
             }
         };
     }
 
     @Override
-    public Module build(final Key<CacheLoader<? super K, ? extends V>> key) {
+    public Module build(final Key<? extends CacheLoader<? super K, ? extends V>> key) {
         this.loaderKey = key;
 
         Preconditions.checkState(keySerializerKey != null, "somehow you got a null key serializer key?");
