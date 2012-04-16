@@ -50,6 +50,7 @@ public class CacheModule extends PrivateModule {
         bind (NessCache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
         expose (NessCache.class).annotatedWith(bindingAnnotation);
         bind (Cache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
+        expose (Cache.class).annotatedWith(bindingAnnotation);
 
         bind(String.class).annotatedWith(Names.named("cacheName")).toProvider(Providers.of(cacheName)).in(Scopes.SINGLETON);
         LOG.info("Caching initialize... binding=%s, type=%s, cacheName=%s", Objects.firstNonNull(bindingAnnotation, "<unset>"), cacheConfig.getCacheType(), Objects.firstNonNull(cacheName, "<default>"));
