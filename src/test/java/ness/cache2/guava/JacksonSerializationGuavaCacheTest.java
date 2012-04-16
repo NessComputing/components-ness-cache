@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import ness.cache2.CacheModule;
 import ness.jackson.JacksonSerializerBinder;
+import ness.jackson.Json;
 import ness.jackson.NessJacksonModule;
 
 import org.joda.time.DateTime;
@@ -50,15 +51,14 @@ public class JacksonSerializationGuavaCacheTest {
                 new ConfigModule(config),
                 new CacheModule(config, "test"),
                 new NessJacksonModule(),
-                NessGuavaCaches.newModuleBuilder("test", "test-ns")
-                    .withKeyType(BigDecimal.class)
-                    .withValueType(DateTime.class)
+                NessGuavaCaches.newModuleBuilder("test", "test-ns", BigDecimal.class, DateTime.class)
+                    .withSerializers(Json.class)
                     .build(),
                 new AbstractModule() {
                     @Override
                     protected void configure() {
-                        JacksonSerializerBinder.bindSerializer(binder(), BigDecimal.class).useSmile().build();
-                        JacksonSerializerBinder.bindSerializer(binder(), DateTime.class).useSmile().build();
+                        JacksonSerializerBinder.bindSerializer(binder(), BigDecimal.class).build();
+                        JacksonSerializerBinder.bindSerializer(binder(), DateTime.class).build();
                     }
                 }
             ).injectMembers(this);

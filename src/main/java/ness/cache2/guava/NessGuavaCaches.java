@@ -1,30 +1,28 @@
 package ness.cache2.guava;
 
-import com.google.common.base.Functions;
 import com.google.inject.TypeLiteral;
-import com.google.inject.util.Providers;
 
 public class NessGuavaCaches {
 
     private NessGuavaCaches() { }
 
     /**
-     * Create the default cache module builder.  The default key type is String, and the default value type is byte[].
-     * Serializers are provided unless the types change.
+     * Create a cache builder
      *
      * @param cacheName the name associated with the CacheModule to be used
      * @param namespace the namespace to give to NamespacedCache
      */
-    public static GuavaCacheModuleBuilder<String, byte[]> newModuleBuilder(String cacheName, String namespace) {
-        return new GuavaCacheModuleBuilderImpl<String, byte[]>(
-                cacheName,
-                namespace,
-                TypeLiteral.get(String.class),
-                TypeLiteral.get(byte[].class),
-                Providers.of(Functions.toStringFunction()),
-                Providers.of(Functions.<byte[]>identity()),
-                Providers.of(Functions.<byte[]>identity()),
-                null,
-                null);
+    public static <K, V> GuavaCacheModuleBuilder<K, V> newModuleBuilder(String cacheName, String namespace, TypeLiteral<K> kType, TypeLiteral<V> vType) {
+        return new GuavaCacheModuleBuilderImpl<K, V>(cacheName, namespace, kType, vType);
+    }
+
+    /**
+     * Create a cache builder
+     *
+     * @param cacheName the name associated with the CacheModule to be used
+     * @param namespace the namespace to give to NamespacedCache
+     */
+    public static <K, V> GuavaCacheModuleBuilder<K, V> newModuleBuilder(String cacheName, String namespace, Class<K> kType, Class<V> vType) {
+        return newModuleBuilder(cacheName, namespace, TypeLiteral.get(kType), TypeLiteral.get(vType));
     }
 }

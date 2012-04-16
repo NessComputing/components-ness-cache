@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.cache.Cache;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -56,8 +57,8 @@ public class CustomSerializationGuavaCacheTest {
                 lifecycleRule.getLifecycleModule(),
                 new ConfigModule(config),
                 new CacheModule(config, "test"),
-                NessGuavaCaches.newModuleBuilder("test", "test-ns")
-                    .withValueType(Integer.class)
+                NessGuavaCaches.newModuleBuilder("test", "test-ns", String.class, Integer.class)
+                    .withKeySerializer(Functions.toStringFunction())
                     .withValueSerializer(intSerializer, intDeserializer)
                     .build()
             ).injectMembers(this);

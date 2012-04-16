@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Functions;
 import com.google.common.cache.Cache;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -41,7 +42,9 @@ public class BasicGuavaCacheTest {
                 lifecycleRule.getLifecycleModule(),
                 new ConfigModule(config),
                 new CacheModule(config, "test"),
-                NessGuavaCaches.newModuleBuilder("test", "test-ns")
+                NessGuavaCaches.newModuleBuilder("test", "test-ns", String.class, byte[].class)
+                    .withKeySerializer(Functions.toStringFunction())
+                    .withValueSerializer(Functions.<byte[]>identity(), Functions.<byte[]>identity())
                     .build()
             ).injectMembers(this);
 

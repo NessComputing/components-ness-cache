@@ -1,5 +1,7 @@
 package ness.cache2.guava;
 
+import java.lang.annotation.Annotation;
+
 import org.joda.time.Duration;
 
 import com.google.common.base.Function;
@@ -7,7 +9,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provider;
-import com.google.inject.TypeLiteral;
 
 /**
  * Guice module builder which provides Cache&lt;K, V&gt; implementations for any
@@ -28,45 +29,74 @@ import com.google.inject.TypeLiteral;
  *
  * <p>If no configuration of key or value types are provided, the default <code>Cache&lt;String, byte[]&gt;</code> has
  * identity serializers.
- *
- * <p>Instances are immutable, so method calls <b>must</b> be chained to be effective.
  */
 public interface GuavaCacheModuleBuilder<K, V> {
-    /**
-     * Set the key type for this Cache.  Any prior key serialization configuration is lost and replaced
-     * by looking up the default according to the rules as specified on the class documentation.
-     */
-    <NewK> GuavaCacheModuleBuilder<NewK, V> withKeyType(Class<NewK> kClass);
 
     /**
-     * Set the key type for this Cache.  Any prior key serialization configuration is lost and replaced
-     * by looking up the default according to the rules as specified on the class documentation.
+     * Use the default (Guice bound) serialization function for both key and value
      */
-    <NewK> GuavaCacheModuleBuilder<NewK, V> withKeyType(TypeLiteral<NewK> kClass);
+    GuavaCacheModuleBuilder<K, V> withSerializers();
 
     /**
-     * Specify the key serialization function.  Prevents lookup in Guice.
+     * Specify the key and value serialization function binding annotation.
      */
-    GuavaCacheModuleBuilder<K, V> withKeySerializer(Function<? super K, String> keySerialization);
+    GuavaCacheModuleBuilder<K, V> withSerializers(Annotation bindingAnnotation);
 
     /**
-     * Set the value type for this Cache.  Any prior value serialization configuration is lost and replaced
-     * by looking up the default according to the rules as specified on the class documentation.
+     * Specify the key and value serialization function.
      */
-    <NewV> GuavaCacheModuleBuilder<K, NewV> withValueType(Class<NewV> vClass);
+    GuavaCacheModuleBuilder<K, V> withSerializers(Class<? extends Annotation> bindingAnnotationClass);
+
 
     /**
-     * Set the value type for this Cache.  Any prior value serialization configuration is lost and replaced
-     * by looking up the default according to the rules as specified on the class documentation.
+     * Specify the key serialization function.
      */
-    <NewV> GuavaCacheModuleBuilder<K, NewV> withValueType(TypeLiteral<NewV> vClass);
+    GuavaCacheModuleBuilder<K, V> withKeySerializer(Key<? extends Function<? super K, String>> functionKey);
 
     /**
-     * Set up the value serialization and deserialization functions.  Prevents lookup in Guice.
+     * Specify the key serialization function.
      */
-    GuavaCacheModuleBuilder<K, V> withValueSerializer(
-            Function<? super V, byte[]> valueSerializer,
-            Function<byte[], ? extends V> valueDeserializer);
+    GuavaCacheModuleBuilder<K, V> withKeySerializer(Function<? super K, String> keySerializerFunction);
+
+    /**
+     * Use the default (Guice bound) key serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withKeySerializer();
+
+    /**
+     * Specify the key serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withKeySerializer(Annotation bindingAnnotation);
+
+    /**
+     * Specify the key serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withKeySerializer(Class<? extends Annotation> bindingAnnotationClass);
+
+    /**
+     * Specify the key serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withValueSerializer(Key<? extends Function<? super V, byte[]>> serializerKey, Key<? extends Function<byte[], ? extends V>> deserializerKey);
+
+    /**
+     * Specify the key serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withValueSerializer(Function<? super V, byte[]> valueSerializerFunction, Function<byte[], ? extends V> valueDeserializerFunction);
+
+    /**
+     * Specify the key serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withValueSerializer();
+
+    /**
+     * Specify the key serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withValueSerializer(Annotation bindingAnnotation);
+
+    /**
+     * Specify the key serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withValueSerializer(Class<? extends Annotation> bindingAnnotationClass);
 
     /**
      * Configure the expiration duration
