@@ -18,6 +18,7 @@ import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
+import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
@@ -272,37 +273,36 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
         };
     }
 
+    @Singleton
     class CacheProvider implements Provider<LoadingCache<K, V>> {
 
-        private NamespacedCache cache;
-        private CacheLoader<? super K, ? extends V> cacheLoader;
-        private Function<? super K, String> keySerializerImpl;
-        private Function<? super V, byte[]> valueSerializerImpl;
-        private Function<byte[], ? extends V> valueDeserializerImpl;
-
-        private GuavaCacheAdapter<K, V> realCache;
+        private Injector injector;
 
         CacheProvider() {
         }
 
         @Inject
-        void setCache(Injector injector) {
-            this.cache = injector.getInstance(Key.get(NessCache.class, Names.named(cacheName))).withNamespace(namespace);
-            this.keySerializerImpl = injector.getInstance(keySerializerKey);
-            this.valueSerializerImpl = injector.getInstance(valueSerializerKey);
-            this.valueDeserializerImpl = injector.getInstance(valueDeserializerKey);
-
-            if (loaderKey != null) {
-                this.cacheLoader = injector.getInstance(loaderKey);
-            }
-
-            realCache = new GuavaCacheAdapter<K, V>(cache, kClass, keySerializerImpl, valueSerializerImpl, valueDeserializerImpl, cacheLoader, expiry, expiryJitter);
+        public void setInjector(Injector injector) {
+            this.injector = injector;
         }
 
         @Override
         public LoadingCache<K, V> get() {
-            Preconditions.checkState(realCache != null, "provider never got injected!");
-            return realCache;
+            Preconditions.checkState(injector != null, "injector never got injected!");
+
+            NamespacedCache cache = injector.getInstance(Key.get(NessCache.class, Names.named(cacheName))).withNamespace(namespace);
+
+            CacheLoader<? super K, ? extends V> cacheLoader = null;
+
+            if (loaderKey != null) {
+                cacheLoader = injector.getInstance(loaderKey);
+            }
+
+            Function<? super K, String> keySerializerImpl = injector.getInstance(keySerializerKey);
+            Function<? super V, byte[]> valueSerializerImpl = injector.getInstance(valueSerializerKey);
+            Function<byte[], ? extends V> valueDeserializerImpl = injector.getInstance(valueDeserializerKey);
+
+            return new GuavaCacheAdapter<K, V>(cache, kClass, keySerializerImpl, valueSerializerImpl, valueDeserializerImpl, cacheLoader, expiry, expiryJitter);
         }
     }
 }
