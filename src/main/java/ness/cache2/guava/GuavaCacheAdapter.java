@@ -137,7 +137,7 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
             }
         } catch (UnsupportedOperationException e) {
             if (bulkLoadFailed.compareAndSet(false, true)) {
-                LOG.warn(e, "Cache loader %s does not support bulk loads, disabling. Could get a nice performance benefit here!");
+                LOG.warn(e, "Cache loader %s does not support bulk loads, disabling. Could get a nice performance benefit here!", loader);
             }
         } catch (Exception e) {
             LOG.error(e, "Exception from cache loader during getAll");
