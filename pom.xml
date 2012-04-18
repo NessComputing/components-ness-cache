@@ -6,7 +6,7 @@
   <parent>
     <groupId>ness.maven</groupId>
     <artifactId>base</artifactId>
-    <version>32</version>
+    <version>35-SNAPSHOT</version>
   </parent>
 
   <scm>
