@@ -18,6 +18,7 @@ import org.joda.time.Duration;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
@@ -84,6 +85,7 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
 
     @Override
     public V get(final K key) throws ExecutionException {
+        Preconditions.checkArgument(key != null, "null key");
         return get(key, new Callable<V>() {
             @Override
             public V call() throws Exception {
@@ -94,6 +96,7 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
 
     @Override
     public V get(K key, Callable<? extends V> valueLoader) throws ExecutionException {
+        Preconditions.checkArgument(key != null, "null key");
         V value = getIfPresent(key);
         if (value != null) {
             return value;
@@ -163,6 +166,7 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
 
     @Override
     public void refresh(K key) {
+        Preconditions.checkArgument(key != null, "null key");
         try {
             put(key, loader.load(key));
         } catch (Exception e) {
@@ -172,12 +176,14 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
 
     @Override
     public void put(K key, V value) {
+        Preconditions.checkArgument(key != null, "null key");
         cache.set(keySerializer.apply(key), valueSerializer.apply(value), getExpiry());
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void invalidate(Object key) {
+        Preconditions.checkArgument(key != null, "null key");
         // Best we can do... if your key type is Foo<T> and you pass a Foo<V>, you're on your own :-/
         if (kClass.getRawType().isAssignableFrom(key.getClass())) {
             cache.clear(keySerializer.apply((K) key));
@@ -187,6 +193,7 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
     @Override
     public void invalidateAll(Iterable<?> keys) {
         for (Object key : keys) {
+            Preconditions.checkArgument(key != null, "null key");
             invalidate(key);
         }
     }
