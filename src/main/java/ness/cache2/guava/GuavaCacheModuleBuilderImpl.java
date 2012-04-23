@@ -229,6 +229,12 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
             @SuppressWarnings("unchecked")
             @Override
             protected void configure() {
+                loaderKey = (Key<? extends CacheLoader<? super K, ? extends V>>) Key.get(
+                        Types.newParameterizedType(
+                                CacheLoader.class,
+                                Types.supertypeOf(kClass.getType()),
+                                Types.subtypeOf(vClass.getType())));
+
                 bind ((Key<CacheLoader<? super K, ? extends V>>) loaderKey).toProvider(cacheLoaderProvider);
                 install (build (loaderKey));
             }
