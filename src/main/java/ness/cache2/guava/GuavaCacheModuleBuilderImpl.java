@@ -143,6 +143,11 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
 
     @Override
     public GuavaCacheModuleBuilder<K, V> withValueSerializer(Annotation bindingAnnotation) {
+        return withValueSerializer(bindingAnnotation, bindingAnnotation);
+    }
+
+    @Override
+    public GuavaCacheModuleBuilder<K, V> withValueSerializer(Annotation serializerBindingAnnotation, Annotation deserializerBindingAnnotation) {
         ParameterizedType serializerType = Types.newParameterizedType(
                 Function.class,
                 Types.supertypeOf(vClass.getType()),
@@ -154,31 +159,37 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
 
         @SuppressWarnings("unchecked")
         Key<? extends Function<? super V, byte[]>> serializerKey =
-            (Key<? extends Function<? super V, byte[]>>) Key.get(serializerType, bindingAnnotation);
+            (Key<? extends Function<? super V, byte[]>>) Key.get(serializerType, serializerBindingAnnotation);
 
         @SuppressWarnings("unchecked")
         Key<? extends Function<byte[], ? extends V>> deserializerKey =
-            (Key<? extends Function<byte[], ? extends V>>) Key.get(deserializerType, bindingAnnotation);
+            (Key<? extends Function<byte[], ? extends V>>) Key.get(deserializerType, deserializerBindingAnnotation);
 
         return withValueSerializer(serializerKey, deserializerKey);
     }
 
-    @SuppressWarnings("unchecked")
+
     @Override
     public GuavaCacheModuleBuilder<K, V> withValueSerializer(Class<? extends Annotation> bindingAnnotationClass) {
+        return withValueSerializer(bindingAnnotationClass, bindingAnnotationClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public GuavaCacheModuleBuilder<K, V> withValueSerializer(Class<? extends Annotation> serializerBindingAnnotationClass, Class<? extends Annotation> deserializerBindingAnnotationClass) {
         return withValueSerializer(
                 (Key<? extends Function<? super V, byte[]>>) Key.get(
                         Types.newParameterizedType(
                                 Function.class,
                                 Types.supertypeOf(vClass.getType()),
                                 byte[].class),
-                        bindingAnnotationClass),
+                        serializerBindingAnnotationClass),
                 (Key<? extends Function<byte[], ? extends V>>) Key.get(
                         Types.newParameterizedType(
                                 Function.class,
                                 byte[].class,
                                 Types.subtypeOf(vClass.getType())),
-                        bindingAnnotationClass));
+                        deserializerBindingAnnotationClass));
     }
 
     @Override

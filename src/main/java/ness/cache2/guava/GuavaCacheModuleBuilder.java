@@ -74,29 +74,39 @@ public interface GuavaCacheModuleBuilder<K, V> {
     GuavaCacheModuleBuilder<K, V> withKeySerializer(Class<? extends Annotation> bindingAnnotationClass);
 
     /**
-     * Specify the key serialization function.
+     * Specify the value serialization function.
      */
     GuavaCacheModuleBuilder<K, V> withValueSerializer(Key<? extends Function<? super V, byte[]>> serializerKey, Key<? extends Function<byte[], ? extends V>> deserializerKey);
 
     /**
-     * Specify the key serialization function.
+     * Specify the value serialization function.
      */
     GuavaCacheModuleBuilder<K, V> withValueSerializer(Function<? super V, byte[]> valueSerializerFunction, Function<byte[], ? extends V> valueDeserializerFunction);
 
     /**
-     * Specify the key serialization function.
+     * Specify the value serialization function.
      */
     GuavaCacheModuleBuilder<K, V> withValueSerializer();
 
     /**
-     * Specify the key serialization function.
+     * Specify the value serialization function.
      */
     GuavaCacheModuleBuilder<K, V> withValueSerializer(Annotation bindingAnnotation);
 
     /**
-     * Specify the key serialization function.
+     * Specify the value serialization function.
      */
     GuavaCacheModuleBuilder<K, V> withValueSerializer(Class<? extends Annotation> bindingAnnotationClass);
+
+    /**
+     * Specify the value serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withValueSerializer(Annotation serializerBindingAnnotation, Annotation deserializerBindingAnnotation);
+
+    /**
+     * Specify the value serialization function.
+     */
+    GuavaCacheModuleBuilder<K, V> withValueSerializer(Class<? extends Annotation> serializerBindingAnnotationClass, Class<? extends Annotation> deserializerBindingAnnotationClass);
 
     /**
      * Configure the expiration duration
