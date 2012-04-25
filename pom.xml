@@ -121,6 +121,19 @@
       <artifactId>jmemcached-core</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>netty</artifactId>
+          <groupId>org.jboss.netty</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty</artifactId>
+      <version>3.4.1.Final</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
