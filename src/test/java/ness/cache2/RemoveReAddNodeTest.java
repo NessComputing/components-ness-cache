@@ -46,7 +46,7 @@ import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap.EvictionP
 public class RemoveReAddNodeTest {
     private static final Log LOG = Log.findLog();
     private static final long RANDOM_SEED = 1234;
-    private static final int NUM_WRITES = 100;
+    private static final int NUM_WRITES = 1000;
     private static final String NS = "shard-integration-test";
 
     private MemCacheDaemon<LocalCacheElement> daemon1, daemon2, daemon3;
