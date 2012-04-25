@@ -6,6 +6,7 @@ import static com.google.common.base.Predicates.not;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
@@ -25,8 +26,10 @@ import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.TypeLiteral;
 import com.nesscomputing.logging.Log;
 
@@ -131,7 +134,7 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
     public ImmutableMap<K, V> getAll(Iterable<? extends K> keys) throws ExecutionException {
         ImmutableMap<K, V> partialResult = getAllPresent(keys);
 
-        Iterable<? extends K> remaining = Iterables.filter(keys, not(in(partialResult.keySet())));
+        Set<? extends K> remaining = ImmutableSet.copyOf(Iterables.filter(keys, not(in(partialResult.keySet()))));
 
         Map<K, V> loaded = null;
         try {
@@ -156,6 +159,21 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
                     LOG.error(e, "Exception from cache loader during getAll");
                 }
             }
+        }
+
+
+        for (Entry<K, V> e : loaded.entrySet())
+        {
+            put(e.getKey(), e.getValue());
+        }
+
+        if (!loaded.keySet().containsAll(remaining))
+        {
+            throw new IncompleteCacheLoadException(String.format(
+                    "loader %s did not return keys %s for request of %s",
+                    loader,
+                    Sets.difference(remaining, loaded.keySet()),
+                    remaining));
         }
 
         return ImmutableMap.<K, V>builder()
