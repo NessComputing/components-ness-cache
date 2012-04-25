@@ -136,6 +136,11 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
 
         Set<? extends K> remaining = ImmutableSet.copyOf(Iterables.filter(keys, not(in(partialResult.keySet()))));
 
+        if (remaining.isEmpty())
+        {
+            return partialResult;
+        }
+
         Map<K, V> loaded = null;
         try {
             if (!bulkLoadFailed.get()) {
