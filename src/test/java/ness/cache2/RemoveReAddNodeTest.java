@@ -176,15 +176,15 @@ public class RemoveReAddNodeTest {
     @Test
     public void testAddingCache() throws Exception {
         writeLots();
-        verifyWrites();
 
         long items1 = daemon1.getCache().getCurrentItems();
         long items2 = daemon2.getCache().getCurrentItems();
         long items3 = daemon3.getCache().getCurrentItems();
         LOG.info("Cache distribution: %d %d %d", items1, items2, items3);
 
-        checkCaches(items1, items2, items3);
         Assert.assertEquals(items1 + items2 + items3, cache.get(NS, allKeys.keySet()).size());
+
+        verifyWrites();
 
         int generation = clientFactory.getTopologyGeneration();
         discovery.unannounce(announce2);
