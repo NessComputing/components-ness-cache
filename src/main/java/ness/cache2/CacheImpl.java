@@ -70,7 +70,6 @@ public class CacheImpl implements NessCache, Cache {
 
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
-        LOG.trace("get(%s, %s)", namespace, keys);
         if (cacheStatistics != null) {
             cacheStatistics.getCacheStatistics(namespace).incrementFetches(keys.size());
         }
@@ -78,6 +77,7 @@ public class CacheImpl implements NessCache, Cache {
         if (cacheStatistics != null) {
             cacheStatistics.getCacheStatistics(namespace).incrementHits(result.size());
         }
+        LOG.trace("get(%s, %s) hit %d", namespace, keys, result.size());
         return result;
     }
 
