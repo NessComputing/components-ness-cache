@@ -6,7 +6,7 @@
   <parent>
     <groupId>ness.maven</groupId>
     <artifactId>base</artifactId>
-    <version>36</version>
+    <version>37-SNAPSHOT</version>
   </parent>
 
   <scm>
@@ -42,7 +42,7 @@
     <dependency>
       <groupId>ness.discovery</groupId>
       <artifactId>discovery-client</artifactId>
-      <version>5.0</version>
+      <version>5.1</version>
     </dependency>
 
     <dependency>
