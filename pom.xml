@@ -106,7 +106,7 @@
     <dependency>
       <groupId>ness.components</groupId>
       <artifactId>ness-jackson</artifactId>
-      <version>7.0</version>
+      <version>8.0</version>
       <scope>test</scope>
     </dependency>
 
