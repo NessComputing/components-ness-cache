@@ -40,7 +40,7 @@ class MemcachedClientFactory {
     private final AtomicReference<ScheduledExecutorService> clientReconfigurationService = new AtomicReference<ScheduledExecutorService>();
     private final AtomicInteger topologyGeneration = new AtomicInteger();
 
-    private final AtomicReference<ImmutableList<InetSocketAddress>> addrHolder = new AtomicReference<ImmutableList<InetSocketAddress>>(ImmutableList.<InetSocketAddress>of());
+    private final AtomicReference<ImmutableList<InetSocketAddress>> addrHolder = new AtomicReference<ImmutableList<InetSocketAddress>>();
 
     private final CacheTopologyProvider cacheTopology;
 
