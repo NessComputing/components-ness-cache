@@ -47,9 +47,9 @@ public class CacheModule extends PrivateModule {
 
         cacheConfig = config.getBean(CacheConfiguration.class, ImmutableMap.of("cacheName", cacheName));
 
-        bind (NessCache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
+        bind (NessCache.class).annotatedWith(bindingAnnotation).to(NessCacheImpl.class);
         expose (NessCache.class).annotatedWith(bindingAnnotation);
-        bind (Cache.class).annotatedWith(bindingAnnotation).to(CacheImpl.class);
+        bind (Cache.class).annotatedWith(bindingAnnotation).to(NessCacheImpl.class);
         expose (Cache.class).annotatedWith(bindingAnnotation);
 
         bind(String.class).annotatedWith(Names.named("cacheName")).toProvider(Providers.of(cacheName)).in(Scopes.SINGLETON);

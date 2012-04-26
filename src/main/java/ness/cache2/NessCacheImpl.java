@@ -16,7 +16,7 @@ import com.google.inject.Singleton;
  */
 @SuppressWarnings("deprecation")
 @Singleton
-public class CacheImpl implements NessCache, Cache {
+public class NessCacheImpl implements NessCache, Cache {
     private static final Log LOG = Log.findLog();
     @VisibleForTesting
     final InternalCacheProvider provider;
@@ -24,7 +24,7 @@ public class CacheImpl implements NessCache, Cache {
     private CacheStatisticsManager cacheStatistics = null;
 
     @Inject
-    protected CacheImpl(InternalCacheProvider provider) {
+    protected NessCacheImpl(InternalCacheProvider provider) {
         this.provider = provider;
     }
 
