@@ -83,7 +83,12 @@ public class CacheStore<D> {
 
     private String prettyPrintData() {
         if (data instanceof byte[]) {
-            return Arrays.toString((byte[]) data);
+            byte[] byteData = (byte[]) data;
+            if (byteData.length > 32)
+            {
+                return "byte[" + byteData.length + "]";
+            }
+            return Arrays.toString(byteData);
         }
         return ObjectUtils.toString(data);
     }
