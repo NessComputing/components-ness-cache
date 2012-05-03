@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.google.inject.TypeLiteral;
 import com.nesscomputing.logging.Log;
 
@@ -73,9 +74,9 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
     {
         this.cache = cache;
         this.kClass = kClass;
-        this.keySerializer = keySerializer;
-        this.valueSerializer = valueSerializer;
-        this.valueDeserializer = valueDeserializer;
+        this.keySerializer = ExceptionWrappingFunction.of(keySerializer);
+        this.valueSerializer = ExceptionWrappingFunction.of(valueSerializer);
+        this.valueDeserializer = ExceptionWrappingFunction.of(valueDeserializer);
         this.loader = Objects.firstNonNull(loader, NO_LOADER);
         this.expiry = expiry;
         this.expiryJitter = expiryJitter;
@@ -123,7 +124,15 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
         Builder<K, V> result = ImmutableMap.builder();
 
         for (Entry<String, byte[]> e : response.entrySet()) {
-            result.put(keyStrings.get(e.getKey()), valueDeserializer.apply(e.getValue()));
+            K key = keyStrings.get(e.getKey());
+            try
+            {
+                result.put(key, valueDeserializer.apply(e.getValue()));
+            } catch (Exception exc)
+            {
+                invalidate(key);
+                throw Throwables.propagate(exc);
+            }
         }
 
         return result.build();
@@ -271,5 +280,31 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
         }
 
         return result;
+    }
+
+    private static class ExceptionWrappingFunction<A, B> implements Function<A, B>
+    {
+        private final Function<A, B> func;
+
+        ExceptionWrappingFunction(Function<A, B> func)
+        {
+            this.func = func;
+        }
+
+        static <A, B> ExceptionWrappingFunction<A, B> of(Function<A, B> func)
+        {
+            return new ExceptionWrappingFunction<A, B>(func);
+        }
+
+        @Override
+        public B apply(A input)
+        {
+            try {
+                return func.apply(input);
+            } catch (Exception e)
+            {
+                throw new UncheckedExecutionException(e);
+            }
+        }
     }
 }
