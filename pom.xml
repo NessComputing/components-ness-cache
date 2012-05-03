@@ -6,7 +6,7 @@
   <parent>
     <groupId>ness.maven</groupId>
     <artifactId>base</artifactId>
-    <version>37-SNAPSHOT</version>
+    <version>37</version>
   </parent>
 
   <scm>
@@ -16,7 +16,7 @@
   <groupId>ness.components</groupId>
   <artifactId>ness-cache2</artifactId>
   <name>ness-cache2</name>
-  <version>12.1-SNAPSHOT</version>
+  <version>12.1</version>
   <packaging>jar</packaging>
   <description>Ness Caching Component</description>
 
