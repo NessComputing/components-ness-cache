@@ -10,8 +10,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import ness.discovery.client.ReadOnlyDiscoveryClient;
-import ness.discovery.client.ServiceInformation;
+import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
+import com.nesscomputing.service.discovery.client.ServiceInformation;
 
 import org.apache.commons.lang3.StringUtils;
 

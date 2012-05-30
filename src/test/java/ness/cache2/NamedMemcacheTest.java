@@ -8,10 +8,10 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
 
-import ness.discovery.client.DiscoveryClient;
-import ness.discovery.client.ReadOnlyDiscoveryClient;
-import ness.discovery.client.ServiceInformation;
-import ness.discovery.client.testing.MockedDiscoveryClient;
+import com.nesscomputing.service.discovery.client.DiscoveryClient;
+import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
+import com.nesscomputing.service.discovery.client.ServiceInformation;
+import com.nesscomputing.service.discovery.testing.client.MockedDiscoveryClient;
 
 import org.joda.time.DateTime;
 import org.junit.After;

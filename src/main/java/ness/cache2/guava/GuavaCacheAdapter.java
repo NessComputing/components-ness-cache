@@ -83,7 +83,7 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
     }
 
     @Override
-    public V getIfPresent(K key) {
+    public V getIfPresent(Object key) {
         return getAllPresent(Collections.singleton(key)).get(key);
     }
 
@@ -116,9 +116,10 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
         return value;
     }
 
-    @Override
-    public ImmutableMap<K, V> getAllPresent(Iterable<? extends K> keys) {
-        Map<String, ? extends K> keyStrings = Maps.uniqueIndex(keys, keySerializer);
+    @Override  
+    public ImmutableMap<K, V> getAllPresent(Iterable<?> keys) {	
+    	Iterable<? extends K> extendedKeys = (Iterable<? extends K>) keys;
+        Map<String, ? extends K> keyStrings = Maps.uniqueIndex(extendedKeys, keySerializer);
         Map<String, byte[]> response = cache.get(keyStrings.keySet());
 
         Builder<K, V> result = ImmutableMap.builder();
@@ -210,6 +211,14 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
     public void put(K key, V value) {
         Preconditions.checkArgument(key != null, "null key");
         cache.set(keySerializer.apply(key), valueSerializer.apply(value), getExpiry());
+    }
+    
+    @Override
+    public void putAll(Map <? extends K, ? extends V> m) {
+    	for(Entry<? extends K, ? extends V> entry : m.entrySet())
+    	{
+    		put(entry.getKey(), entry.getValue());
+    	}
     }
 
     @SuppressWarnings("unchecked")

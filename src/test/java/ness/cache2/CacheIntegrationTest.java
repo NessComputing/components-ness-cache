@@ -1,6 +1,6 @@
 package ness.cache2;
 
-import ness.discovery.client.ReadOnlyDiscoveryClient;
+import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
 
 import org.easymock.EasyMock;
 import org.junit.After;
