@@ -1,26 +1,27 @@
 package ness.cache2;
 
-import com.nesscomputing.lifecycle.Lifecycle;
-import com.nesscomputing.lifecycle.LifecycleListener;
-import com.nesscomputing.lifecycle.LifecycleStage;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.joda.time.DateTime;
-
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.Configuration;
+import net.sf.ehcache.config.ConfigurationFactory;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+
+import org.joda.time.DateTime;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleListener;
+import com.nesscomputing.lifecycle.LifecycleStage;
 
 /**
  * An in-JVM cache, currently backed by EHCache
@@ -30,10 +31,6 @@ public class JvmCacheProvider implements InternalCacheProvider {
 
     private final Cache ehCache;
 
-    static {
-        System.setProperty("net.sf.ehcache.skipUpdateCheck", "true");
-    }
-
     @Inject
     JvmCacheProvider(Lifecycle lifecycle) {
         ehCache = new Cache(new CacheConfiguration("ness.cache." + hashCode(), 100000)
@@ -41,7 +38,10 @@ public class JvmCacheProvider implements InternalCacheProvider {
                 .overflowToDisk(false)
                 .diskPersistent(false));
 
-        final CacheManager cacheManager = CacheManager.create();
+        final Configuration ehcacheConfig = ConfigurationFactory.parseConfiguration();
+        ehcacheConfig.setUpdateCheck(false);
+        final CacheManager cacheManager = CacheManager.create(ehcacheConfig);
+
         cacheManager.addCache(ehCache);
 
         lifecycle.addListener(LifecycleStage.STOP_STAGE, new LifecycleListener() {
