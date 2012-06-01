@@ -9,9 +9,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import ness.cache2.CacheModule;
-import ness.jackson.JacksonSerializerBinder;
-import ness.jackson.Json;
-import ness.jackson.NessJacksonModule;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -25,6 +22,9 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.config.ConfigModule;
+import com.nesscomputing.jackson.JacksonSerializerBinder;
+import com.nesscomputing.jackson.Json;
+import com.nesscomputing.jackson.NessJacksonModule;
 import com.nesscomputing.lifecycle.junit.LifecycleRule;
 import com.nesscomputing.lifecycle.junit.LifecycleRunner;
 import com.nesscomputing.lifecycle.junit.LifecycleStatement;
