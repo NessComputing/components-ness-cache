@@ -10,7 +10,9 @@
   </parent>
 
   <scm>
-    <connection>scm:hg:ssh://hg@hg.nessops.net/code/components/ness-cache</connection>
+    <connection>scm:git:git://github.com/NessComputing/components-ness-cache.git</connection>
+    <developerConnection>scm:git:git@github.com:NessComputing/components-ness-cache.git</developerConnection>
+    <url>http://github.com/NessComputing/components-ness-cache</url>
   </scm>
 
   <groupId>ness.components</groupId>
