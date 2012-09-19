@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -29,6 +30,8 @@ public abstract class BaseCachingTests {
         assertTrue(fetch.toString(), fetch.isEmpty());
         cache.set(ns, Collections.singleton(new CacheStore<byte []>("b", new byte[] { 42 }, new DateTime().plusMinutes(1))));
         fetch = cache.get(ns, b);
+        assertArrayEquals(fetch.toString(), new byte[] { 42 } , fetch.get("b"));
+        fetch = cache.get(ns, ImmutableList.of("b", "b"));
         assertArrayEquals(fetch.toString(), new byte[] { 42 } , fetch.get("b"));
         cache.clear(ns, b);
         fetch = cache.get(ns, b);
