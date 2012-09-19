@@ -15,7 +15,6 @@ import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 
 import org.joda.time.DateTime;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -63,7 +62,7 @@ public class JvmCacheProvider implements InternalCacheProvider {
 
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
-        ImmutableMap.Builder<String, byte[]> builder = ImmutableMap.builder();
+        Map<String, byte[]> map = Maps.newHashMap();
         for (String key : keys) {
             Element value = ehCache.get(makeKey(namespace, key));
 
@@ -73,14 +72,14 @@ public class JvmCacheProvider implements InternalCacheProvider {
                 final DateTime expiry = storedEntry.getExpiry();
                 final byte [] data = storedEntry.getData();
                 if ((expiry == null || expiry.isAfterNow()) && data != null) {
-                    builder.put(key, data);
+                    map.put(key, data);
                 } else {
                     clear(namespace, Collections.singleton(key));
                 }
             }
 
         }
-        return builder.build();
+        return Collections.unmodifiableMap(map);
     }
 
     @Override
