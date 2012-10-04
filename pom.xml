@@ -23,6 +23,10 @@
   <packaging>jar</packaging>
   <description>Ness Caching Component</description>
 
+  <properties>
+    <dep.jackson.version>1.9.9</dep.jackson.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.nesscomputing.components</groupId>
@@ -106,8 +110,14 @@
  
     <dependency>
   	  <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      <version>${dep.jackson.version}</version>
+    </dependency>
+
+    <dependency>
+  	  <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-smile</artifactId>
-      <version>1.9.7</version>
+      <version>${dep.jackson.version}</version>
       <scope>runtime</scope>
     </dependency>
     <!-- Test deps -->
