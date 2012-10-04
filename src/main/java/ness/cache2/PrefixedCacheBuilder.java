@@ -40,18 +40,18 @@ public final class PrefixedCacheBuilder<P, K, V> implements Provider<PrefixedCac
 
 
 
-    public static final <P, K, V> PrefixedCacheBuilder<P, K, V> buildPrefixCache(final String namespace,
-                                                                                 final TypeLiteral<P> prefix,
-                                                                                 final TypeLiteral<K> key,
-                                                                                 final TypeLiteral<V> value)
+    public static <P, K, V> PrefixedCacheBuilder<P, K, V> buildPrefixCache(final String namespace,
+                                                                           final TypeLiteral<P> prefix,
+                                                                           final TypeLiteral<K> key,
+                                                                           final TypeLiteral<V> value)
     {
         return new PrefixedCacheBuilder<P, K, V>(namespace, prefix, key, value);
     }
 
-    public static final <P, K, V> PrefixedCacheBuilder<P, K, V> buildPrefixCache(final String namespace,
-                                                                                 final Class<P> prefix,
-                                                                                 final Class<K> key,
-                                                                                 final Class<V> value)
+    public static <P, K, V> PrefixedCacheBuilder<P, K, V> buildPrefixCache(final String namespace,
+                                                                           final Class<P> prefix,
+                                                                           final Class<K> key,
+                                                                           final Class<V> value)
     {
         return new PrefixedCacheBuilder<P, K, V>(namespace, TypeLiteral.get(prefix), TypeLiteral.get(key), TypeLiteral.get(value));
     }
