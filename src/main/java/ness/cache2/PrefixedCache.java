@@ -135,7 +135,9 @@ public class PrefixedCache<P, K, V>
             final K key = keyStrings.get(entry.getKey());
             try {
                 final byte [] result = entry.getValue();
-                builder.put(key, result == null ? null : valueDeserializer.apply(result));
+                if (result != null) {
+                    builder.put(key, valueDeserializer.apply(result));
+                }
             }
             catch (Exception e) {
                 clear(prefix, key);
@@ -194,7 +196,7 @@ public class PrefixedCache<P, K, V>
         private final A a;
         private final B b;
 
-        public static final <A, B> SerializablePair<A, B> of(final A a, final B b)
+        public static <A, B> SerializablePair<A, B> of(final A a, final B b)
         {
             return new SerializablePair<A, B>(a, b);
         }
