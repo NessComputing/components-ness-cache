@@ -117,7 +117,7 @@ public class PrefixedCache<P, K, V>
     public V get(final P prefix, final K key)
     {
         final String keyString = keySerializer.apply(SerializablePair.of(prefix, key));
-        final byte [] result = nessCache.get(namespace, Collections.singleton(keyString)).get(key);
+        final byte [] result = nessCache.get(namespace, Collections.singleton(keyString)).get(keyString);
         return result == null ? null : valueDeserializer.apply(result);
     }
 
