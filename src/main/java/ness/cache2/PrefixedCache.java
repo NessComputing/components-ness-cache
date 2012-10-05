@@ -17,9 +17,8 @@ import com.google.common.collect.Maps;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonValue;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
@@ -118,7 +117,7 @@ public class PrefixedCache<P, K, V>
     public V get(final P prefix, final K key)
     {
         final String keyString = keySerializer.apply(SerializablePair.of(prefix, key));
-        final byte [] result = nessCache.get(namespace, Collections.singleton(keyString)).get(key);
+        final byte [] result = nessCache.get(namespace, Collections.singleton(keyString)).get(keyString);
         return result == null ? null : valueDeserializer.apply(result);
     }
 
@@ -191,8 +190,10 @@ public class PrefixedCache<P, K, V>
         }
     }
 
-    private static final class SerializablePair<A, B> extends Pair<A, B>
+    public static final class SerializablePair<A, B> extends Pair<A, B>
     {
+        private static final long serialVersionUID = 1L;
+
         private final A a;
         private final B b;
 
@@ -201,7 +202,6 @@ public class PrefixedCache<P, K, V>
             return new SerializablePair<A, B>(a, b);
         }
 
-        @JsonCreator
         SerializablePair(@JsonProperty("key") final A a,
                          @JsonProperty("value") final B b)
         {
@@ -209,24 +209,25 @@ public class PrefixedCache<P, K, V>
             this.b = b;
         }
 
-        @Override
-        @JsonIgnore
         public A getLeft()
         {
             return a;
         }
 
-        @Override
-        @JsonIgnore
         public B getRight()
         {
             return b;
         }
 
-        @Override
         public B setValue(B value)
         {
             throw new UnsupportedOperationException();
+        }
+
+        @JsonValue
+        public String getCacheKey()
+        {
+            return String.valueOf(a) + "|" + String.valueOf(b);
         }
     }
 }
