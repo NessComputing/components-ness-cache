@@ -25,10 +25,10 @@ import com.google.inject.util.Providers;
 import com.google.inject.util.Types;
 
 class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V> {
-    private String cacheName;
-    private String namespace;
-    private TypeLiteral<K> kClass;
-    private TypeLiteral<V> vClass;
+    private final String cacheName;
+    private final String namespace;
+    private final TypeLiteral<K> kClass;
+    private final TypeLiteral<V> vClass;
     private Key<? extends Function<? super K, String>> keySerializerKey;
     private Key<? extends Function<? super V, byte[]>> valueSerializerKey;
     private Key<? extends Function<byte[], ? extends V>> valueDeserializerKey;
@@ -74,7 +74,7 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
 
     @Override
     public GuavaCacheModuleBuilder<K, V> withKeySerializer() {
-        ParameterizedType functionType = Types.newParameterizedType(
+        final ParameterizedType functionType = Types.newParameterizedType(
                 Function.class,
                 Types.supertypeOf(kClass.getType()),
                 String.class);
@@ -89,12 +89,12 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
     @SuppressWarnings("unchecked")
     @Override
     public GuavaCacheModuleBuilder<K, V> withKeySerializer(Annotation bindingAnnotation) {
-        ParameterizedType functionType = Types.newParameterizedType(
+        final ParameterizedType functionType = Types.newParameterizedType(
                 Function.class,
                 Types.supertypeOf(kClass.getType()),
                 String.class);
 
-        Key<? extends Function<? super K, String>> key =
+        final Key<? extends Function<? super K, String>> key =
             (Key<? extends Function<? super K, String>>) Key.get(functionType, bindingAnnotation);
 
         return withKeySerializer(key);
@@ -120,12 +120,12 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
 
     @Override
     public GuavaCacheModuleBuilder<K, V> withValueSerializer() {
-        ParameterizedType serializerType = Types.newParameterizedType(
+        final ParameterizedType serializerType = Types.newParameterizedType(
                 Function.class,
                 Types.supertypeOf(vClass.getType()),
                 byte[].class);
 
-        ParameterizedType deserializerType = Types.newParameterizedType(
+        final ParameterizedType deserializerType = Types.newParameterizedType(
                 Function.class,
                 byte[].class,
                 Types.subtypeOf(vClass.getType()));
@@ -148,20 +148,22 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
 
     @Override
     public GuavaCacheModuleBuilder<K, V> withValueSerializer(Annotation serializerBindingAnnotation, Annotation deserializerBindingAnnotation) {
-        ParameterizedType serializerType = Types.newParameterizedType(
+        final ParameterizedType serializerType = Types.newParameterizedType(
                 Function.class,
                 Types.supertypeOf(vClass.getType()),
                 byte[].class);
-        ParameterizedType deserializerType = Types.newParameterizedType(
+        final ParameterizedType deserializerType = Types.newParameterizedType(
                 Function.class,
                 byte[].class,
                 Types.subtypeOf(vClass.getType()));
 
         @SuppressWarnings("unchecked")
+        final
         Key<? extends Function<? super V, byte[]>> serializerKey =
             (Key<? extends Function<? super V, byte[]>>) Key.get(serializerType, serializerBindingAnnotation);
 
         @SuppressWarnings("unchecked")
+        final
         Key<? extends Function<byte[], ? extends V>> deserializerKey =
             (Key<? extends Function<byte[], ? extends V>>) Key.get(deserializerType, deserializerBindingAnnotation);
 
@@ -237,7 +239,7 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
     @Override
     public Module build(final Provider<? extends CacheLoader<? super K, ? extends V>> cacheLoaderProvider) {
         return new AbstractModule() {
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({ "unchecked", "rawtypes" })
             @Override
             protected void configure() {
                 loaderKey = (Key<? extends CacheLoader<? super K, ? extends V>>) Key.get(
@@ -246,7 +248,7 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
                                 Types.supertypeOf(kClass.getType()),
                                 Types.subtypeOf(vClass.getType())));
 
-                bind ((Key<CacheLoader<? super K, ? extends V>>) loaderKey).toProvider(cacheLoaderProvider);
+                bind ((Key) loaderKey).toProvider(cacheLoaderProvider);
                 install (build (loaderKey));
             }
         };
@@ -262,10 +264,10 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
         Preconditions.checkState(valueDeserializerKey != null, "somehow you got a null value deserializer key?");
 
         return new AbstractModule() {
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({ "unchecked", "rawtypes" })
             @Override
             protected void configure() {
-                CacheProvider provider = new CacheProvider();
+                final CacheProvider provider = new CacheProvider();
 
                 bind ((Key<com.google.common.cache.Cache<K, V>>) Key.get(
                         Types.newParameterizedType(com.google.common.cache.Cache.class, kClass.getType(), vClass.getType()),
@@ -284,7 +286,7 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
                     bind ((Key<Function<? super V, byte[]>>) valueSerializerKey).toInstance(valueSerializerFunction);
                 }
                 if (valueDeserializerFunction != null) {
-                    bind ((Key<Function<byte[], ? extends V>>) valueDeserializerKey).toInstance(valueDeserializerFunction);
+                    bind ((Key) valueDeserializerKey).toInstance(valueDeserializerFunction);
                 }
             }
         };
@@ -307,7 +309,7 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
         public LoadingCache<K, V> get() {
             Preconditions.checkState(injector != null, "injector never got injected!");
 
-            NamespacedCache cache = injector.getInstance(Key.get(NessCache.class, Names.named(cacheName))).withNamespace(namespace);
+            final NamespacedCache cache = injector.getInstance(Key.get(NessCache.class, Names.named(cacheName))).withNamespace(namespace);
 
             CacheLoader<? super K, ? extends V> cacheLoader = null;
 
@@ -315,9 +317,9 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
                 cacheLoader = injector.getInstance(loaderKey);
             }
 
-            Function<? super K, String> keySerializerImpl = injector.getInstance(keySerializerKey);
-            Function<? super V, byte[]> valueSerializerImpl = injector.getInstance(valueSerializerKey);
-            Function<byte[], ? extends V> valueDeserializerImpl = injector.getInstance(valueDeserializerKey);
+            final Function<? super K, String> keySerializerImpl = injector.getInstance(keySerializerKey);
+            final Function<? super V, byte[]> valueSerializerImpl = injector.getInstance(valueSerializerKey);
+            final Function<byte[], ? extends V> valueDeserializerImpl = injector.getInstance(valueDeserializerKey);
 
             return new GuavaCacheAdapter<K, V>(cache, kClass, keySerializerImpl, valueSerializerImpl, valueDeserializerImpl, cacheLoader, expiry, expiryJitter);
         }
