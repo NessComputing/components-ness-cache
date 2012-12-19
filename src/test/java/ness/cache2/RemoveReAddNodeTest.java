@@ -104,8 +104,9 @@ public class RemoveReAddNodeTest {
                                                     "ness.cache.synchronous", "true",
                                                     "ness.cache.jmx", "false");
 
+        CacheModule cacheModule = new CacheModule("test");
         final Injector injector = Guice.createInjector(
-                                                       new CacheModule(config, "test", true),
+                                                       cacheModule,
                                                        new LifecycleModule(),
                                                        new AbstractModule() {
                                                            @Override
@@ -115,6 +116,8 @@ public class RemoveReAddNodeTest {
                                                            }
                                                        });
         injector.injectMembers(this);
+
+        clientFactory = cacheModule.getChildInjector().getInstance(MemcachedClientFactory.class);
 
         Assert.assertNotNull(lifecycle);
         lifecycle.executeTo(LifecycleStage.START_STAGE);
@@ -164,14 +167,13 @@ public class RemoveReAddNodeTest {
     private final DiscoveryClient discovery = MockedDiscoveryClient.builder().build();
 
     @Inject
-    private Lifecycle lifecycle = null;
+    private final Lifecycle lifecycle = null;
 
-    @Inject
-    private MemcachedClientFactory clientFactory = null;
+    private MemcachedClientFactory clientFactory;
 
     @Inject
     @Named("test")
-    private NessCache cache = null;
+    private final NessCache cache = null;
 
     @Test
     public void testAddingCache() throws Exception {

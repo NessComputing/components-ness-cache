@@ -8,8 +8,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
 import com.nesscomputing.service.discovery.client.ServiceInformation;
 
@@ -44,10 +42,10 @@ class CacheTopologyProvider {
     private static final Log LOG = Log.findLog();
     private final ImmutableList<InetSocketAddress> addrs;
     private final ReadOnlyDiscoveryClient discoveryClient;
-    private String cacheName;
+    private final String cacheName;
 
     @Inject
-    CacheTopologyProvider(final CacheConfiguration config, final ReadOnlyDiscoveryClient discoveryClient, @Nullable @Named("cacheName") String cacheName) {
+    CacheTopologyProvider(final CacheConfiguration config, final ReadOnlyDiscoveryClient discoveryClient, @Named("cacheName") String cacheName) {
         this.discoveryClient = discoveryClient;
         this.cacheName = cacheName;
 
