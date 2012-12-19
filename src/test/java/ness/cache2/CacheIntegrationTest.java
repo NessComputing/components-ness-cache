@@ -29,7 +29,7 @@ public class CacheIntegrationTest extends BaseCacheIntegrationSetup {
                                                     "ness.cache.uri", "memcache://localhost:11212",
                                                     "ness.ncache.jmx", "false");
 
-        Guice.createInjector(new CacheModule(config, "test"),
+        Guice.createInjector(new CacheModule("test"),
                              new LifecycleModule(),
                              new AbstractModule() {
             @Override

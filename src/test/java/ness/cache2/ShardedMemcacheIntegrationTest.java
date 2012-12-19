@@ -107,7 +107,8 @@ public class ShardedMemcacheIntegrationTest {
                                                     "ness.cache.synchronous", "true",
                                                     "ness.cache.jmx", "false");
 
-        Guice.createInjector(new CacheModule(config, "test", true),
+        CacheModule cacheModule = new CacheModule("test");
+        Guice.createInjector(cacheModule,
                              new LifecycleModule(),
                              new AbstractModule() {
             @Override
@@ -118,6 +119,10 @@ public class ShardedMemcacheIntegrationTest {
                 bind (Config.class).toInstance(config);
             }
         });
+
+        cacheTopology = cacheModule.getChildInjector().getInstance(CacheTopologyProvider.class);
+        clientFactory = cacheModule.getChildInjector().getInstance(MemcachedClientFactory.class);
+
         lifecycle.executeTo(LifecycleStage.START_STAGE);
     }
 
@@ -165,10 +170,10 @@ public class ShardedMemcacheIntegrationTest {
     private final DiscoveryClient discovery = MockedDiscoveryClient.builder().build();
     @Inject
     Lifecycle lifecycle;
-    @Inject
+
     CacheTopologyProvider cacheTopology;
-    @Inject
     MemcachedClientFactory clientFactory;
+
     @Inject
     @Named("test")
     NessCache cache;
