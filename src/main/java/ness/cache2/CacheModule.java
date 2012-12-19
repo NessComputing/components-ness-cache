@@ -13,6 +13,7 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.config.ConfigProvider;
@@ -51,13 +52,12 @@ public class CacheModule extends AbstractModule {
 
         bind (CacheConfiguration.class).annotatedWith(bindingAnnotation).toProvider(ConfigProvider.of(CacheConfiguration.class, ImmutableMap.of("cacheName", cacheName)));
 
-        bind (Cache.class).annotatedWith(bindingAnnotation).toProvider(new NessCacheProvider());
+        bind (Cache.class).annotatedWith(bindingAnnotation).toProvider(new NessCacheProvider()).in(Scopes.SINGLETON);
         bind (NessCache.class).annotatedWith(bindingAnnotation).to(Key.get(Cache.class, bindingAnnotation));
     }
 
     class NessCacheProvider implements Provider<Cache>
     {
-
         private Injector injector;
 
         @Inject
@@ -70,6 +70,7 @@ public class CacheModule extends AbstractModule {
         public Cache get()
         {
             Preconditions.checkNotNull(injector, "no injector injected?");
+            Preconditions.checkState(childInjector == null, "already created NessCache");
             CacheConfiguration cacheConfig = injector.getInstance(Key.get(CacheConfiguration.class, bindingAnnotation));
             childInjector = injector.createChildInjector(
                     getRealCacheModule(cacheConfig),
