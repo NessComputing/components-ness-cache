@@ -167,4 +167,37 @@ public class CacheModule extends AbstractModule {
             bind (CacheTopologyProvider.class);
         }
     }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((bindingAnnotation == null) ? 0 : bindingAnnotation.hashCode());
+        result = prime * result + ((cacheName == null) ? 0 : cacheName.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        CacheModule other = (CacheModule) obj;
+        if (bindingAnnotation == null) {
+            if (other.bindingAnnotation != null)
+                return false;
+        } else if (!bindingAnnotation.equals(other.bindingAnnotation))
+            return false;
+        if (cacheName == null) {
+            if (other.cacheName != null)
+                return false;
+        } else if (!cacheName.equals(other.cacheName))
+            return false;
+        return true;
+    }
 }
