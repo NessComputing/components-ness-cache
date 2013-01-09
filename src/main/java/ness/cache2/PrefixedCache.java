@@ -8,6 +8,8 @@ import java.util.Random;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -17,8 +19,6 @@ import com.google.common.collect.Maps;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonValue;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
@@ -209,16 +209,19 @@ public class PrefixedCache<P, K, V>
             this.b = b;
         }
 
+        @Override
         public A getLeft()
         {
             return a;
         }
 
+        @Override
         public B getRight()
         {
             return b;
         }
 
+        @Override
         public B setValue(B value)
         {
             throw new UnsupportedOperationException();

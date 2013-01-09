@@ -23,7 +23,8 @@ import com.google.inject.name.Named;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.config.ConfigModule;
 import com.nesscomputing.jackson.JacksonSerializerBinder;
-import com.nesscomputing.jackson.Json;
+import com.nesscomputing.jackson.JsonDeserializerFunction;
+import com.nesscomputing.jackson.JsonSerializerFunction;
 import com.nesscomputing.jackson.NessJacksonModule;
 import com.nesscomputing.lifecycle.junit.LifecycleRule;
 import com.nesscomputing.lifecycle.junit.LifecycleRunner;
@@ -49,16 +50,17 @@ public class JacksonSerializationGuavaCacheTest {
         Guice.createInjector(
                 lifecycleRule.getLifecycleModule(),
                 new ConfigModule(config),
-                new CacheModule(config, "test"),
+                new CacheModule("test"),
                 new NessJacksonModule(),
                 NessGuavaCaches.newModuleBuilder("test", "test-ns", BigDecimal.class, DateTime.class)
-                    .withSerializers(Json.class)
+                    .withKeySerializer(JsonSerializerFunction.class)
+                    .withValueSerializer(JsonSerializerFunction.class, JsonDeserializerFunction.class)
                     .build(),
                 new AbstractModule() {
                     @Override
                     protected void configure() {
-                        JacksonSerializerBinder.bindSerializer(binder(), BigDecimal.class).build();
-                        JacksonSerializerBinder.bindSerializer(binder(), DateTime.class).build();
+                        JacksonSerializerBinder.builderOf(binder(), BigDecimal.class).bind();
+                        JacksonSerializerBinder.builderOf(binder(), DateTime.class).bind();
                     }
                 }
             ).injectMembers(this);
