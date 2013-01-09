@@ -13,13 +13,13 @@
     <connection>scm:git:git://github.com/NessComputing/components-ness-cache.git</connection>
     <developerConnection>scm:git:git@github.com:NessComputing/components-ness-cache.git</developerConnection>
     <url>http://github.com/NessComputing/components-ness-cache</url>
-    <tag>HEAD</tag>
+    <tag>ness-cache2-16.0</tag>
   </scm>
 
   <groupId>ness.components</groupId>
   <artifactId>ness-cache2</artifactId>
   <name>ness-cache2</name>
-  <version>16.0-SNAPSHOT</version>
+  <version>16.0</version>
   <packaging>jar</packaging>
   <description>Ness Caching Component</description>
 
