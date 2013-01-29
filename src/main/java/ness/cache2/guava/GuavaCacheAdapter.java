@@ -119,7 +119,7 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
     @Override
     public ImmutableMap<K, V> getAllPresent(Iterable<?> keys) {
     	@SuppressWarnings("unchecked")
-        Iterable<? extends K> extendedKeys = (Iterable<? extends K>) keys;
+        Iterable<? extends K> extendedKeys = ImmutableSet.copyOf((Iterable<? extends K>) keys);
         Map<String, ? extends K> keyStrings = Maps.uniqueIndex(extendedKeys, keySerializer);
         Map<String, byte[]> response = cache.get(keyStrings.keySet());
 

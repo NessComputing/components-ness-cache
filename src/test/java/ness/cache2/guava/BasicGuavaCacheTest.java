@@ -1,18 +1,22 @@
 package ness.cache2.guava;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import ness.cache2.CacheModule;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Functions;
 import com.google.common.cache.Cache;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -36,17 +40,21 @@ public class BasicGuavaCacheTest {
 
     Config config = Config.getFixedConfig("ness.cache.test", "JVM");
 
-    @Test
-    public void testBasicUsage() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         Guice.createInjector(
                 lifecycleRule.getLifecycleModule(),
                 new ConfigModule(config),
-                new CacheModule(config, "test"),
+                new CacheModule("test"),
                 NessGuavaCaches.newModuleBuilder("test", "test-ns", String.class, byte[].class)
                     .withKeySerializer(Functions.toStringFunction())
                     .withValueSerializer(Functions.<byte[]>identity(), Functions.<byte[]>identity())
                     .build()
             ).injectMembers(this);
+    }
+
+    @Test
+    public void testBasicUsage() throws Exception {
 
         assertNull(myCache.getIfPresent("foo"));
 
@@ -63,5 +71,16 @@ public class BasicGuavaCacheTest {
                 throw new UnsupportedOperationException();
             }
         }));
+    }
+
+    @Test
+    public void testDoubleGet() throws Exception {
+        assertArrayEquals("bar".getBytes(Charsets.UTF_8), myCache.get("foo", new Callable<byte[]>() {
+            @Override
+            public byte[] call() throws Exception {
+                return "bar".getBytes(Charsets.UTF_8);
+            }
+        }));
+        assertEquals(Collections.singleton("foo"), myCache.getAllPresent(ImmutableList.of("foo", "foo")).keySet());
     }
 }
