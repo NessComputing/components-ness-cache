@@ -5,23 +5,24 @@ import static org.junit.Assert.assertNull;
 
 import java.util.concurrent.Callable;
 
-import ness.cache2.CacheModule;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.cache.Cache;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import com.nesscomputing.config.Config;
 import com.nesscomputing.config.ConfigModule;
 import com.nesscomputing.lifecycle.junit.LifecycleRule;
 import com.nesscomputing.lifecycle.junit.LifecycleRunner;
 import com.nesscomputing.lifecycle.junit.LifecycleStatement;
 import com.nesscomputing.testing.lessio.AllowDNSResolution;
+
+import ness.cache2.CacheModule;
 
 @AllowDNSResolution
 @RunWith(LifecycleRunner.class)
@@ -56,7 +57,7 @@ public class CustomSerializationGuavaCacheTest {
         Guice.createInjector(
                 lifecycleRule.getLifecycleModule(),
                 new ConfigModule(config),
-                new CacheModule(config, "test"),
+                new CacheModule("test"),
                 NessGuavaCaches.newModuleBuilder("test", "test-ns", String.class, Integer.class)
                     .withKeySerializer(Functions.toStringFunction())
                     .withValueSerializer(intSerializer, intDeserializer)
