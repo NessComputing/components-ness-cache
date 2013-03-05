@@ -2,13 +2,14 @@ package ness.cache2;
 
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
+
+import org.junit.Test;
+
 import com.nesscomputing.config.Config;
 
 public class MultipleModuleTest {
@@ -25,8 +26,8 @@ public class MultipleModuleTest {
 				binder().requireExplicitBindings();
 				bind (Config.class).toInstance(config);
 			}},
-			new CacheModule(config, "test"),
-			new CacheModule(config, "noeviction"));
+			new CacheModule("test"),
+			new CacheModule("noeviction"));
 
 		NessCacheImpl cache = (NessCacheImpl) injector.getInstance(Key.get(NessCache.class, Names.named("test")));
 		NessCacheImpl noEvictionCache = (NessCacheImpl) injector.getInstance(Key.get(NessCache.class, Names.named("noeviction")));

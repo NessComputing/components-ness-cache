@@ -129,6 +129,15 @@ public abstract class CacheConfiguration {
     public String getMemcachedSeparator() {
         return ":";
     }
+    
+    /**
+     * Maximum memcached value size.  0 means no limit.
+     */
+    @Config({"ness.cache.${cacheName}.max-value-size", "ness.cache.max-value-size"})
+    @Default("1048576")
+    public int getMemcachedMaxValueSize() {
+    	return 1048576;
+    }
 
     @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})
     @Default("-1") // -1 == 'use default'

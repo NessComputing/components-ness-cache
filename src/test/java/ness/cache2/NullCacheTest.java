@@ -5,15 +5,16 @@ import static org.junit.Assert.assertTrue;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.lifecycle.LifecycleStage;
@@ -33,7 +34,7 @@ public class NullCacheTest {
         final Config config = Config.getFixedConfig("ness.cache", "NONE",
                                                     "ness.cache.jmx", "false");
 
-        Guice.createInjector(new CacheModule(config, "test"),
+        Guice.createInjector(new CacheModule("test"),
                              new LifecycleModule(),
                              new AbstractModule() {
             @Override

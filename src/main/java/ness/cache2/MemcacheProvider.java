@@ -2,6 +2,7 @@ package ness.cache2;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CancellationException;
@@ -11,20 +12,23 @@ import java.util.concurrent.Future;
 
 import javax.annotation.Nullable;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.primitives.Ints;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.OperationTimeoutException;
 
 import org.joda.time.DateTime;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.google.common.primitives.Ints;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.nesscomputing.logging.Log;
 
 
@@ -115,25 +119,42 @@ final class MemcacheProvider implements InternalCacheProvider
     }
 
     @Override
-    public void set(final String namespace, final Collection<CacheStore<byte []>> stores)
+    public void set(final String namespace, final Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics)
     {
-        processOps(namespace, false, stores, SET_CALLBACK);
+        Collection<CacheStore<byte[]>> validStores = Collections2.filter(stores, validateWritePredicate);
+        if (cacheStatistics != null) {
+            cacheStatistics.incrementOversizedStores(stores.size() - validStores.size());
+        }
+        processOps(namespace, false, validStores, SET_CALLBACK);
     }
 
     @Override
-    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
+    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics)
     {
-        return processOps(namespace, true, stores, ADD_CALLBACK);
+        ImmutableMap.Builder<String, Boolean> builder = ImmutableMap.builder();
+        List<CacheStore<byte[]>> validStores = Lists.newArrayListWithExpectedSize(stores.size());
+        for (CacheStore<byte[]> store : stores) {
+            if (validateWrite(store)) {
+                validStores.add(store);
+            } else {
+                builder.put(Maps.immutableEntry(store.getKey(), false));
+            }
+        }
+        if (cacheStatistics != null) {
+            cacheStatistics.incrementOversizedStores(stores.size() - validStores.size());
+        }
+        builder.putAll(processOps(namespace, true, validStores, ADD_CALLBACK));
+        return builder.build();
     }
 
     @Override
-    public void clear(final String namespace, final Collection<String> keys)
+    public void clear(final String namespace, final Collection<String> keys, @Nullable CacheStatistics cacheStatistics)
     {
         processOps(namespace, false, CacheStores.forKeys(keys, null), CLEAR_CALLBACK);
     }
 
     @Override
-    public Map<String, byte[]> get(String namespace, Collection<String> keys) {
+    public Map<String, byte[]> get(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
 
         final MemcachedClient client = clientFactory.get();
         if (client == null) {
@@ -279,6 +300,23 @@ final class MemcacheProvider implements InternalCacheProvider
             }
         }
         return namespaceInfo;
+    }
+
+    private final Predicate<CacheStore<byte[]>> validateWritePredicate = new Predicate<CacheStore<byte[]>>() {
+        @Override
+        public boolean apply(@Nullable CacheStore<byte[]> input) {
+            return validateWrite(input);
+        }
+    };
+
+    private boolean validateWrite(CacheStore<byte[]> input) {
+        int maxValueSize = config.getMemcachedMaxValueSize();
+        byte[] data = input.getData();
+        if (maxValueSize > 0 && data != null && data.length > maxValueSize) {
+            LOG.trace("Rejecting write of %s because length %s exceeds maximum %s", input.getKey(), data.length, maxValueSize);
+            return false;
+        }
+        return true;
     }
 
     public interface Callback<F, D>
