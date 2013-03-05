@@ -1,13 +1,13 @@
 package ness.cache2;
 
-import com.nesscomputing.logging.Log;
-
 import java.util.Collection;
 import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import com.nesscomputing.logging.Log;
 
 /**
  * Provides a provider-neutral caching layer which has asynchronous writes and synchronous
@@ -51,31 +51,37 @@ public class NessCacheImpl implements NessCache, Cache {
     }
 
     @Override
-    public void set(String namespace, Collection<CacheStore<byte []>>  stores) {
+    public void set(String namespace, Collection<CacheStore<byte []>> stores) {
+        CacheStatistics stats = null;
         LOG.trace("set(%s, %s)", namespace, stores);
         if (cacheStatistics != null) {
-            cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
+            stats = cacheStatistics.getCacheStatistics(namespace);
+            stats.incrementStores(stores.size());
         }
-        provider.set(namespace, stores);
+        provider.set(namespace, stores, stats);
     }
 
     @Override
-    public Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>>  stores) {
+    public Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>> stores) {
+        CacheStatistics stats = null;
         LOG.trace("add(%s, %s)", namespace, stores);
         if (cacheStatistics != null) {
-            cacheStatistics.getCacheStatistics(namespace).incrementStores(stores.size());
+            stats = cacheStatistics.getCacheStatistics(namespace);
+            stats.incrementStores(stores.size());
         }
-        return provider.add(namespace, stores);
+        return provider.add(namespace, stores, stats);
     }
 
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
+        CacheStatistics stats = null;
         if (cacheStatistics != null) {
-            cacheStatistics.getCacheStatistics(namespace).incrementFetches(keys.size());
+            stats = cacheStatistics.getCacheStatistics(namespace);
+            stats.incrementFetches(keys.size());
         }
-        Map<String, byte[]> result = provider.get(namespace, keys);
-        if (cacheStatistics != null) {
-            cacheStatistics.getCacheStatistics(namespace).incrementHits(result.size());
+        Map<String, byte[]> result = provider.get(namespace, keys, stats);
+        if (stats != null) {
+            stats.incrementHits(result.size());
         }
         LOG.trace("get(%s, %s) hit %d", namespace, keys, result.size());
         return result;
@@ -83,10 +89,12 @@ public class NessCacheImpl implements NessCache, Cache {
 
     @Override
     public void clear(String namespace, Collection<String> keys) {
+        CacheStatistics stats = null;
         LOG.trace("clear(%s, %s)", namespace, keys);
         if (cacheStatistics != null) {
-            cacheStatistics.getCacheStatistics(namespace).incrementClears(keys.size());
+            stats = cacheStatistics.getCacheStatistics(namespace);
+            stats.incrementClears(keys.size());
         }
-        provider.clear(namespace,keys);
+        provider.clear(namespace, keys, stats);
     }
 }

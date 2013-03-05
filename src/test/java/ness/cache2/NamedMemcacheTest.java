@@ -8,29 +8,11 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.Set;
 
-import com.nesscomputing.service.discovery.client.DiscoveryClient;
-import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
-import com.nesscomputing.service.discovery.client.ServiceInformation;
-import com.nesscomputing.service.discovery.testing.client.MockedDiscoveryClient;
-
-import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.google.common.collect.Sets;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import com.nesscomputing.config.Config;
-import com.nesscomputing.lifecycle.Lifecycle;
-import com.nesscomputing.lifecycle.LifecycleStage;
-import com.nesscomputing.lifecycle.guice.LifecycleModule;
-import com.nesscomputing.logging.Log;
-import com.nesscomputing.testing.lessio.AllowDNSResolution;
-import com.nesscomputing.testing.lessio.AllowNetworkAccess;
-import com.nesscomputing.testing.lessio.AllowNetworkListen;
 import com.thimbleware.jmemcached.CacheImpl;
 import com.thimbleware.jmemcached.Key;
 import com.thimbleware.jmemcached.LocalCacheElement;
@@ -38,6 +20,24 @@ import com.thimbleware.jmemcached.MemCacheDaemon;
 import com.thimbleware.jmemcached.storage.CacheStorage;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap.EvictionPolicy;
+
+import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.nesscomputing.config.Config;
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleStage;
+import com.nesscomputing.lifecycle.guice.LifecycleModule;
+import com.nesscomputing.logging.Log;
+import com.nesscomputing.service.discovery.client.DiscoveryClient;
+import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
+import com.nesscomputing.service.discovery.client.ServiceInformation;
+import com.nesscomputing.service.discovery.testing.client.MockedDiscoveryClient;
+import com.nesscomputing.testing.lessio.AllowDNSResolution;
+import com.nesscomputing.testing.lessio.AllowNetworkAccess;
+import com.nesscomputing.testing.lessio.AllowNetworkListen;
 
 /**
  * @author christopher
@@ -110,13 +110,15 @@ public class NamedMemcacheTest {
                                                     "ness.cache.jmx", "false");
 
         Guice.createInjector(
-                             new CacheModule(config, "1"),
-                             new CacheModule(config, "2"),
-                             new CacheModule(config, "3"),
+                             new CacheModule("1"),
+                             new CacheModule("2"),
+                             new CacheModule("3"),
                              new LifecycleModule(),
                              new AbstractModule() {
             @Override
             protected void configure() {
+            	binder().requireExplicitBindings();
+            	
                 bind (ReadOnlyDiscoveryClient.class).toInstance(discovery);
                 requestInjection (NamedMemcacheTest.this);
 

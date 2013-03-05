@@ -5,6 +5,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.Nullable;
+
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -15,9 +21,6 @@ import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 
 import org.joda.time.DateTime;
 
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.lifecycle.LifecycleListener;
 import com.nesscomputing.lifecycle.LifecycleStage;
@@ -52,7 +55,7 @@ public class JvmCacheProvider implements InternalCacheProvider {
     }
 
     @Override
-    public void set(String namespace, Collection<CacheStore<byte []>> stores) {
+    public void set(String namespace, Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics) {
         for (CacheStore<byte []> e : stores) {
             ehCache.put(new Element(
                     makeKey(namespace, e.getKey()),
@@ -61,7 +64,7 @@ public class JvmCacheProvider implements InternalCacheProvider {
     }
 
     @Override
-    public Map<String, byte[]> get(String namespace, Collection<String> keys) {
+    public Map<String, byte[]> get(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
         Map<String, byte[]> map = Maps.newHashMap();
         for (String key : keys) {
             Element value = ehCache.get(makeKey(namespace, key));
@@ -74,7 +77,7 @@ public class JvmCacheProvider implements InternalCacheProvider {
                 if ((expiry == null || expiry.isAfterNow()) && data != null) {
                     map.put(key, data);
                 } else {
-                    clear(namespace, Collections.singleton(key));
+                    clear(namespace, Collections.singleton(key), cacheStatistics);
                 }
             }
 
@@ -83,14 +86,14 @@ public class JvmCacheProvider implements InternalCacheProvider {
     }
 
     @Override
-    public void clear(String namespace, Collection<String> keys) {
+    public void clear(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
         for (String key : keys) {
             ehCache.remove(makeKey(namespace, key));
         }
     }
 
     @Override
-    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
+    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics)
     {
         final Map<String, Boolean> resultMap = Maps.newHashMap();
         for (CacheStore<byte []> e : stores) {

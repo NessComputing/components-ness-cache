@@ -1,11 +1,12 @@
 package ness.cache2;
 
-import org.easymock.EasyMock;
-import org.junit.Before;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
+
+import org.easymock.EasyMock;
+import org.junit.Before;
+
 import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.testing.lessio.AllowDNSResolution;
@@ -21,7 +22,7 @@ public class JvmCacheTest extends BaseCachingTests {
         final Config config = Config.getFixedConfig("ness.cache", "JVM",
                                                     "ness.cache.jmx", "false");
 
-        Guice.createInjector(new CacheModule(config, "test"),
+        Guice.createInjector(new CacheModule("test"),
                              new AbstractModule() {
             @Override
             protected void configure() {
