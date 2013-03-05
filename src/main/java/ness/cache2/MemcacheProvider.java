@@ -119,13 +119,17 @@ final class MemcacheProvider implements InternalCacheProvider
     }
 
     @Override
-    public void set(final String namespace, final Collection<CacheStore<byte []>> stores)
+    public void set(final String namespace, final Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics)
     {
-        processOps(namespace, false, Collections2.filter(stores, validateWritePredicate), SET_CALLBACK);
+        Collection<CacheStore<byte[]>> validStores = Collections2.filter(stores, validateWritePredicate);
+        if (cacheStatistics != null) {
+            cacheStatistics.incrementOversizedStores(stores.size() - validStores.size());
+        }
+        processOps(namespace, false, validStores, SET_CALLBACK);
     }
 
     @Override
-    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores)
+    public Map<String, Boolean> add(final String namespace, final Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics)
     {
         ImmutableMap.Builder<String, Boolean> builder = ImmutableMap.builder();
         List<CacheStore<byte[]>> validStores = Lists.newArrayListWithExpectedSize(stores.size());
@@ -136,18 +140,21 @@ final class MemcacheProvider implements InternalCacheProvider
                 builder.put(Maps.immutableEntry(store.getKey(), false));
             }
         }
+        if (cacheStatistics != null) {
+            cacheStatistics.incrementOversizedStores(stores.size() - validStores.size());
+        }
         builder.putAll(processOps(namespace, true, validStores, ADD_CALLBACK));
         return builder.build();
     }
 
     @Override
-    public void clear(final String namespace, final Collection<String> keys)
+    public void clear(final String namespace, final Collection<String> keys, @Nullable CacheStatistics cacheStatistics)
     {
         processOps(namespace, false, CacheStores.forKeys(keys, null), CLEAR_CALLBACK);
     }
 
     @Override
-    public Map<String, byte[]> get(String namespace, Collection<String> keys) {
+    public Map<String, byte[]> get(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
 
         final MemcachedClient client = clientFactory.get();
         if (client == null) {

@@ -1,14 +1,16 @@
 package ness.cache2;
 
-import com.nesscomputing.logging.Log;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.Maps;
 import com.google.inject.Singleton;
+
+import com.nesscomputing.logging.Log;
 
 /** An in JVM cache that does not evict its keys due to memory pressure.
  *
@@ -23,7 +25,7 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 	private final ConcurrentMap<Map.Entry<String, String>, byte[]> map = Maps.newConcurrentMap();
 
 	@Override
-	public void set(String namespace, Collection<CacheStore<byte []>> stores) {
+	public void set(String namespace, Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics) {
 		for (CacheStore<byte []> entry: stores) {
 			LOG.trace("%s setting %s:%s", this, namespace, entry.getKey());
             Entry<String, String> key = Maps.immutableEntry(namespace, entry.getKey());
@@ -37,7 +39,7 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 	}
 
 	@Override
-	public Map<String, byte[]> get(String namespace, Collection<String> keys) {
+	public Map<String, byte[]> get(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
 		Map<String, byte[]> ret = Maps.newHashMap();
 		for (String key: keys) {
 			byte[] data = map.get(Maps.immutableEntry(namespace, key));
@@ -50,7 +52,7 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 	}
 
 	@Override
-	public void clear(String namespace, Collection<String> keys) {
+	public void clear(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
 		for (String key: keys) {
 			LOG.trace("%s clearing %s:%s", this, namespace, key);
 			map.remove(Maps.immutableEntry(namespace, key));
@@ -58,7 +60,7 @@ public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
 	}
 
     @Override
-    public Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>> stores)
+    public Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics)
     {
         final Map<String, Boolean> result = Maps.newHashMap();
 

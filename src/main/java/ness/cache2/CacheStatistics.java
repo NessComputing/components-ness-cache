@@ -12,7 +12,7 @@ import org.weakref.jmx.Managed;
 @ThreadSafe
 public class CacheStatistics {
 
-    private final AtomicLong stores, fetches, hits, clears;
+    private final AtomicLong stores, fetches, hits, clears, oversizedStores;
     private final String namespace;
 
     public CacheStatistics(String namespace) {
@@ -21,6 +21,7 @@ public class CacheStatistics {
         fetches = new AtomicLong();
         hits = new AtomicLong();
         clears = new AtomicLong();
+        oversizedStores = new AtomicLong();
     }
 
     @Managed
@@ -49,6 +50,11 @@ public class CacheStatistics {
     @Managed
     public long getHits() {
         return hits.get();
+    }
+
+    @Managed
+    public long getOversizedStores() {
+        return oversizedStores.get();
     }
 
     public void setHits(long hits) {
@@ -80,6 +86,11 @@ public class CacheStatistics {
         this.clears.addAndGet(clears);
     }
 
+    public void incrementOversizedStores(int oversizedStores)
+    {
+        this.oversizedStores.addAndGet(oversizedStores);
+    }
+
     @Managed
     public double getHitPercentage() {
         return 100.0 * getHits() / getFetches();
@@ -91,5 +102,6 @@ public class CacheStatistics {
         fetches.set(0);
         hits.set(0);
         clears.set(0);
+        oversizedStores.set(0);
     }
 }

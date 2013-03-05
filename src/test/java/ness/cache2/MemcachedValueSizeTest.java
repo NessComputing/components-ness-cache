@@ -1,5 +1,6 @@
 package ness.cache2;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.net.InetSocketAddress;
@@ -67,9 +68,12 @@ public class MemcachedValueSizeTest
     @Test
     public void testMaxSize() throws Exception
     {
+        CacheStatistics stats = new CacheStatistics("test");
+        assertEquals(0, stats.getOversizedStores());
         int size = new CacheConfiguration() { }.getMemcachedMaxValueSize() + 1;
-        provider.set("a", Collections.singleton(new CacheStore<byte[]>("a", new byte[size], DateTime.now().plusMinutes(1))));
-        assertTrue(provider.get("a", Collections.singleton("a")).isEmpty());
+        provider.set("a", Collections.singleton(new CacheStore<byte[]>("a", new byte[size], DateTime.now().plusMinutes(1))), stats);
+        assertTrue(provider.get("a", Collections.singleton("a"), null).isEmpty());
+        assertEquals(1, stats.getOversizedStores());
     }
 
     @After
