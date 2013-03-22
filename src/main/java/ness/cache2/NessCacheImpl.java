@@ -9,6 +9,8 @@ import com.google.inject.Singleton;
 
 import com.nesscomputing.logging.Log;
 
+import ness.cache2.CacheStatistics.CacheOperation;
+
 /**
  * Provides a provider-neutral caching layer which has asynchronous writes and synchronous
  * reads.  The API does not promise any sorts of consistency, although the provider may
@@ -52,28 +54,34 @@ public class NessCacheImpl implements NessCache, Cache {
 
     @Override
     public void set(String namespace, Collection<CacheStore<byte []>> stores) {
+        long startTime = System.currentTimeMillis();
         CacheStatistics stats = null;
         LOG.trace("set(%s, %s)", namespace, stores);
+        provider.set(namespace, stores, stats);
         if (cacheStatistics != null) {
             stats = cacheStatistics.getCacheStatistics(namespace);
             stats.incrementStores(stores.size());
+            stats.recordElapsedTime(startTime, stores.size(), CacheOperation.STORE);
         }
-        provider.set(namespace, stores, stats);
     }
 
     @Override
     public Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>> stores) {
+        long startTime = System.currentTimeMillis();
         CacheStatistics stats = null;
         LOG.trace("add(%s, %s)", namespace, stores);
+        Map<String, Boolean> result = provider.add(namespace, stores, stats);
         if (cacheStatistics != null) {
             stats = cacheStatistics.getCacheStatistics(namespace);
             stats.incrementStores(stores.size());
+            stats.recordElapsedTime(startTime, stores.size(), CacheOperation.STORE);
         }
-        return provider.add(namespace, stores, stats);
+        return result;
     }
 
     @Override
     public Map<String, byte[]> get(String namespace, Collection<String> keys) {
+        long startTime = System.currentTimeMillis();
         CacheStatistics stats = null;
         if (cacheStatistics != null) {
             stats = cacheStatistics.getCacheStatistics(namespace);
@@ -82,6 +90,7 @@ public class NessCacheImpl implements NessCache, Cache {
         Map<String, byte[]> result = provider.get(namespace, keys, stats);
         if (stats != null) {
             stats.incrementHits(result.size());
+            stats.recordElapsedTime(startTime, keys.size(), CacheOperation.FETCH);
         }
         LOG.trace("get(%s, %s) hit %d", namespace, keys, result.size());
         return result;
@@ -89,12 +98,14 @@ public class NessCacheImpl implements NessCache, Cache {
 
     @Override
     public void clear(String namespace, Collection<String> keys) {
+        long startTime = System.currentTimeMillis();
         CacheStatistics stats = null;
         LOG.trace("clear(%s, %s)", namespace, keys);
+        provider.clear(namespace, keys, stats);
         if (cacheStatistics != null) {
             stats = cacheStatistics.getCacheStatistics(namespace);
             stats.incrementClears(keys.size());
+            stats.recordElapsedTime(startTime, keys.size(), CacheOperation.CLEAR);
         }
-        provider.clear(namespace, keys, stats);
     }
 }
