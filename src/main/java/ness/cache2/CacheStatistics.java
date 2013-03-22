@@ -147,17 +147,17 @@ public class CacheStatistics {
     }
 
     @Managed
-    public String getStoreHistogram() {
+    public String getStoresHistogram() {
         return getHistogram(CacheOperation.STORE);
     }
 
     @Managed
-    public String getFetchHistogram() {
+    public String getFetchesHistogram() {
         return getHistogram(CacheOperation.FETCH);
     }
 
     @Managed
-    public String getClearHistogram() {
+    public String getClearsHistogram() {
         return getHistogram(CacheOperation.CLEAR);
     }
 
@@ -165,23 +165,53 @@ public class CacheStatistics {
         StringBuilder builder = new StringBuilder();
         AtomicIntegerArray array = operationCounts[operation.getIndex()];
         int i = 0;
+        long lastBound = 0;
         for (long bound : HISTOGRAM_MS_BOUNDS) {
             int count = array.get(i++);
             if (count > 0) {
                 if (builder.length() > 0) {
                     builder.append(", ");
                 }
-                builder.append("<=");
-                if (bound == Long.MAX_VALUE) {
-                    builder.append("max");
-                }
-                else {
-                    builder.append(bound);
-                }
+                buildBounds(builder, lastBound, bound);
                 builder.append(": ").append(count);
             }
+            lastBound = bound;
+        }
+        if (builder.length() == 0) {
+            builder.append("No Samples");
         }
         return builder.toString();
+    }
+
+    private void buildBounds(StringBuilder builder, long low, long high) {
+        if (low < 1000 && high < 1000) {
+            builder.append(low)
+                .append("-")
+                .append(high)
+                .append("ms");
+        }
+        else if (low < 1000 && high >= 1000) {
+            builder.append(low)
+                .append("ms")
+                .append("-")
+                .append(high/1000)
+                .append("s");
+        }
+        else {
+            long lowSeconds = low/1000;
+            if (high == Long.MAX_VALUE) {
+                builder.append(lowSeconds)
+                    .append("s")
+                    .append("-")
+                    .append("max");
+            }
+            else {
+                builder.append(lowSeconds)
+                    .append("-")
+                    .append(high/1000)
+                    .append("s");
+            }
+        }
     }
 
     @Managed
