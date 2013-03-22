@@ -57,12 +57,12 @@ public class NessCacheImpl implements NessCache, Cache {
         long startTime = System.currentTimeMillis();
         CacheStatistics stats = null;
         LOG.trace("set(%s, %s)", namespace, stores);
-        provider.set(namespace, stores, stats);
         if (cacheStatistics != null) {
             stats = cacheStatistics.getCacheStatistics(namespace);
             stats.incrementStores(stores.size());
-            stats.recordElapsedTime(startTime, stores.size(), CacheOperation.STORE);
         }
+        provider.set(namespace, stores, stats);
+        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE);
     }
 
     @Override
@@ -70,12 +70,12 @@ public class NessCacheImpl implements NessCache, Cache {
         long startTime = System.currentTimeMillis();
         CacheStatistics stats = null;
         LOG.trace("add(%s, %s)", namespace, stores);
-        Map<String, Boolean> result = provider.add(namespace, stores, stats);
         if (cacheStatistics != null) {
             stats = cacheStatistics.getCacheStatistics(namespace);
             stats.incrementStores(stores.size());
-            stats.recordElapsedTime(startTime, stores.size(), CacheOperation.STORE);
         }
+        Map<String, Boolean> result = provider.add(namespace, stores, stats);
+        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE);
         return result;
     }
 
@@ -90,8 +90,8 @@ public class NessCacheImpl implements NessCache, Cache {
         Map<String, byte[]> result = provider.get(namespace, keys, stats);
         if (stats != null) {
             stats.incrementHits(result.size());
-            stats.recordElapsedTime(startTime, keys.size(), CacheOperation.FETCH);
         }
+        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.FETCH);
         LOG.trace("get(%s, %s) hit %d", namespace, keys, result.size());
         return result;
     }
@@ -101,11 +101,17 @@ public class NessCacheImpl implements NessCache, Cache {
         long startTime = System.currentTimeMillis();
         CacheStatistics stats = null;
         LOG.trace("clear(%s, %s)", namespace, keys);
-        provider.clear(namespace, keys, stats);
         if (cacheStatistics != null) {
             stats = cacheStatistics.getCacheStatistics(namespace);
             stats.incrementClears(keys.size());
-            stats.recordElapsedTime(startTime, keys.size(), CacheOperation.CLEAR);
+        }
+        provider.clear(namespace, keys, stats);
+        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.CLEAR);
+    }
+
+    private void recordElapsedTime(CacheStatistics stats, long startTime, int keyCount, CacheOperation operation) {
+        if (stats != null) {
+            stats.recordElapsedTime(startTime, keyCount, operation);
         }
     }
 }
