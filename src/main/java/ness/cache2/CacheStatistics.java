@@ -1,17 +1,25 @@
 package ness.cache2;
 
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.weakref.jmx.Managed;
 
+import com.nesscomputing.logging.Log;
+
 /**
  * Bean to hold cache statistics on a per-namespace basis
  */
 @ThreadSafe
 public class CacheStatistics {
+    private static final Log LOG = Log.findLog();
 
+    private static final long[] HISTOGRAM_MS_BOUNDS = new long[] { 1L, 5L, 10L, 50L, 100L, 250L, 500L, 1000L, 5000L, 10000L, 50000L, Long.MAX_VALUE };
+    private static final int MS_ELAPSED_TO_LOG = 1000;
+    private static final int HISTOGRAM_COUNT = CacheOperation.values().length;
+    private final AtomicIntegerArray[] operationCounts;
     private final AtomicLong stores, fetches, hits, clears, oversizedStores;
     private final String namespace;
 
@@ -22,6 +30,48 @@ public class CacheStatistics {
         hits = new AtomicLong();
         clears = new AtomicLong();
         oversizedStores = new AtomicLong();
+        operationCounts = new AtomicIntegerArray[HISTOGRAM_COUNT];
+        for (int i=0; i<HISTOGRAM_COUNT; i++) {
+            operationCounts[i] = new AtomicIntegerArray(HISTOGRAM_MS_BOUNDS.length);
+        }
+    }
+
+    public enum CacheOperation {
+        STORE("store", 0),
+        FETCH("fetch", 1),
+        CLEAR("clear", 2);
+
+        private final String description;
+        private final int index;
+
+        CacheOperation(String description, int index) {
+            this.description = description;
+            this.index = index;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+    }
+
+    public void recordElapsedTime(long startTime, int keyCount, CacheOperation operation) {
+        long elapsed = System.currentTimeMillis() - startTime;
+        if (elapsed > MS_ELAPSED_TO_LOG) {
+            LOG.warn("Cache operation %s, for %d keys, took %.2f seconds", operation.getDescription(), keyCount, (double)elapsed / 1000.0);
+        }
+        int index = operation.getIndex();
+        int i = 0;
+        for (long bound : HISTOGRAM_MS_BOUNDS) {
+            if (elapsed <= bound) {
+                operationCounts[index].incrementAndGet(i);
+                break;
+            }
+            i++;
+        }
     }
 
     @Managed
@@ -97,11 +147,54 @@ public class CacheStatistics {
     }
 
     @Managed
+    public String getStoreHistogram() {
+        return getHistogram(CacheOperation.STORE);
+    }
+
+    @Managed
+    public String getFetchHistogram() {
+        return getHistogram(CacheOperation.FETCH);
+    }
+
+    @Managed
+    public String getClearHistogram() {
+        return getHistogram(CacheOperation.CLEAR);
+    }
+
+    private String getHistogram(CacheOperation operation) {
+        StringBuilder builder = new StringBuilder();
+        AtomicIntegerArray array = operationCounts[operation.getIndex()];
+        int i = 0;
+        for (long bound : HISTOGRAM_MS_BOUNDS) {
+            int count = array.get(i++);
+            if (count > 0) {
+                if (builder.length() > 0) {
+                    builder.append(", ");
+                }
+                builder.append("<=");
+                if (bound == Long.MAX_VALUE) {
+                    builder.append("max");
+                }
+                else {
+                    builder.append(bound);
+                }
+                builder.append(": ").append(count);
+            }
+        }
+        return builder.toString();
+    }
+
+    @Managed
     public void clear() {
         stores.set(0);
         fetches.set(0);
         hits.set(0);
         clears.set(0);
         oversizedStores.set(0);
+        for (int i=0; i<HISTOGRAM_COUNT; i++) {
+            for (int j=0; j<HISTOGRAM_MS_BOUNDS.length; j++) {
+                operationCounts[i].set(j, 0);
+            }
+        }
     }
 }
