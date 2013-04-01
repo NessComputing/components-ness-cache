@@ -93,6 +93,7 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
     @Override
     public void destroyMemcachedNode(final MemcachedNode node)
     {
+        super.destroyMemcachedNode(node);
         if (exporter != null && node instanceof NessMemcachedNode) {
             try {
                 exporter.unexport(NessMemcachedNode.class.cast(node).getJmxName());
