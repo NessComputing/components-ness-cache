@@ -20,15 +20,19 @@ public class CacheStatistics {
     private static final int MS_ELAPSED_TO_LOG = 1000;
     private static final int HISTOGRAM_COUNT = CacheOperation.values().length;
     private final AtomicIntegerArray[] operationCounts;
-    private final AtomicLong stores, fetches, hits, clears, oversizedStores;
+    private final AtomicLong storeKeys, storeOperations, fetchKeys, fetchOperations, hitKeys, hitOperations, clearKeys, clearOperations, oversizedStores;
     private final String namespace;
 
     public CacheStatistics(String namespace) {
         this.namespace = namespace;
-        stores = new AtomicLong();
-        fetches = new AtomicLong();
-        hits = new AtomicLong();
-        clears = new AtomicLong();
+        storeKeys = new AtomicLong();
+        storeOperations = new AtomicLong();
+        fetchKeys = new AtomicLong();
+        fetchOperations = new AtomicLong();
+        hitKeys = new AtomicLong();
+        hitOperations = new AtomicLong();
+        clearKeys = new AtomicLong();
+        clearOperations = new AtomicLong();
         oversizedStores = new AtomicLong();
         operationCounts = new AtomicIntegerArray[HISTOGRAM_COUNT];
         for (int i=0; i<HISTOGRAM_COUNT; i++) {
@@ -37,9 +41,12 @@ public class CacheStatistics {
     }
 
     public enum CacheOperation {
-        STORE("store", 0),
-        FETCH("fetch", 1),
-        CLEAR("clear", 2);
+        STORE_KEYS("storeKeys", 0),
+        STORE_OPERATIONS("storeOperations", 1),
+        FETCH_KEYS("fetchKeys", 2),
+        FETCH_OPERATIONS("fetchOperations", 3),
+        CLEAR_KEYS("clearKeys", 4),
+        CLEAR_OPERATIONS("clearOperations", 5);
 
         private final String description;
         private final int index;
@@ -80,26 +87,41 @@ public class CacheStatistics {
     }
 
     @Managed
-    public long getStores() {
-        return stores.get();
+    public long getStoreKeys() {
+        return storeKeys.get();
+    }
+
+    @Managed
+    public long getStoreOperations() {
+        return storeOperations.get();
     }
 
     public void setStores(long stores) {
-        this.stores.set(stores);
+        this.storeKeys.set(stores);
     }
 
     @Managed
-    public long getFetches() {
-        return fetches.get();
+    public long getFetchKeys() {
+        return fetchKeys.get();
+    }
+
+    @Managed
+    public long getFetchOperations() {
+        return fetchOperations.get();
     }
 
     public void setFetches(long fetches) {
-        this.fetches.set(fetches);
+        this.fetchKeys.set(fetches);
     }
 
     @Managed
-    public long getHits() {
-        return hits.get();
+    public long getHitKeys() {
+        return hitKeys.get();
+    }
+
+    @Managed
+    public long getHitOperations() {
+        return hitOperations.get();
     }
 
     @Managed
@@ -108,32 +130,36 @@ public class CacheStatistics {
     }
 
     public void setHits(long hits) {
-        this.hits.set(hits);
+        this.hitKeys.set(hits);
     }
 
     @Managed
-    public long getClears() {
-        return clears.get();
+    public long getClearKeys() {
+        return clearKeys.get();
     }
 
     public void setClears(long clears) {
-        this.clears.set(clears);
+        this.clearKeys.set(clears);
     }
 
     public void incrementStores(int stores) {
-        this.stores.addAndGet(stores);
+        this.storeKeys.addAndGet(stores);
+        this.storeOperations.incrementAndGet();
     }
 
     public void incrementFetches(int fetches) {
-        this.fetches.addAndGet(fetches);
+        this.fetchKeys.addAndGet(fetches);
+        this.fetchOperations.incrementAndGet();
     }
 
     public void incrementHits(int hits) {
-        this.hits.addAndGet(hits);
+        this.hitKeys.addAndGet(hits);
+        this.hitOperations.incrementAndGet();
     }
 
     public void incrementClears(int clears) {
-        this.clears.addAndGet(clears);
+        this.clearKeys.addAndGet(clears);
+        this.clearOperations.incrementAndGet();
     }
 
     public void incrementOversizedStores(int oversizedStores)
@@ -142,23 +168,43 @@ public class CacheStatistics {
     }
 
     @Managed
-    public double getHitPercentage() {
-        return 100.0 * getHits() / getFetches();
+    public double getHitKeysPercentage() {
+        return 100.0 * getHitKeys() / getFetchKeys();
     }
 
     @Managed
-    public String getStoresHistogram() {
-        return getHistogram(CacheOperation.STORE);
+    public double getHitOperationsPercentage() {
+        return 100.0 * getHitOperations() / getFetchOperations();
     }
 
     @Managed
-    public String getFetchesHistogram() {
-        return getHistogram(CacheOperation.FETCH);
+    public String getStoreKeysHistogram() {
+        return getHistogram(CacheOperation.STORE_KEYS);
     }
 
     @Managed
-    public String getClearsHistogram() {
-        return getHistogram(CacheOperation.CLEAR);
+    public String getStoreOperationsHistogram() {
+        return getHistogram(CacheOperation.STORE_OPERATIONS);
+    }
+
+    @Managed
+    public String getFetchKeysHistogram() {
+        return getHistogram(CacheOperation.FETCH_KEYS);
+    }
+
+    @Managed
+    public String getFetchOperationsHistogram() {
+        return getHistogram(CacheOperation.FETCH_OPERATIONS);
+    }
+
+    @Managed
+    public String getClearKeysHistogram() {
+        return getHistogram(CacheOperation.CLEAR_KEYS);
+    }
+
+    @Managed
+    public String getClearOperationsHistogram() {
+        return getHistogram(CacheOperation.CLEAR_OPERATIONS);
     }
 
     private String getHistogram(CacheOperation operation) {
@@ -216,10 +262,14 @@ public class CacheStatistics {
 
     @Managed
     public void clear() {
-        stores.set(0);
-        fetches.set(0);
-        hits.set(0);
-        clears.set(0);
+        storeKeys.set(0);
+        storeOperations.set(0);
+        fetchKeys.set(0);
+        fetchOperations.set(0);
+        hitKeys.set(0);
+        hitOperations.set(0);
+        clearKeys.set(0);
+        clearOperations.set(0);
         oversizedStores.set(0);
         for (int i=0; i<HISTOGRAM_COUNT; i++) {
             for (int j=0; j<HISTOGRAM_MS_BOUNDS.length; j++) {
