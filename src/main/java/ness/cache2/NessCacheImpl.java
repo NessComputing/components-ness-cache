@@ -62,7 +62,7 @@ public class NessCacheImpl implements NessCache, Cache {
             stats.incrementStores(stores.size());
         }
         provider.set(namespace, stores, stats);
-        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE);
+        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE_KEYS);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class NessCacheImpl implements NessCache, Cache {
             stats.incrementStores(stores.size());
         }
         Map<String, Boolean> result = provider.add(namespace, stores, stats);
-        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE);
+        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE_KEYS);
         return result;
     }
 
@@ -91,7 +91,7 @@ public class NessCacheImpl implements NessCache, Cache {
         if (stats != null) {
             stats.incrementHits(result.size());
         }
-        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.FETCH);
+        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.FETCH_KEYS);
         LOG.trace("get(%s, %s) hit %d", namespace, keys, result.size());
         return result;
     }
@@ -106,7 +106,7 @@ public class NessCacheImpl implements NessCache, Cache {
             stats.incrementClears(keys.size());
         }
         provider.clear(namespace, keys, stats);
-        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.CLEAR);
+        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.CLEAR_KEYS);
     }
 
     private void recordElapsedTime(CacheStatistics stats, long startTime, int keyCount, CacheOperation operation) {
