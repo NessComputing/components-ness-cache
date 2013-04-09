@@ -67,7 +67,7 @@ public class CacheStatistics {
         int i = 0;
         for (long bound : HISTOGRAM_MS_BOUNDS) {
             if (elapsed <= bound) {
-                operationCounts[index].incrementAndGet(i);
+                operationCounts[index].addAndGet(i, keyCount);
                 break;
             }
             i++;
