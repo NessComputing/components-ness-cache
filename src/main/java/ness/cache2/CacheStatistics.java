@@ -42,11 +42,11 @@ public class CacheStatistics {
 
     public enum CacheOperation {
         STORE_KEYS("store keys", 0),
-        STORE_OPERATIONS("store calls", 1),
+        STORE_OPERATIONS("store operations", 1),
         FETCH_KEYS("fetch keys", 2),
-        FETCH_OPERATIONS("fetch calls", 3),
+        FETCH_OPERATIONS("fetch operations", 3),
         CLEAR_KEYS("clear keys", 4),
-        CLEAR_OPERATIONS("clear calls", 5);
+        CLEAR_OPERATIONS("clear operations", 5);
 
         private final String description;
         private final int index;
