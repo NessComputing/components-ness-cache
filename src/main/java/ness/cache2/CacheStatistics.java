@@ -41,12 +41,12 @@ public class CacheStatistics {
     }
 
     public enum CacheOperation {
-        STORE_KEYS("storeKeys", 0),
-        STORE_OPERATIONS("storeOperations", 1),
-        FETCH_KEYS("fetchKeys", 2),
-        FETCH_OPERATIONS("fetchOperations", 3),
-        CLEAR_KEYS("clearKeys", 4),
-        CLEAR_OPERATIONS("clearOperations", 5);
+        STORE_KEYS("store keys", 0),
+        STORE_OPERATIONS("store operations", 1),
+        FETCH_KEYS("fetch keys", 2),
+        FETCH_OPERATIONS("fetch operations", 3),
+        CLEAR_KEYS("clear keys", 4),
+        CLEAR_OPERATIONS("clear operations", 5);
 
         private final String description;
         private final int index;
@@ -65,11 +65,15 @@ public class CacheStatistics {
         }
     }
 
-    public void recordElapsedTime(long startTime, int keyCount, CacheOperation operation) {
-        long elapsed = System.currentTimeMillis() - startTime;
+    public void recordElapsedTime(long elapsed, int itemCount, CacheOperation keysOperation, CacheOperation callsOperation) {
         if (elapsed > MS_ELAPSED_TO_LOG) {
-            LOG.warn("Cache operation %s, for %d keys, took %.2f seconds", operation.getDescription(), keyCount, (double)elapsed / 1000.0);
+            LOG.warn("Cache operation %s, for %d items, took %.2f seconds", keysOperation.getDescription(), itemCount, (double)elapsed / 1000.0);
         }
+        recordInHistogram(elapsed, keysOperation, itemCount);
+        recordInHistogram(elapsed, callsOperation, 1);
+    }
+
+    private void recordInHistogram(long elapsed, CacheOperation operation, int itemCount) {
         int index = operation.getIndex();
         int i = 0;
         for (long bound : HISTOGRAM_MS_BOUNDS) {
