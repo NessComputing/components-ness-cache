@@ -62,7 +62,7 @@ public class NessCacheImpl implements NessCache, Cache {
             stats.incrementStores(stores.size());
         }
         provider.set(namespace, stores, stats);
-        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE_KEYS);
+        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE_KEYS, CacheOperation.STORE_OPERATIONS);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class NessCacheImpl implements NessCache, Cache {
             stats.incrementStores(stores.size());
         }
         Map<String, Boolean> result = provider.add(namespace, stores, stats);
-        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE_KEYS);
+        recordElapsedTime(stats, startTime, stores.size(), CacheOperation.STORE_KEYS, CacheOperation.STORE_OPERATIONS);
         return result;
     }
 
@@ -91,7 +91,7 @@ public class NessCacheImpl implements NessCache, Cache {
         if (stats != null) {
             stats.incrementHits(result.size());
         }
-        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.FETCH_KEYS);
+        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.FETCH_KEYS, CacheOperation.FETCH_OPERATIONS);
         LOG.trace("get(%s, %s) hit %d", namespace, keys, result.size());
         return result;
     }
@@ -106,12 +106,13 @@ public class NessCacheImpl implements NessCache, Cache {
             stats.incrementClears(keys.size());
         }
         provider.clear(namespace, keys, stats);
-        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.CLEAR_KEYS);
+        recordElapsedTime(stats, startTime, keys.size(), CacheOperation.CLEAR_KEYS, CacheOperation.CLEAR_OPERATIONS);
     }
 
-    private void recordElapsedTime(CacheStatistics stats, long startTime, int keyCount, CacheOperation operation) {
+    private void recordElapsedTime(CacheStatistics stats, long startTime, int keyCount, CacheOperation keysOperation, CacheOperation callsOperation) {
         if (stats != null) {
-            stats.recordElapsedTime(startTime, keyCount, operation);
+            long elapsed = System.currentTimeMillis() - startTime;
+            stats.recordElapsedTime(elapsed, keyCount, keysOperation, callsOperation);
         }
     }
 }
