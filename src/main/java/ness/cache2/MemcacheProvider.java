@@ -185,13 +185,13 @@ final class MemcacheProvider implements InternalCacheProvider
             return transformedResults.build();
         }
         catch (OperationTimeoutException ote) {
-            LOG.errorDebug(ote, "Operation timed out while loading keys!");
+            LOG.errorDebug(ote, "Operation timed out while loading keys for cache %s!", namespace);
         }
         catch (CancellationException ce) {
-            LOG.errorDebug(ce, "Operation cancelled while loading keys!");
+            LOG.errorDebug(ce, "Operation cancelled while loading keys for cache %s!", namespace);
         }
         catch (IllegalStateException ise) {
-            LOG.errorDebug(ise, "Memcache Queue was full while loading keys!");
+            LOG.errorDebug(ise, "Memcache Queue was full while loading keys for cache %s!", namespace);
         }
         return Collections.emptyMap();
     }
