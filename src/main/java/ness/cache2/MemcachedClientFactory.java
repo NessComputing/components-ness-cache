@@ -178,4 +178,8 @@ class MemcachedClientFactory {
     {
         return topologyGeneration.get();
     }
+
+    public String getCacheName() {
+        return cacheName;
+    }
 }
