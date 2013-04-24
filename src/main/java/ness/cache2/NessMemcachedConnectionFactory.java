@@ -1,16 +1,12 @@
 package ness.cache2;
 
-import java.net.SocketAddress;
-import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import net.spy.memcached.FailureMode;
 import net.spy.memcached.KetamaConnectionFactory;
-import net.spy.memcached.MemcachedNode;
 import net.spy.memcached.OperationFactory;
 import net.spy.memcached.ops.Operation;
-import net.spy.memcached.protocol.binary.BinaryMemcachedNodeImpl;
 import net.spy.memcached.protocol.binary.BinaryOperationFactory;
 import net.spy.memcached.transcoders.Transcoder;
 
@@ -32,20 +28,6 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
     @Override
     public Transcoder<Object> getDefaultTranscoder() {
         return (Transcoder) new MemcacheByteArrayTranscoder();
-    }
-
-    @Override
-    public MemcachedNode createMemcachedNode(SocketAddress sa, SocketChannel ch, int bufSize)
-    {
-        boolean doAuth = false;
-
-        return new BinaryMemcachedNodeImpl(sa, ch, bufSize,
-                                           createReadOperationQueue(),
-                                           createWriteOperationQueue(),
-                                           createOperationQueue(),
-                                           getOpQueueMaxBlockTime(),
-                                           doAuth,
-                                           getOperationTimeout());
     }
 
     @Override
