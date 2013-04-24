@@ -43,7 +43,7 @@ public class NessMemcachedConnectionFactory extends KetamaConnectionFactory {
                                            createReadOperationQueue(),
                                            createWriteOperationQueue(),
                                            createOperationQueue(),
-                                           configuration.getMemcachedOperationQueueBlockTime().getMillis(),
+                                           getOpQueueMaxBlockTime(),
                                            doAuth,
                                            getOperationTimeout());
     }
