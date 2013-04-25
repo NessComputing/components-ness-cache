@@ -131,9 +131,9 @@ class MemcachedClientFactory {
             }
             else {
                 if(addrHolder.compareAndSet(addrs, newAddrs)) {
-                    MemcachedClient oldClient = null;
-
                     try {
+                        LOG.info("Processing topology change for %s", cacheName);
+
                         final MemcachedClient newClient;
                         if (newAddrs.isEmpty()) {
                             newClient = null;
@@ -142,23 +142,22 @@ class MemcachedClientFactory {
                         else {
                             LOG.info("Creating new client...");
                             newClient = new MemcachedClient(connectionFactory, newAddrs);
-                            LOG.info("New client created");
+                            LOG.info("Finished creating new client.");
                         }
 
-                        oldClient = client.getAndSet(newClient);
-                        final int topologyCount = topologyGeneration.incrementAndGet();
-
-                        LOG.info("Topology change for %s, generation is now %d, client: %s", cacheName, topologyCount, newClient);
-                    }
-                    catch (IOException ioe) {
-                        LOG.errorDebug(ioe, "Could not connect to memcached cluster %s", cacheName);
-                    }
-                    finally {
+                        final MemcachedClient oldClient = client.getAndSet(newClient);
                         if (oldClient != null) {
                             LOG.info("Shutting down old client...");
                             oldClient.shutdown(100, TimeUnit.MILLISECONDS);
-                            LOG.info("Old client shutdown");
+                            LOG.info("Finished shutting down old client.");
                         }
+
+                        final int topologyCount = topologyGeneration.incrementAndGet();
+
+                        LOG.info("Finished processing topology change for %s.  Generation is now %d, client is now: %s", cacheName, topologyCount, newClient);
+                    }
+                    catch (IOException ioe) {
+                        LOG.errorDebug(ioe, "Could not connect to memcached cluster %s", cacheName);
                     }
                 }
                 else {
