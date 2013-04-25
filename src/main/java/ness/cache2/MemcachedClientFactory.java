@@ -140,22 +140,24 @@ class MemcachedClientFactory {
                             LOG.warn("All memcached servers disappeared!");
                         }
                         else {
+                            LOG.info("Creating new client...");
                             newClient = new MemcachedClient(connectionFactory, newAddrs);
+                            LOG.info("New client created");
                         }
 
                         oldClient = client.getAndSet(newClient);
                         final int topologyCount = topologyGeneration.incrementAndGet();
 
-                        LOG.debug("Topology change for %s, generation is now %d, client: %s", cacheName, topologyCount, newClient);
+                        LOG.info("Topology change for %s, generation is now %d, client: %s", cacheName, topologyCount, newClient);
                     }
                     catch (IOException ioe) {
                         LOG.errorDebug(ioe, "Could not connect to memcached cluster %s", cacheName);
                     }
                     finally {
                         if (oldClient != null) {
-                            LOG.debug("Shutting down old client");
+                            LOG.info("Shutting down old client...");
                             oldClient.shutdown(100, TimeUnit.MILLISECONDS);
-                            LOG.trace("Old client shutdown");
+                            LOG.info("Old client shutdown");
                         }
                     }
                 }
