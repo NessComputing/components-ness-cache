@@ -313,7 +313,7 @@ final class MemcacheProvider implements InternalCacheProvider
         int maxValueSize = config.getMemcachedMaxValueSize();
         byte[] data = input.getData();
         if (maxValueSize > 0 && data != null && data.length > maxValueSize) {
-            LOG.trace("Rejecting write of %s because length %s exceeds maximum %s", input.getKey(), data.length, maxValueSize);
+            LOG.debug("Rejecting write of %s because length %s exceeds maximum %s", input.getKey(), data.length, maxValueSize);
             return false;
         }
         return true;
