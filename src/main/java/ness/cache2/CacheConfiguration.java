@@ -129,14 +129,18 @@ public abstract class CacheConfiguration {
     public String getMemcachedSeparator() {
         return ":";
     }
-    
+
     /**
      * Maximum memcached value size.  0 means no limit.
+     * The actual memcached limit is 1MB by default.  We use 1010KB for our internal
+     * maximum size, because when we used 1MB we saw the server occasionally reject
+     * some stores, and we concluded that there is likely some memcache overhead that
+     * is not captured in our data structures.
      */
     @Config({"ness.cache.${cacheName}.max-value-size", "ness.cache.max-value-size"})
-    @Default("1048576")
+    @Default("1034240")
     public int getMemcachedMaxValueSize() {
-    	return 1048576;
+    	return 1034240;
     }
 
     @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})
