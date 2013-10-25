@@ -1,5 +1,6 @@
 package ness.cache2;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -212,10 +213,17 @@ final class MemcacheProvider implements InternalCacheProvider
         });
     }
 
+    private final Calendar cal = Calendar.getInstance();
+    private long lastWarnAboutNullClient = 0;
     private <F, D> Map<String, F> processOps(final String namespace, final boolean wait, final Collection<CacheStore<D>> stores, Callback<F, D> callback)
     {
         final MemcachedClient client = clientFactory.get();
         if (client == null) {
+            long now = cal.getTimeInMillis();
+            if(now - lastWarnAboutNullClient > 60_000 * 60){ // Every 60 minutes
+                lastWarnAboutNullClient = now;
+                LOG.error("Failed to access to memcache because clientFactory didn't have any clients");
+            }
             return Collections.emptyMap();
         }
 
