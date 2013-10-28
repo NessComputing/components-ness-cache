@@ -212,10 +212,16 @@ final class MemcacheProvider implements InternalCacheProvider
         });
     }
 
+    private long lastWarnAboutNullClient = 0;
     private <F, D> Map<String, F> processOps(final String namespace, final boolean wait, final Collection<CacheStore<D>> stores, Callback<F, D> callback)
     {
         final MemcachedClient client = clientFactory.get();
         if (client == null) {
+            long now = System.currentTimeMillis();
+            if(now - lastWarnAboutNullClient > 60_000 * 60){ // Every 60 minutes
+                lastWarnAboutNullClient = now;
+                LOG.error("Failed to access to memcache because clientFactory didn't have any clients");
+            }
             return Collections.emptyMap();
         }
 
