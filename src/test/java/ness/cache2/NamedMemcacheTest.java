@@ -30,6 +30,7 @@ import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.lifecycle.LifecycleStage;
 import com.nesscomputing.lifecycle.guice.LifecycleModule;
+import com.nesscomputing.log4j.ConfigureStandaloneLogging;
 import com.nesscomputing.logging.Log;
 import com.nesscomputing.service.discovery.client.DiscoveryClient;
 import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
@@ -117,8 +118,9 @@ public class NamedMemcacheTest {
                              new AbstractModule() {
             @Override
             protected void configure() {
-            	binder().requireExplicitBindings();
-            	
+                binder().requireExplicitBindings();
+                ConfigureStandaloneLogging.configure();
+
                 bind (ReadOnlyDiscoveryClient.class).toInstance(discovery);
                 requestInjection (NamedMemcacheTest.this);
 
@@ -161,7 +163,7 @@ public class NamedMemcacheTest {
             r.nextBytes(data);
             String key = Integer.toString(r.nextInt());
             if (!Arrays.equals(data, c.get(key))) {
-            	return false;
+                return false;
             }
         }
 
@@ -184,29 +186,31 @@ public class NamedMemcacheTest {
     @Test
     public void testSimpleReadWrite() {
         LOG.info("Writing into cache 1...");
-    	writeLots(cache1);
+        writeLots(cache1);
         LOG.info("Verify cache 1...");
-    	assertTrue(verifyWrites(cache1));
+        assertTrue(verifyWrites(cache1));
         LOG.info("Writing into cache 2...");
-    	writeLots(cache2);
+        writeLots(cache2);
         LOG.info("Verify cache 2...");
-    	assertTrue(verifyWrites(cache2));
+        assertTrue(verifyWrites(cache2));
         LOG.info("Writing into cache 3...");
-    	writeLots(cache3);
+        writeLots(cache3);
         LOG.info("Verify cache 3...");
-    	assertTrue(verifyWrites(cache3));
+        assertTrue(verifyWrites(cache3));
     }
 
     @Test
-    public void testLocalizedWrites() {
+    public void testLocalizedWrites() throws InterruptedException {
         LOG.info("Writing into cache 1...");
-    	writeLots(cache1);
+        //There appears to be some non-determinism based on startup time.  10ms appears to be a good threshold for this not to happen, so we do 100 so we won't see this again.
+        Thread.sleep(100);
+        writeLots(cache1);
         LOG.info("Verify cache 1...");
-    	assertTrue(verifyWrites(cache1));
+        assertTrue(verifyWrites(cache1));
         LOG.info("Verify cache 2...");
-    	assertFalse(verifyWrites(cache2));
+        assertFalse(verifyWrites(cache2));
         LOG.info("Verify cache 3...");
-    	assertFalse(verifyWrites(cache3));
+        assertFalse(verifyWrites(cache3));
     }
 }
 
