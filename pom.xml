@@ -25,7 +25,7 @@
 
   <properties>
     <dep.jackson.version>2.2.3</dep.jackson.version>
-    <dep.discovery.version>1.6.1</dep.discovery.version>
+    <dep.discovery.version>1.6.2</dep.discovery.version>
   </properties>
 
   <dependencies>
