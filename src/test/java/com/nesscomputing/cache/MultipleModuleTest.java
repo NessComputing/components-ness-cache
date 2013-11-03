@@ -23,14 +23,9 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
 
-import org.junit.Test;
-
-import com.nesscomputing.cache.CacheModule;
-import com.nesscomputing.cache.NessCache;
-import com.nesscomputing.cache.NessCacheImpl;
-import com.nesscomputing.cache.NonEvictingJvmCacheProvider;
-import com.nesscomputing.cache.NullProvider;
 import com.nesscomputing.config.Config;
+
+import org.junit.Test;
 
 public class MultipleModuleTest {
 	@Test

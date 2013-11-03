@@ -36,7 +36,6 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 import com.nesscomputing.cache.CacheModule;
-import com.nesscomputing.cache.guava.NessGuavaCaches;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.config.ConfigModule;
 import com.nesscomputing.lifecycle.junit.LifecycleRule;

@@ -27,10 +27,6 @@ import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.nesscomputing.cache.CacheStore;
-import com.nesscomputing.cache.NamespacedCache;
-import com.nesscomputing.cache.NessCache;
-
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;

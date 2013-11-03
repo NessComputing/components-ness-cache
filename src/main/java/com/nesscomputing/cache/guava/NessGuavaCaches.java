@@ -17,7 +17,7 @@ package com.nesscomputing.cache.guava;
 
 import com.google.inject.TypeLiteral;
 
-public class NessGuavaCaches {
+public final class NessGuavaCaches {
 
     private NessGuavaCaches() { }
 

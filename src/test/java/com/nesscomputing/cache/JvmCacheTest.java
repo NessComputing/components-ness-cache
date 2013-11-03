@@ -22,7 +22,6 @@ import com.google.inject.Inject;
 import org.easymock.EasyMock;
 import org.junit.Before;
 
-import com.nesscomputing.cache.CacheModule;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.testing.lessio.AllowDNSResolution;

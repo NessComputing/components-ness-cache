@@ -35,7 +35,6 @@ import com.nesscomputing.config.Config;
 import com.nesscomputing.config.ConfigProvider;
 import com.nesscomputing.logging.Log;
 
-@SuppressWarnings("deprecation")
 public class CacheModule extends AbstractModule {
     private static final Log LOG = Log.findLog();
 
@@ -44,7 +43,7 @@ public class CacheModule extends AbstractModule {
 
     private volatile Injector childInjector;
 
-    public CacheModule(String cacheName)
+    public CacheModule(final String cacheName)
     {
         this(null, cacheName);
     }
@@ -53,22 +52,21 @@ public class CacheModule extends AbstractModule {
      * @deprecated don't pass in a Config object.
      */
     @Deprecated
-    public CacheModule(Config config, String cacheName)
+    public CacheModule(final Config config, final String cacheName)
     {
         Preconditions.checkArgument(!StringUtils.isBlank(cacheName), "blank cache name");
         this.cacheName = cacheName;
         bindingAnnotation = Names.named(cacheName);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void configure() {
         binder().disableCircularProxies();
         binder().requireExplicitBindings();
 
-        bind (CacheConfiguration.class).annotatedWith(bindingAnnotation).toProvider(ConfigProvider.of(CacheConfiguration.class, ImmutableMap.of("cacheName", cacheName)));
+        bind(CacheConfiguration.class).annotatedWith(bindingAnnotation).toProvider(ConfigProvider.of(CacheConfiguration.class, ImmutableMap.of("cacheName", cacheName)));
 
-        bind (NessCache.class).annotatedWith(bindingAnnotation).toProvider(new NessCacheProvider()).in(Scopes.SINGLETON);
+        bind(NessCache.class).annotatedWith(bindingAnnotation).toProvider(new NessCacheProvider()).in(Scopes.SINGLETON);
     }
 
     class NessCacheProvider implements Provider<NessCache>
@@ -76,7 +74,7 @@ public class CacheModule extends AbstractModule {
         private Injector injector;
 
         @Inject
-        void setInjector(Injector injector)
+        void setInjector(final Injector injector)
         {
             this.injector = injector;
         }
@@ -86,7 +84,7 @@ public class CacheModule extends AbstractModule {
         {
             Preconditions.checkNotNull(injector, "no injector injected?");
             Preconditions.checkState(childInjector == null, "already created NessCache");
-            CacheConfiguration cacheConfig = injector.getInstance(Key.get(CacheConfiguration.class, bindingAnnotation));
+            final CacheConfiguration cacheConfig = injector.getInstance(Key.get(CacheConfiguration.class, bindingAnnotation));
             childInjector = injector.createChildInjector(
                     getRealCacheModule(cacheConfig),
                     getInternalCacheModule(cacheConfig));
@@ -99,7 +97,7 @@ public class CacheModule extends AbstractModule {
         return Preconditions.checkNotNull(childInjector, "NessCache not injected yet");
     }
 
-    Module getInternalCacheModule(CacheConfiguration cacheConfig)
+    Module getInternalCacheModule(final CacheConfiguration cacheConfig)
     {
         LOG.info("Caching initialize... binding=%s, type=%s, cacheName=%s", Objects.firstNonNull(bindingAnnotation, "<unset>"), cacheConfig.getCacheType(), Objects.firstNonNull(cacheName, "<default>"));
 
@@ -131,14 +129,14 @@ public class CacheModule extends AbstractModule {
                 binder().requireExplicitBindings();
                 binder().disableCircularProxies();
 
-                bind (CacheConfiguration.class).toInstance(cacheConfig);
+                bind(CacheConfiguration.class).toInstance(cacheConfig);
                 bindConstant().annotatedWith(Names.named("cacheName")).to(cacheName);
 
-                bind (NessCache.class).to(NessCacheImpl.class);
+                bind(NessCache.class).to(NessCacheImpl.class);
 
                 if (cacheConfig.isJmxEnabled())
                 {
-                    bind (CacheStatisticsManager.class).to(JmxCacheStatisticsManager.class);
+                    bind(CacheStatisticsManager.class).to(JmxCacheStatisticsManager.class);
                 }
             }
         };
@@ -149,7 +147,7 @@ public class CacheModule extends AbstractModule {
         @Override
         protected void configure()
         {
-            bind (InternalCacheProvider.class).to(NullProvider.class);
+            bind(InternalCacheProvider.class).to(NullProvider.class);
         }
     }
 
@@ -158,7 +156,7 @@ public class CacheModule extends AbstractModule {
         @Override
         protected void configure()
         {
-            bind (InternalCacheProvider.class).to(JvmCacheProvider.class);
+            bind(InternalCacheProvider.class).to(JvmCacheProvider.class);
         }
     }
 
@@ -167,7 +165,7 @@ public class CacheModule extends AbstractModule {
         @Override
         protected void configure()
         {
-            bind (InternalCacheProvider.class).to(NonEvictingJvmCacheProvider.class);
+            bind(InternalCacheProvider.class).to(NonEvictingJvmCacheProvider.class);
         }
     }
 
@@ -176,10 +174,10 @@ public class CacheModule extends AbstractModule {
         @Override
         protected void configure()
         {
-            bind (InternalCacheProvider.class).to(MemcacheProvider.class);
-            bind (NessMemcachedConnectionFactory.class);
-            bind (MemcachedClientFactory.class);
-            bind (CacheTopologyProvider.class);
+            bind(InternalCacheProvider.class).to(MemcacheProvider.class);
+            bind(NessMemcachedConnectionFactory.class);
+            bind(MemcachedClientFactory.class);
+            bind(CacheTopologyProvider.class);
         }
     }
 
@@ -188,31 +186,40 @@ public class CacheModule extends AbstractModule {
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((bindingAnnotation == null) ? 0 : bindingAnnotation.hashCode());
-        result = prime * result + ((cacheName == null) ? 0 : cacheName.hashCode());
+        result = prime * result + (bindingAnnotation == null ? 0 : bindingAnnotation.hashCode());
+        result = prime * result + (cacheName == null ? 0 : cacheName.hashCode());
         return result;
     }
 
     @Override
-    public boolean equals(Object obj)
+    public boolean equals(final Object obj)
     {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
-        CacheModule other = (CacheModule) obj;
+        }
+        final CacheModule other = (CacheModule) obj;
         if (bindingAnnotation == null) {
-            if (other.bindingAnnotation != null)
+            if (other.bindingAnnotation != null) {
                 return false;
-        } else if (!bindingAnnotation.equals(other.bindingAnnotation))
+            }
+        }
+        else if (!bindingAnnotation.equals(other.bindingAnnotation)) {
             return false;
+        }
         if (cacheName == null) {
-            if (other.cacheName != null)
+            if (other.cacheName != null) {
                 return false;
-        } else if (!cacheName.equals(other.cacheName))
+            }
+        }
+        else if (!cacheName.equals(other.cacheName)) {
             return false;
+        }
         return true;
     }
 }

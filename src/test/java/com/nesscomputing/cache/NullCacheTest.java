@@ -30,9 +30,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.nesscomputing.cache.CacheModule;
-import com.nesscomputing.cache.CacheStore;
-import com.nesscomputing.cache.NessCache;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.lifecycle.LifecycleStage;

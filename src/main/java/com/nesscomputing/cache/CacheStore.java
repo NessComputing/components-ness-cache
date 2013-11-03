@@ -38,13 +38,14 @@ public class CacheStore<D> {
 
     /**
      * Create a new cache entry ready for storing
+     *
      * @param data the data to store; this data is shared (not copied) for efficiency and should never be modified after being handed off.
      * @param expiry the expiration instant; this is advisory and cache entries may expire sooner (or later, in certain circumstances)
      */
     @SuppressWarnings("EI_EXPOSE_REP")
     CacheStore(@Nonnull final String key,
                @Nullable final D data,
-               @Nullable DateTime expiry) {
+               @Nullable final DateTime expiry) {
         Preconditions.checkNotNull(key);
 
         if (expiry != null) {
@@ -84,21 +85,24 @@ public class CacheStore<D> {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder(32);
+        final StringBuilder builder = new StringBuilder(32);
         builder.append("CacheStore [");
-        if (key != null)
+        if (key != null) {
             builder.append("key=").append(key).append(", ");
-        if (data != null)
+        }
+        if (data != null) {
             builder.append("data=").append(prettyPrintData()).append(", ");
-        if (expiry != null)
+        }
+        if (expiry != null) {
             builder.append("expiry=").append(expiry);
+        }
         builder.append(']');
         return builder.toString();
     }
 
     private String prettyPrintData() {
         if (data instanceof byte[]) {
-            byte[] byteData = (byte[]) data;
+            final byte[] byteData = (byte[]) data;
             if (byteData.length > 32)
             {
                 return "byte[" + byteData.length + ']';

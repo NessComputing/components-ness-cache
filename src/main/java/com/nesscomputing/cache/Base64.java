@@ -32,6 +32,7 @@ import com.google.common.base.Charsets;
  *
  * @author Jeffrey Rodriguez
  */
+@SuppressWarnings({"PMD.PrematureDeclaration", "PMD.IfStmtsMustUseBraces", "PMD.ForLoopsMustUseBraces"})
 final class Base64
 {
     private Base64() {

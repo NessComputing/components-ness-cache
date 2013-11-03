@@ -20,8 +20,6 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.nesscomputing.cache.Base64;
-
 public class TestBase64Compatible
 {
     // Make sure that Apache Base64 can read what we encode.

@@ -68,7 +68,7 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
     }
 
     @Override
-    public GuavaCacheModuleBuilder<K, V> withSerializers() {
+    public final GuavaCacheModuleBuilder<K, V> withSerializers() {
         return withKeySerializer().withValueSerializer();
     }
 
