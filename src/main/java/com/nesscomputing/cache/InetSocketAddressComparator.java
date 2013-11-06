@@ -20,7 +20,7 @@ import java.util.Comparator;
 
 import com.google.common.base.Preconditions;
 
-class InetSocketAddressComparator implements Comparator<InetSocketAddress>
+final class InetSocketAddressComparator implements Comparator<InetSocketAddress>
 {
     public static final InetSocketAddressComparator DEFAULT = new InetSocketAddressComparator();
 

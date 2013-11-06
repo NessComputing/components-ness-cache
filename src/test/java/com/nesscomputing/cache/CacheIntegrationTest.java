@@ -25,7 +25,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 
-import com.nesscomputing.cache.CacheModule;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.lifecycle.LifecycleStage;
@@ -34,7 +33,7 @@ import com.nesscomputing.testing.lessio.AllowDNSResolution;
 import com.nesscomputing.testing.lessio.AllowNetworkAccess;
 
 @AllowDNSResolution
-@AllowNetworkAccess(endpoints = {"127.0.0.1:11212"})
+@AllowNetworkAccess(endpoints = {"127.0.0.1:0"})
 public class CacheIntegrationTest extends BaseCacheIntegrationSetup {
     @Inject
     Lifecycle lifecycle;
@@ -43,7 +42,7 @@ public class CacheIntegrationTest extends BaseCacheIntegrationSetup {
     public final void setUpClient() {
         final Config config = Config.getFixedConfig("ness.cache", "MEMCACHE",
                                                     "ness.cache.synchronous", "true",
-                                                    "ness.cache.uri", "memcache://localhost:11212",
+                                                    "ness.cache.uri", "memcache://localhost:" + PORT,
                                                     "ness.ncache.jmx", "false");
 
         Guice.createInjector(new CacheModule("test"),

@@ -20,11 +20,15 @@ import java.util.Collection;
 
 import org.joda.time.DateTime;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+@SuppressFBWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
 public final class CacheStores
 {
     private CacheStores()
@@ -54,8 +58,7 @@ public final class CacheStores
         return Collections2.transform(keys, new Function<String, CacheStore<Void>>() {
 
             @Override
-            @edu.umd.cs.findbugs.annotations.SuppressWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-            public CacheStore<Void> apply(final String key) {
+            public CacheStore<Void> apply(@Nonnull final String key) {
                 Preconditions.checkArgument(key != null, "null key");
                 return new CacheStore<Void>(key, null, expiry);
             }
@@ -68,8 +71,7 @@ public final class CacheStores
         return Collections2.transform(keys, new Function<String, CacheStore<Integer>>() {
 
             @Override
-            @edu.umd.cs.findbugs.annotations.SuppressWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-            public CacheStore<Integer> apply(final String key) {
+            public CacheStore<Integer> apply(@Nonnull final String key) {
                 Preconditions.checkArgument(key != null, "null key");
                 return new CacheStore<Integer>(key, value, expiry);
             }

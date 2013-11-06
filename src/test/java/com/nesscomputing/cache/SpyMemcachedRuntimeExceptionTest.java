@@ -44,7 +44,7 @@ public class SpyMemcachedRuntimeExceptionTest {
     private MemcachedClient client;
 
     private InetSocketAddress setUp(boolean binary) {
-        InetSocketAddress addr = new InetSocketAddress("127.0.0.1", 11212);
+        InetSocketAddress addr = new InetSocketAddress("127.0.0.1", NetUtils.findUnusedPort());
 
         daemon = new MemCacheDaemon<LocalCacheElement>();
 

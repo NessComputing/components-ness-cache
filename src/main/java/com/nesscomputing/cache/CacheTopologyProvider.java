@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
 import com.nesscomputing.service.discovery.client.ServiceInformation;
 
@@ -44,11 +46,7 @@ import com.google.inject.name.Named;
 class CacheTopologyProvider {
     private static final Function<ServiceInformation, InetSocketAddress> SERVICE_INFORMATION_TO_INET_SOCKET_ADDRESS = new Function<ServiceInformation, InetSocketAddress>() {
         @Override
-        @edu.umd.cs.findbugs.annotations.SuppressWarnings("NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE")
-        public InetSocketAddress apply(ServiceInformation input) {
-            if (input == null) {
-                return null;
-            }
+        public InetSocketAddress apply(@Nonnull ServiceInformation input) {
             return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS),
                     Integer.valueOf(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));
         }

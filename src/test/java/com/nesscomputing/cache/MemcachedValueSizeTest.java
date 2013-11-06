@@ -40,18 +40,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.nesscomputing.cache.CacheConfiguration;
-import com.nesscomputing.cache.CacheStatistics;
-import com.nesscomputing.cache.CacheStore;
-import com.nesscomputing.cache.MemcacheProvider;
-import com.nesscomputing.cache.MemcachedClientFactory;
 import com.nesscomputing.testing.lessio.AllowDNSResolution;
 import com.nesscomputing.testing.lessio.AllowNetworkAccess;
 import com.nesscomputing.testing.lessio.AllowNetworkListen;
 
 @AllowDNSResolution
-@AllowNetworkListen(ports = {11212})
-@AllowNetworkAccess(endpoints = {"127.0.0.1:11212"})
+@AllowNetworkListen(ports = {0})
+@AllowNetworkAccess(endpoints = {"127.0.0.1:0"})
 public class MemcachedValueSizeTest
 {
     private MemCacheDaemon<LocalCacheElement> daemon;
@@ -61,7 +56,8 @@ public class MemcachedValueSizeTest
 
     @Before
     public void setUp() throws Exception {
-        addr = new InetSocketAddress("127.0.0.1", 11212);
+        final int port = NetUtils.findUnusedPort();
+        addr = new InetSocketAddress("127.0.0.1", port);
 
         daemon = new MemCacheDaemon<LocalCacheElement>();
 

@@ -43,11 +43,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.nesscomputing.cache.CacheConfiguration;
-import com.nesscomputing.cache.CacheModule;
-import com.nesscomputing.cache.MemcachedClientFactory;
-import com.nesscomputing.cache.NamespacedCache;
-import com.nesscomputing.cache.NessCache;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.lifecycle.LifecycleStage;
@@ -62,8 +57,8 @@ import com.nesscomputing.testing.lessio.AllowNetworkAccess;
 import com.nesscomputing.testing.lessio.AllowNetworkListen;
 
 @AllowDNSResolution
-@AllowNetworkListen(ports = {11212, 11213, 11214})
-@AllowNetworkAccess(endpoints = {"127.0.0.1:11212", "127.0.0.1:11213", "127.0.0.1:11214"})
+@AllowNetworkListen(ports = {0})
+@AllowNetworkAccess(endpoints = {"127.0.0.1:0"})
 @Ignore // XXX: (scs) this test is too flaky to run.  This should really be fixed but I don't have the time at the moment :-(
 public class RemoveReAddNodeTest {
     private static final Log LOG = Log.findLog();
@@ -108,13 +103,13 @@ public class RemoveReAddNodeTest {
 
     @Before
     public final void setUp() {
-        addr1 = new InetSocketAddress("127.0.0.1", 11212);
+        addr1 = new InetSocketAddress("127.0.0.1", NetUtils.findUnusedPort());
         daemon1 = createDaemon(addr1.getPort());
         announce1 = ServiceInformation.forService("memcached", "test", "memcache", addr1.getHostName(), addr1.getPort());
-        addr2 = new InetSocketAddress("127.0.0.1", 11213);
+        addr2 = new InetSocketAddress("127.0.0.1", NetUtils.findUnusedPort());
         daemon2 = createDaemon(addr2.getPort());
         announce2 = ServiceInformation.forService("memcached", "test", "memcache", addr2.getHostName(), addr2.getPort());
-        addr3 = new InetSocketAddress("127.0.0.1", 11214);
+        addr3 = new InetSocketAddress("127.0.0.1", NetUtils.findUnusedPort());
         daemon3 = createDaemon(addr3.getPort());
         announce3 = ServiceInformation.forService("memcached", "test", "memcache", addr3.getHostName(), addr3.getPort());
 

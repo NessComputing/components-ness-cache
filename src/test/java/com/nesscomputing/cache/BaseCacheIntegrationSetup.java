@@ -30,27 +30,31 @@ import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap.EvictionPolicy;
 
 /**
- * Set up a memcached on localhost:11212
+ * Set up a memcached on localhost:<ephemeral port>
  */
-@AllowNetworkListen(ports = {11212})
-public abstract class BaseCacheIntegrationSetup extends BaseCachingTests {
-
+@AllowNetworkListen(ports = {0})
+public abstract class BaseCacheIntegrationSetup extends BaseCachingTests
+{
+    protected final int PORT = NetUtils.findUnusedPort();
     private MemCacheDaemon<LocalCacheElement> daemon;
 
     @Before
-    public final void setUpJMemcache() {
+    public final void setUpJMemcache()
+        throws Exception
+    {
         daemon = new MemCacheDaemon<LocalCacheElement>();
 
         CacheStorage<Key, LocalCacheElement> storage = ConcurrentLinkedHashMap.create(EvictionPolicy.FIFO, 10000, 10000000);
 
         daemon.setCache(new CacheImpl(storage));
         daemon.setBinary(true);
-        daemon.setAddr(new InetSocketAddress("127.0.0.1", 11212));
+        daemon.setAddr(new InetSocketAddress("127.0.0.1", PORT));
         daemon.start();
     }
 
     @After
-    public final void tearDownJMemcache() {
+    public final void tearDownJMemcache()
+    {
         daemon.stop();
         daemon = null;
     }
