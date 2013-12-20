@@ -36,43 +36,43 @@ import com.nesscomputing.logging.Log;
  */
 @Singleton
 public class NonEvictingJvmCacheProvider implements InternalCacheProvider {
-	private final static Log LOG = Log.findLog();
-	private final ConcurrentMap<Map.Entry<String, String>, byte[]> map = Maps.newConcurrentMap();
+    private static final Log LOG = Log.findLog();
+    private final ConcurrentMap<Map.Entry<String, String>, byte[]> map = Maps.newConcurrentMap();
 
-	@Override
-	public void set(String namespace, Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics) {
-		for (CacheStore<byte []> entry: stores) {
-			LOG.trace("%s setting %s:%s", this, namespace, entry.getKey());
+    @Override
+    public void set(String namespace, Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics) {
+        for (CacheStore<byte []> entry: stores) {
+            LOG.trace("%s setting %s:%s", this, namespace, entry.getKey());
             Entry<String, String> key = Maps.immutableEntry(namespace, entry.getKey());
-			byte[] value = entry.getData();
-			if (value != null) {
+            byte[] value = entry.getData();
+            if (value != null) {
                 map.put(key, value);
-			} else {
-			    map.remove(key);
-			}
-		}
-	}
+            } else {
+                map.remove(key);
+            }
+        }
+    }
 
-	@Override
-	public Map<String, byte[]> get(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
-		Map<String, byte[]> ret = Maps.newHashMap();
-		for (String key: keys) {
-			byte[] data = map.get(Maps.immutableEntry(namespace, key));
-			LOG.trace("%s getting %s:%s=%s", this, namespace, key, data);
-			if (data != null) {
-			    ret.put(key, data);
-			}
-		}
-		return ret;
-	}
+    @Override
+    public Map<String, byte[]> get(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
+        Map<String, byte[]> ret = Maps.newHashMap();
+        for (String key: keys) {
+            byte[] data = map.get(Maps.immutableEntry(namespace, key));
+            LOG.trace("%s getting %s:%s=%s", this, namespace, key, data);
+            if (data != null) {
+                ret.put(key, data);
+            }
+        }
+        return ret;
+    }
 
-	@Override
-	public void clear(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
-		for (String key: keys) {
-			LOG.trace("%s clearing %s:%s", this, namespace, key);
-			map.remove(Maps.immutableEntry(namespace, key));
-		}
-	}
+    @Override
+    public void clear(String namespace, Collection<String> keys, @Nullable CacheStatistics cacheStatistics) {
+        for (String key: keys) {
+            LOG.trace("%s clearing %s:%s", this, namespace, key);
+            map.remove(Maps.immutableEntry(namespace, key));
+        }
+    }
 
     @Override
     public Map<String, Boolean> add(String namespace, Collection<CacheStore<byte []>> stores, @Nullable CacheStatistics cacheStatistics)

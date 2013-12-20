@@ -155,7 +155,7 @@ public abstract class CacheConfiguration {
     @Config({"ness.cache.${cacheName}.max-value-size", "ness.cache.max-value-size"})
     @Default("1034240")
     public int getMemcachedMaxValueSize() {
-    	return 1034240;
+        return 1034240;
     }
 
     @Config({"ness.cache.${cacheName}.read-queue", "ness.cache.read-queue"})

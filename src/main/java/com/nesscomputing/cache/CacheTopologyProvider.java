@@ -48,7 +48,7 @@ class CacheTopologyProvider {
         @Override
         public InetSocketAddress apply(@Nonnull ServiceInformation input) {
             return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS),
-                    Integer.valueOf(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));
+                    Integer.parseInt(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));
         }
     };
 
@@ -87,10 +87,10 @@ class CacheTopologyProvider {
 
         final Collection<ServiceInformation> serviceInformation;
         if (cacheName == null) {
-        	serviceInformation = discoveryClient.findAllServiceInformation("memcached");
+            serviceInformation = discoveryClient.findAllServiceInformation("memcached");
         }
         else {
-        	serviceInformation  = discoveryClient.findAllServiceInformation("memcached", cacheName);
+            serviceInformation  = discoveryClient.findAllServiceInformation("memcached", cacheName);
         }
 
         //apply strict typing
@@ -107,7 +107,7 @@ class CacheTopologyProvider {
         });
 
         final List<InetSocketAddress> results = Lists.newArrayList(Collections2.transform(discoverInformation, SERVICE_INFORMATION_TO_INET_SOCKET_ADDRESS));
-		Collections.sort(results, InetSocketAddressComparator.DEFAULT);
-		return ImmutableList.copyOf(results);
+        Collections.sort(results, InetSocketAddressComparator.DEFAULT);
+        return ImmutableList.copyOf(results);
     }
 }
