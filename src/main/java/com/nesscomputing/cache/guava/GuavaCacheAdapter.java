@@ -232,9 +232,9 @@ class GuavaCacheAdapter<K, V> implements LoadingCache<K, V> {
 
     @Override
     public void putAll(Map <? extends K, ? extends V> m) {
-    	for(Entry<? extends K, ? extends V> entry : m.entrySet()) {
+        for(Entry<? extends K, ? extends V> entry : m.entrySet()) {
             put(entry.getKey(), entry.getValue());
-    	}
+        }
     }
 
     @SuppressWarnings("unchecked")
