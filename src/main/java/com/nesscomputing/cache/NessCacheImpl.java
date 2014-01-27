@@ -45,9 +45,9 @@ public class NessCacheImpl implements NessCache {
     }
 
     @Inject(optional=true)
-    void injectCacheStatisticsManager(final CacheStatisticsManager cacheStatistics)
+    void injectCacheStatisticsManager(final CacheStatisticsManager injectCacheStatistics)
     {
-        this.cacheStatistics = cacheStatistics;
+        this.cacheStatistics = injectCacheStatistics;
     }
 
     /**

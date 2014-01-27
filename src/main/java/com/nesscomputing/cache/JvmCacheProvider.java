@@ -32,6 +32,8 @@ import net.sf.ehcache.Element;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.Configuration;
 import net.sf.ehcache.config.ConfigurationFactory;
+import net.sf.ehcache.config.PersistenceConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 
 import org.joda.time.DateTime;
@@ -52,8 +54,7 @@ public class JvmCacheProvider implements InternalCacheProvider {
     JvmCacheProvider(Lifecycle lifecycle) {
         ehCache = new Cache(new CacheConfiguration("ness.cache." + hashCode(), 100000)
                 .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
-                .overflowToDisk(false)
-                .diskPersistent(false));
+                .persistence(new PersistenceConfiguration().strategy(Strategy.NONE)));
 
         final Configuration ehcacheConfig = ConfigurationFactory.parseConfiguration();
         ehcacheConfig.setUpdateCheck(false);

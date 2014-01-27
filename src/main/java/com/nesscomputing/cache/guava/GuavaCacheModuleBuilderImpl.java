@@ -130,8 +130,8 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
     }
 
     @Override
-    public GuavaCacheModuleBuilder<K, V> withKeySerializer(Function<? super K, String> keySerializerFunction) {
-        this.keySerializerFunction = keySerializerFunction;
+    public GuavaCacheModuleBuilder<K, V> withKeySerializer(Function<? super K, String> withKeySerializerFunction) {
+        this.keySerializerFunction = withKeySerializerFunction;
         return this;
     }
 
@@ -224,22 +224,22 @@ class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
 
     @Override
     public GuavaCacheModuleBuilder<K, V> withValueSerializer(
-            Function<? super V, byte[]> valueSerializerFunction,
-            Function<byte[], ? extends V> valueDeserializerFunction) {
-        this.valueSerializerFunction = valueSerializerFunction;
-        this.valueDeserializerFunction = valueDeserializerFunction;
+            Function<? super V, byte[]> withValueSerializerFunction,
+            Function<byte[], ? extends V> withValueDeserializerFunction) {
+        this.valueSerializerFunction = withValueSerializerFunction;
+        this.valueDeserializerFunction = withValueDeserializerFunction;
         return this;
     }
 
     @Override
-    public GuavaCacheModuleBuilderImpl<K, V> withExpiration(Duration expiry) {
-        return withExpiration(expiry, null);
+    public GuavaCacheModuleBuilderImpl<K, V> withExpiration(Duration withExpiry) {
+        return withExpiration(withExpiry, null);
     }
 
     @Override
-    public GuavaCacheModuleBuilderImpl<K, V> withExpiration(Duration expiry, Duration expiryJitter) {
-        this.expiry = expiry;
-        this.expiryJitter = expiryJitter;
+    public GuavaCacheModuleBuilderImpl<K, V> withExpiration(Duration withExpiry, Duration withExpiryJitter) {
+        this.expiry = withExpiry;
+        this.expiryJitter = withExpiryJitter;
         return this;
     }
 

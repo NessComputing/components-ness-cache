@@ -26,6 +26,7 @@ import org.skife.config.Default;
 import org.skife.config.DefaultNull;
 import org.skife.config.TimeSpan;
 
+@SuppressWarnings("hiding")
 public abstract class CacheConfiguration {
 
     public enum CacheType {

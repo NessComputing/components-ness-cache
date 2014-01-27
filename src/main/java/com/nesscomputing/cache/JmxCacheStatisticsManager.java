@@ -52,10 +52,10 @@ class JmxCacheStatisticsManager implements CacheStatisticsManager {
     }
 
     @Inject(optional=true)
-    synchronized void injectOptionalDependencies(final Lifecycle lifecycle, final MBeanExporter exporter)
+    synchronized void injectOptionalDependencies(final Lifecycle injectLifecycle, final MBeanExporter injectExporter)
     {
-        this.lifecycle = lifecycle;
-        this.exporter = exporter;
+        this.lifecycle = injectLifecycle;
+        this.exporter = injectExporter;
     }
 
     @Override

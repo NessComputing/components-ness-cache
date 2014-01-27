@@ -181,9 +181,9 @@ public class CacheStatistics {
         this.clearOperations.incrementAndGet();
     }
 
-    public void incrementOversizedStores(int oversizedStores)
+    public void incrementOversizedStores(int additionalOversizedStores)
     {
-        this.oversizedStores.addAndGet(oversizedStores);
+        this.oversizedStores.addAndGet(additionalOversizedStores);
     }
 
     @Managed

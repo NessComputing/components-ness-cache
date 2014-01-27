@@ -89,43 +89,43 @@ public final class PrefixedCacheBuilder<P, K, V> implements Provider<PrefixedCac
         return this;
     }
 
-    public PrefixedCacheBuilder<P, K, V> withAnnotation(final Annotation annotation)
+    public PrefixedCacheBuilder<P, K, V> withAnnotation(final Annotation withAnnotation)
     {
-        this.annotation = annotation;
+        this.annotation = withAnnotation;
         return this;
     }
 
-    public PrefixedCacheBuilder<P, K, V> withDeserializer(final Class<? extends Annotation> deserializerAnnotation)
+    public PrefixedCacheBuilder<P, K, V> withDeserializer(final Class<? extends Annotation> withDeserializerAnnotation)
     {
-        this.deserializerAnnotation = deserializerAnnotation;
+        this.deserializerAnnotation = withDeserializerAnnotation;
         return this;
     }
 
-    public PrefixedCacheBuilder<P, K, V> withSerializer(final Class<? extends Annotation> serializerAnnotation)
+    public PrefixedCacheBuilder<P, K, V> withSerializer(final Class<? extends Annotation> withSerializerAnnotation)
     {
-        this.serializerAnnotation = serializerAnnotation;
+        this.serializerAnnotation = withSerializerAnnotation;
         return this;
     }
 
-    public PrefixedCacheBuilder<P, K, V> withSerializerAndDeserializer(final Class<? extends Annotation> annotation)
+    public PrefixedCacheBuilder<P, K, V> withSerializerAndDeserializer(final Class<? extends Annotation> withAnnotation)
     {
-        this.serializerAnnotation = annotation;
-        this.deserializerAnnotation = annotation;
+        this.serializerAnnotation = withAnnotation;
+        this.deserializerAnnotation = withAnnotation;
         return this;
     }
 
-    public PrefixedCacheBuilder<P, K, V> withExpirationAndJitter(final Duration expiration, final Duration jitter)
+    public PrefixedCacheBuilder<P, K, V> withExpirationAndJitter(final Duration withExpiration, final Duration withJitter)
     {
-        this.expiration = expiration;
-        this.jitter = jitter;
+        this.expiration = withExpiration;
+        this.jitter = withJitter;
 
         return this;
     }
 
-    public PrefixedCacheBuilder<P, K, V> withExpirationAndJitter(final TimeSpan expiration, final TimeSpan jitter)
+    public PrefixedCacheBuilder<P, K, V> withExpirationAndJitter(final TimeSpan withExpiration, final TimeSpan withJitter)
     {
-        this.expiration = new Duration(expiration.getMillis());
-        this.jitter = new Duration(jitter.getMillis());
+        this.expiration = new Duration(withExpiration.getMillis());
+        this.jitter = new Duration(withJitter.getMillis());
 
         return this;
     }
