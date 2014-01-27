@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.nesscomputing</groupId>
     <artifactId>ness-oss-parent</artifactId>
-    <version>33</version>
+    <version>34</version>
   </parent>
 
   <scm>
@@ -93,7 +93,6 @@
     <dependency>
       <groupId>org.weakref</groupId>
       <artifactId>jmxutils</artifactId>
-      <version>1.12</version>
     </dependency>
 
     <dependency>
