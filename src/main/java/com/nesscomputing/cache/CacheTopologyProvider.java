@@ -15,20 +15,11 @@
  */
 package com.nesscomputing.cache;
 
-import com.nesscomputing.logging.Log;
-
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import javax.annotation.Nonnull;
-
-import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
-import com.nesscomputing.service.discovery.client.ServiceInformation;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -39,6 +30,12 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.nesscomputing.logging.Log;
+import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
+import com.nesscomputing.service.discovery.client.ServiceInformation;
+
 /**
  * Use service discovery or configuration to assemble a set of Memcache servers dynamically.
  */
@@ -46,8 +43,9 @@ import com.google.inject.name.Named;
 class CacheTopologyProvider {
     private static final Function<ServiceInformation, InetSocketAddress> SERVICE_INFORMATION_TO_INET_SOCKET_ADDRESS = new Function<ServiceInformation, InetSocketAddress>() {
         @Override
-        public InetSocketAddress apply(@Nonnull ServiceInformation input) {
-            return new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS),
+        public InetSocketAddress apply(ServiceInformation input) {
+            return input == null ? null :
+                new InetSocketAddress(input.getProperty(ServiceInformation.PROP_SERVICE_ADDRESS),
                     Integer.valueOf(input.getProperty(ServiceInformation.PROP_SERVICE_PORT)));
         }
     };
