@@ -23,12 +23,6 @@ import java.math.BigDecimal;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.google.common.cache.Cache;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -45,7 +39,12 @@ import com.nesscomputing.jackson.NessJacksonModule;
 import com.nesscomputing.lifecycle.junit.LifecycleRule;
 import com.nesscomputing.lifecycle.junit.LifecycleRunner;
 import com.nesscomputing.lifecycle.junit.LifecycleStatement;
-import com.nesscomputing.testing.lessio.AllowDNSResolution;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.kitei.testing.lessio.AllowDNSResolution;
 
 @AllowDNSResolution
 @RunWith(LifecycleRunner.class)

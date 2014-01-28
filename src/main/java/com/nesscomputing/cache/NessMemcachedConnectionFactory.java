@@ -18,14 +18,14 @@ package com.nesscomputing.cache;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.google.inject.Inject;
+
 import net.spy.memcached.FailureMode;
 import net.spy.memcached.KetamaConnectionFactory;
 import net.spy.memcached.OperationFactory;
 import net.spy.memcached.ops.Operation;
 import net.spy.memcached.protocol.binary.BinaryOperationFactory;
 import net.spy.memcached.transcoders.Transcoder;
-
-import com.google.inject.Inject;
 /**
  * A ConnectionFactory which is Ketama and Binary capable, and uses the custom Ness transcoder.
  */

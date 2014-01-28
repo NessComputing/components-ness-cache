@@ -22,11 +22,6 @@ import static org.junit.Assert.assertNull;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.google.common.base.Charsets;
 import com.google.common.base.Functions;
 import com.google.common.cache.Cache;
@@ -41,7 +36,11 @@ import com.nesscomputing.config.ConfigModule;
 import com.nesscomputing.lifecycle.junit.LifecycleRule;
 import com.nesscomputing.lifecycle.junit.LifecycleRunner;
 import com.nesscomputing.lifecycle.junit.LifecycleStatement;
-import com.nesscomputing.testing.lessio.AllowDNSResolution;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.kitei.testing.lessio.AllowDNSResolution;
 
 @AllowDNSResolution
 @RunWith(LifecycleRunner.class)

@@ -26,6 +26,10 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import com.nesscomputing.lifecycle.Lifecycle;
+import com.nesscomputing.lifecycle.LifecycleListener;
+import com.nesscomputing.lifecycle.LifecycleStage;
+
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -35,10 +39,6 @@ import net.sf.ehcache.config.ConfigurationFactory;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 
 import org.joda.time.DateTime;
-
-import com.nesscomputing.lifecycle.Lifecycle;
-import com.nesscomputing.lifecycle.LifecycleListener;
-import com.nesscomputing.lifecycle.LifecycleStage;
 
 /**
  * An in-JVM cache, currently backed by EHCache

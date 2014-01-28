@@ -19,15 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.net.InetSocketAddress;
 
-import net.spy.memcached.BinaryConnectionFactory;
-import net.spy.memcached.DefaultConnectionFactory;
-import net.spy.memcached.FailureMode;
-import net.spy.memcached.MemcachedClient;
-
-import org.junit.After;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.google.common.collect.Lists;
 import com.thimbleware.jmemcached.CacheImpl;
 import com.thimbleware.jmemcached.Key;
@@ -36,6 +27,15 @@ import com.thimbleware.jmemcached.MemCacheDaemon;
 import com.thimbleware.jmemcached.storage.CacheStorage;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap.EvictionPolicy;
+
+import net.spy.memcached.BinaryConnectionFactory;
+import net.spy.memcached.DefaultConnectionFactory;
+import net.spy.memcached.FailureMode;
+import net.spy.memcached.MemcachedClient;
+
+import org.junit.After;
+import org.junit.Ignore;
+import org.junit.Test;
 
 @Ignore // Filed as http://code.google.com/p/spymemcached/issues/detail?id=189
 public class SpyMemcachedRuntimeExceptionTest {

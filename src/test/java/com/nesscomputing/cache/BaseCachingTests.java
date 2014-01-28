@@ -23,14 +23,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import org.joda.time.DateTime;
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+
+import org.joda.time.DateTime;
+import org.junit.Assert;
+import org.junit.Test;
 
 public abstract class BaseCachingTests {
     @Inject

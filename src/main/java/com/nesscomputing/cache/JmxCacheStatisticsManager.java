@@ -25,12 +25,12 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import org.weakref.jmx.MBeanExporter;
-
 import com.nesscomputing.lifecycle.Lifecycle;
 import com.nesscomputing.lifecycle.LifecycleListener;
 import com.nesscomputing.lifecycle.LifecycleStage;
 import com.nesscomputing.logging.Log;
+
+import org.weakref.jmx.MBeanExporter;
 
 /**
  * Manage various {@link CacheStatistics} beans exported via JMX.  Exports them on first access,

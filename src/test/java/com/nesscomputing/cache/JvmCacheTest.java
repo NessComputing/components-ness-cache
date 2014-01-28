@@ -19,12 +19,12 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 
-import org.easymock.EasyMock;
-import org.junit.Before;
-
 import com.nesscomputing.config.Config;
 import com.nesscomputing.lifecycle.Lifecycle;
-import com.nesscomputing.testing.lessio.AllowDNSResolution;
+
+import org.easymock.EasyMock;
+import org.junit.Before;
+import org.kitei.testing.lessio.AllowDNSResolution;
 
 @AllowDNSResolution
 public class JvmCacheTest extends BaseCachingTests {

@@ -29,11 +29,11 @@ import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.nesscomputing.config.Config;
 import com.nesscomputing.config.ConfigProvider;
 import com.nesscomputing.logging.Log;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class CacheModule extends AbstractModule {
     private static final Log LOG = Log.findLog();

@@ -43,11 +43,11 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.google.inject.TypeLiteral;
 
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-
 import com.nesscomputing.cache.NamespacedCache;
 import com.nesscomputing.logging.Log;
+
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * Provides a Guava Cache implementation backed by a namespaced NessCache.

@@ -17,10 +17,6 @@ package com.nesscomputing.cache;
 
 import java.net.InetSocketAddress;
 
-import org.junit.After;
-import org.junit.Before;
-
-import com.nesscomputing.testing.lessio.AllowNetworkListen;
 import com.thimbleware.jmemcached.CacheImpl;
 import com.thimbleware.jmemcached.Key;
 import com.thimbleware.jmemcached.LocalCacheElement;
@@ -28,6 +24,10 @@ import com.thimbleware.jmemcached.MemCacheDaemon;
 import com.thimbleware.jmemcached.storage.CacheStorage;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap;
 import com.thimbleware.jmemcached.storage.hash.ConcurrentLinkedHashMap.EvictionPolicy;
+
+import org.junit.After;
+import org.junit.Before;
+import org.kitei.testing.lessio.AllowNetworkListen;
 
 /**
  * Set up a memcached on localhost:<ephemeral port>

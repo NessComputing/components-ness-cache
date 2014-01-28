@@ -20,9 +20,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.weakref.jmx.Managed;
-
 import com.nesscomputing.logging.Log;
+
+import org.weakref.jmx.Managed;
 
 /**
  * Bean to hold cache statistics on a per-namespace basis

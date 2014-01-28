@@ -17,13 +17,13 @@ package com.nesscomputing.cache.guava;
 
 import java.lang.annotation.Annotation;
 
-import org.joda.time.Duration;
-
 import com.google.common.base.Function;
 import com.google.common.cache.CacheLoader;
 import com.google.inject.Key;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+
+import org.joda.time.Duration;
 
 /**
  * Guice module builder which provides Cache&lt;K, V&gt; implementations for any

@@ -27,16 +27,16 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import com.nesscomputing.cache.CacheModule;
 import com.nesscomputing.config.Config;
 import com.nesscomputing.config.ConfigModule;
 import com.nesscomputing.lifecycle.junit.LifecycleRule;
 import com.nesscomputing.lifecycle.junit.LifecycleRunner;
 import com.nesscomputing.lifecycle.junit.LifecycleStatement;
-import com.nesscomputing.testing.lessio.AllowDNSResolution;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.kitei.testing.lessio.AllowDNSResolution;
 
 
 @AllowDNSResolution

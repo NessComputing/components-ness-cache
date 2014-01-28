@@ -39,10 +39,9 @@ import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.nesscomputing.testing.lessio.AllowDNSResolution;
-import com.nesscomputing.testing.lessio.AllowNetworkAccess;
-import com.nesscomputing.testing.lessio.AllowNetworkListen;
+import org.kitei.testing.lessio.AllowDNSResolution;
+import org.kitei.testing.lessio.AllowNetworkAccess;
+import org.kitei.testing.lessio.AllowNetworkListen;
 
 @AllowDNSResolution
 @AllowNetworkListen(ports = {0})

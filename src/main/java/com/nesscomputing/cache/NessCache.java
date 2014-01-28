@@ -36,7 +36,7 @@ public interface NessCache {
      * }
      * </pre>
      */
-    public NamespacedCache withNamespace(String namespace);
+    NamespacedCache withNamespace(String namespace);
 
     /**
      * In a given namespace, store (add or overwrite) a collection of keys and corresponding values

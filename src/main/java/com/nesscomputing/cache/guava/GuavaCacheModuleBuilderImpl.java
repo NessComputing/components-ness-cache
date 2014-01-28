@@ -35,10 +35,10 @@ import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
 import com.google.inject.util.Types;
 
-import org.joda.time.Duration;
-
 import com.nesscomputing.cache.NamespacedCache;
 import com.nesscomputing.cache.NessCache;
+
+import org.joda.time.Duration;
 
 class GuavaCacheModuleBuilderImpl<K, V> implements GuavaCacheModuleBuilder<K, V>
 {

@@ -15,8 +15,6 @@
  */
 package com.nesscomputing.cache;
 
-import com.nesscomputing.logging.Log;
-
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collection;
@@ -24,11 +22,6 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nonnull;
-
-import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
-import com.nesscomputing.service.discovery.client.ServiceInformation;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -38,6 +31,12 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+
+import com.nesscomputing.logging.Log;
+import com.nesscomputing.service.discovery.client.ReadOnlyDiscoveryClient;
+import com.nesscomputing.service.discovery.client.ServiceInformation;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Use service discovery or configuration to assemble a set of Memcache servers dynamically.

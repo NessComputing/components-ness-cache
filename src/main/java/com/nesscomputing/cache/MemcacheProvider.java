@@ -39,12 +39,12 @@ import com.google.common.primitives.Ints;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import com.nesscomputing.logging.Log;
+
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.OperationTimeoutException;
 
 import org.joda.time.DateTime;
-
-import com.nesscomputing.logging.Log;
 
 
 /**

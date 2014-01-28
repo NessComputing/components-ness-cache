@@ -15,9 +15,6 @@
  */
 package com.nesscomputing.cache;
 
-import com.nesscomputing.lifecycle.LifecycleStage;
-import com.nesscomputing.lifecycle.guice.OnStage;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,8 +27,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import net.spy.memcached.MemcachedClient;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -39,7 +34,12 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+
+import com.nesscomputing.lifecycle.LifecycleStage;
+import com.nesscomputing.lifecycle.guice.OnStage;
 import com.nesscomputing.logging.Log;
+
+import net.spy.memcached.MemcachedClient;
 
 /**
  * Maintain a {@link MemcachedClient} which is always connected to the currently operating
